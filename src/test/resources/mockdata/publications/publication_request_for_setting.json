@@ -1,0 +1,8 @@
+{
+  "url": "/organizations-storage/organizations",
+  "tenants": [],
+  "payload": {
+    "name": "ORG-NAME",
+    "source": "consortium"
+  }
+}

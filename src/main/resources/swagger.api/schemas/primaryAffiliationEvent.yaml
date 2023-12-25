@@ -1,0 +1,43 @@
+$schema: "http://json-schema.org/draft-04/schema#"
+description: "Primary affiliation event"
+type: object
+properties:
+  id:
+    description: "UUID of the event"
+    $ref: "uuid.yaml"
+  userId:
+    description: "UUID of the user"
+    $ref: "uuid.yaml"
+  username:
+    description: "The user's username, for delete event it will be empty"
+    type: string
+  tenantId:
+    description: "The name of the user's tenant"
+    type: string
+  centralTenantId:
+    description: "The name of the user's central tenant"
+    type: string
+  consortiumId:
+    description: "The consortium uuid that user belongs to"
+    $ref: "uuid.yaml"
+  email:
+    description: "The user's email"
+    type: string
+  mobilePhoneNumber:
+    description: "The user's mobile phone number"
+    type: string
+  phoneNumber:
+    description: "The user's phone number"
+    type: string
+  externalSystemId:
+    description: "External system id of user"
+    type: string
+  barcode:
+    description: "The user's barcode"
+    type: string
+additionalProperties: false
+required:
+  - id
+  - userId
+  - tenantId
+

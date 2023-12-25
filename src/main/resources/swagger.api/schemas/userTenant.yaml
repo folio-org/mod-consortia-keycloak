@@ -1,0 +1,50 @@
+UserTenant:
+  description: "A JSON schema for the User Tenant"
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    userId:
+      type: string
+      format: uuid
+    username:
+      type: string
+    tenantId:
+      type: string
+    tenantName:
+      type: string
+    isPrimary:
+      type: boolean
+    centralTenantId:
+      type: string
+    consortiumId:
+      type: string
+      format: uuid
+    email:
+      type: string
+    mobilePhoneNumber:
+      type: string
+    phoneNumber:
+      type: string
+  additionalProperties: false
+  required:
+    - userId
+    - tenantId
+
+UserTenantCollection:
+  description: "A JSON schema for the User Tenants Collection"
+  type: object
+  properties:
+    userTenants:
+      type: array
+      description: "The list of user tenants"
+      items:
+        type: object
+        $ref: "userTenant.yaml#/UserTenant"
+    totalRecords:
+      type: integer
+  additionalProperties: false
+  required:
+    - userTenants
+    - totalRecords

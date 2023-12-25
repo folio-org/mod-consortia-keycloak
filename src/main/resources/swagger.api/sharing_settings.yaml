@@ -1,0 +1,125 @@
+openapi: 3.0.0
+info:
+  title: Sharing instance and setting integration API
+  description: "Sharing instance and setting integration API"
+  version: 0.0.1
+servers:
+  - url: /consortia/{consortiumId}/sharing
+paths:
+  /settings:
+    post:
+      summary: start setting sharing
+      operationId: startSharingSetting
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+      requestBody:
+        $ref: "#/components/requestBodies/SharingSettingBody"
+      responses:
+        "201":
+          $ref: "#/components/responses/SharingSettingResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /settings/{settingId}:
+    delete:
+      summary: delete sharing setting
+      operationId: deleteSharingSetting
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/settingId"
+      requestBody:
+        $ref: "#/components/requestBodies/SharingSettingBody"
+      responses:
+        "200":
+          $ref: "#/components/responses/SharingSettingDeleteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+components:
+  requestBodies:
+    SharingSettingBody:
+      description: Sharing settings object
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/sharingSetting.yaml#/SharingSettingRequest"
+  responses:
+    SharingSettingResponse:
+      description: Returns a sharing setting object response for post operation
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/sharingSetting.yaml#/SharingSettingResponse"
+    SharingSettingDeleteResponse:
+      description: Returns a sharing setting response for delete operation
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/sharingSetting.yaml#/SharingSettingDeleteResponse"
+    NoContent:
+      description: No content
+    Conflict:
+      description: Validation errors
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Errors"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Errors"
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Errors"
+    Unauthorized:
+      description: Not authorized to perform requested action
+      content:
+        text/plain:
+          example: unable to perform action -- unauthorized
+    UnprocessableEntity:
+      description: Validation errors
+      content:
+        application/json:
+          schema:
+            $ref: 'schemas/common.yaml#/Errors'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Error"
+  parameters:
+    consortiumId:
+      in: path
+      name: consortiumId
+      schema:
+        $ref: "schemas/common.yaml#/uuid"
+      required: true
+      description: The ID of consortium
+    settingId:
+      in: path
+      name: settingId
+      schema:
+        $ref: "schemas/common.yaml#/uuid"
+      required: true
+      description: The ID of setting

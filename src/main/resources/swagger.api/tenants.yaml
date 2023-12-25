@@ -1,0 +1,257 @@
+openapi: 3.0.0
+info:
+  title: Tenant integration API
+  description: "Tenant integration API"
+  version: 0.0.1
+servers:
+  - url: /consortia/{consortiumId}/
+paths:
+  /tenants:
+    get:
+      summary: Get a list of tenants based on consortiumId
+      operationId: getTenants
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/trait_pageable_offset"
+        - $ref: "#/components/parameters/trait_pageable_limit"
+      responses:
+        "200":
+          $ref: "#/components/responses/TenantCollection"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      summary: Save tenant
+      operationId: saveTenant
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/adminUserId"
+      requestBody:
+        $ref: "#/components/requestBodies/TenantBody"
+      responses:
+        "201":
+          $ref: "#/components/responses/Tenant"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /tenants/{tenantId}:
+    put:
+      summary: Update tenant name
+      operationId: updateTenant
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/tenantId"
+      requestBody:
+        $ref: "#/components/requestBodies/TenantBody"
+      responses:
+        "200":
+          $ref: "#/components/responses/Tenant"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      summary: Delete tenant by Id
+      operationId: deleteTenantById
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/tenantId"
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    get:
+      summary: Get tenant details by Id
+      operationId: getTenantDetailsById
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/tenantId"
+      responses:
+        "200":
+          $ref: "#/components/responses/TenantDetails"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /tenants/{tenantId}/sync-primary-affiliations:
+    post:
+      summary: Sync Primary Affiliations
+      operationId: syncPrimaryAffiliations
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/tenantId"
+        - $ref: "#/components/parameters/centralTenantId"
+      responses:
+        "201":
+          $ref: "#/components/responses/NoContent"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /tenants/{tenantId}/create-primary-affiliations:
+    post:
+      summary: Create Primary Affiliations
+      operationId: createPrimaryAffiliations
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/tenantId"
+        - $ref: "#/components/parameters/centralTenantId"
+      requestBody:
+        $ref: "#/components/requestBodies/SyncPrimaryAffiliationsRequest"
+      responses:
+        "201":
+          $ref: "#/components/responses/NoContent"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+components:
+  requestBodies:
+    TenantBody:
+      description: Tenant object
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/tenant.yaml#/Tenant"
+    SyncPrimaryAffiliationsRequest:
+      description: SyncPrimaryAffiliationsRequest object
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/primaryAffiliationBody.yaml#/SyncPrimaryAffiliationBody"
+  responses:
+    Tenant:
+      description: Returns a tenant object
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/tenant.yaml#/Tenant"
+    TenantDetails:
+      description: Returns a tenant details object
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/tenant.yaml#/TenantDetails"
+    TenantCollection:
+      description: Returns a tenant collection object
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/tenant.yaml#/TenantCollection"
+    NoContent:
+      description: No content
+    Conflict:
+      description: Validation errors
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Errors"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Errors"
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Errors"
+    Unauthorized:
+      description: Not authorized to perform requested action
+      content:
+        text/plain:
+          example: unable to perform action -- unauthorized
+    UnprocessableEntity:
+      description: Validation errors
+      content:
+        application/json:
+          schema:
+            $ref: 'schemas/common.yaml#/Errors'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Error"
+  parameters:
+    consortiumId:
+      in: path
+      name: consortiumId
+      schema:
+        $ref: "schemas/common.yaml#/uuid"
+      required: true
+      description: The ID of consortium
+    adminUserId:
+      in: query
+      name: adminUserId
+      schema:
+        $ref: "schemas/common.yaml#/uuid"
+      description: The ID of adminUser
+    tenantId:
+      in: path
+      name: tenantId
+      schema:
+        type: string
+      required: true
+      description: The ID of the tenant
+    centralTenantId:
+      in: query
+      name: centralTenantId
+      schema:
+        type: string
+      required: true
+      description: The ID of the central tenant
+    trait_pageable_offset:
+      name: offset
+      in: query
+      description: Skip over a number of elements by specifying an offset value for
+        the query
+      schema:
+        default: 0
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+    trait_pageable_limit:
+      name: limit
+      in: query
+      description: Limit the number of elements returned in the response
+      schema:
+        default: 10
+        minimum: 0
+        maximum: 2147483647
+        type: integer

@@ -1,0 +1,14 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
+
+  <include file="changes/create-consortium-table.xml" relativeToChangelogFile="true"/>
+  <include file="changes/create-tenant-table.xml" relativeToChangelogFile="true"/>
+  <include file="changes/create-user-tenant-table.xml" relativeToChangelogFile="true"/>
+  <include file="changes/create-consortia-configuration-table.xml" relativeToChangelogFile="true"/>
+  <include file="changes/create-publish-coordinator-tables.xml" relativeToChangelogFile="true"/>
+  <include file="changes/create-sharing-instance-action-table.xml" relativeToChangelogFile="true"/>
+  <include file="changes/create-sharing-setting-table.xml" relativeToChangelogFile="true"/>
+</databaseChangeLog>

@@ -1,0 +1,58 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
+
+  <changeSet id="MODFISTO-394@@create-tenant-table" author="singhadesh">
+
+    <createTable tableName="tenant">
+      <column name="id" type="text">
+        <constraints primaryKey="true" primaryKeyName="pk_tenant_id"/>
+      </column>
+      <column name="name" type="text">
+        <constraints unique="true" nullable="false"/>
+      </column>
+      <column name="consortium_id" type="uuid">
+        <constraints unique="false" nullable="false" foreignKeyName="fk_consortium_id"  referencedTableName="consortium"   referencedColumnNames="id"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet id="MOCON-26@add-code-unique-field" author="siarhei_hrabko@epam.com">
+    <addColumn tableName="tenant">
+      <column name="code" type="text">
+        <constraints unique="true" nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet id="MODCON-32@add-is_central-field" author="azizbekxm">
+    <addColumn tableName="tenant">
+      <column name="is_central" type="boolean" defaultValueBoolean="false">
+        <constraints unique="false" nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet id="MODCON-23@add-metadata-fields" author="singhAdesh">
+    <addColumn tableName="tenant">
+      <column name="created_by" type="uuid"/>
+      <column name="created_date" type="timestamp without time zone" defaultValueComputed="now()">
+        <constraints nullable="false"/>
+      </column>
+      <column name="updated_by" type="uuid"/>
+      <column name="updated_date" type="timestamp without time zone"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet id="MODCON-88@add-tenant-setup-status" author="tatsiana_tarhonskaya@epam.com">
+    <sql dbms="postgresql">
+      CREATE TYPE setup_status as ENUM ('IN_PROGRESS', 'COMPLETED', 'COMPLETED_WITH_ERRORS', 'FAILED');
+      CREATE CAST (character varying as setup_status) WITH INOUT AS IMPLICIT;
+    </sql>
+    <addColumn tableName="tenant">
+      <column name="setup_status" type="setup_status"/>
+    </addColumn>
+  </changeSet>
+</databaseChangeLog>

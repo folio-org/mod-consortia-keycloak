@@ -1,0 +1,204 @@
+openapi: 3.0.0
+info:
+  title: User Tenant Association integration API
+  description: "User Tenant Association integration API"
+  version: 0.0.1
+servers:
+  - url: /consortia/{consortiumId}/
+paths:
+  /user-tenants:
+    get:
+      description: User Tenant Associations
+      summary: Get a list of user tenant associations
+      operationId: getUserTenants
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/userId"
+        - $ref: "#/components/parameters/username"
+        - $ref: "#/components/parameters/tenantId"
+        - $ref: "#/components/parameters/trait_pageable_offset"
+        - $ref: "#/components/parameters/trait_pageable_limit"
+      responses:
+        "200":
+          $ref: "#/components/responses/UserTenantCollection"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      description: User Tenant Associations
+      summary: Inserts a single user_tenant associations
+      operationId: postUserTenants
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+      requestBody:
+        $ref: "#/components/requestBodies/UserTenantBody"
+      responses:
+        "201":
+          $ref: "#/components/responses/UserTenant"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      description: Delete User Tenant Associations for particular user id and tenant id
+      summary: Delete User Tenant Association by user id and tenant id
+      operationId: deleteUserTenant
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/requiredUserId"
+        - $ref: "#/components/parameters/requiredTenantId"
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /user-tenants/{associationId}:
+    description: User Tenant Associations
+    get:
+      summary: Get a list of user tenant associations by association id
+      operationId: getUserTenantByAssociationId
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/associationId"
+      responses:
+        "200":
+          $ref: "#/components/responses/UserTenant"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+components:
+  requestBodies:
+    UserTenantBody:
+      description: user_tenant object
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/userTenant.yaml#/UserTenant"
+  responses:
+    User:
+      description: User
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/user.yaml#/User"
+    UserTenant:
+      description: Returns a user tenant association object
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/userTenant.yaml#/UserTenant"
+    UserTenantCollection:
+      description: Returns a user tenant association collection object
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/userTenant.yaml#/UserTenantCollection"
+    NoContent:
+      description: No content
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Error"
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Error"
+    Unauthorized:
+      description: Not authorized to perform requested action
+      content:
+        text/plain:
+          example: unable to perform action -- unauthorized
+    UnprocessableEntity:
+      description: Validation errors
+      content:
+        application/json:
+          schema:
+            $ref: 'schemas/common.yaml#/Errors'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Error"
+  parameters:
+    consortiumId:
+      in: path
+      name: consortiumId
+      schema:
+        $ref: "schemas/common.yaml#/uuid"
+      required: true
+      description: The ID of consortium
+    tenantId:
+      in: query
+      name: tenantId
+      schema:
+        type: string
+      description: The ID of the tenant
+    requiredTenantId:
+      in: query
+      name: tenantId
+      schema:
+        type: string
+      required: true
+      description: The ID of the tenant
+    associationId:
+      in: path
+      name: associationId
+      schema:
+        $ref: "schemas/common.yaml#/uuid"
+      required: true
+      description: UUID of the user to get and associated tenants.
+    userId:
+      in: query
+      name: userId
+      schema:
+        $ref: "schemas/common.yaml#/uuid"
+      description: The UUID of the user
+    requiredUserId:
+      in: query
+      name: userId
+      schema:
+        $ref: "schemas/common.yaml#/uuid"
+      description: The UUID of the user
+    username:
+      in: query
+      name: username
+      schema:
+        type: string
+        description: The username of the user
+    trait_pageable_offset:
+      name: offset
+      in: query
+      description: Skip over a number of elements by specifying an offset value for
+        the query
+      schema:
+        default: 0
+        minimum: 0
+        maximum: 2147483647
+        type: integer
+    trait_pageable_limit:
+      name: limit
+      in: query
+      description: Limit the number of elements returned in the response
+      schema:
+        default: 10
+        minimum: 0
+        maximum: 2147483647
+        type: integer

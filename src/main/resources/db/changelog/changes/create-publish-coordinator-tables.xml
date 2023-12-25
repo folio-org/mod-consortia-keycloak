@@ -1,0 +1,63 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
+
+  <changeSet id="MODCON-48@create-publish-coordinator-tables" author="siarhei_hrabko@epam.com">
+
+    <createTable tableName="pc_state">
+      <column name="id" type="uuid">
+        <constraints primaryKey="true" primaryKeyName="pk_pc_state_id"/>
+      </column>
+      <column name="status" type="text">
+        <constraints nullable="false"/>
+      </column>
+      <column name="total_records" type="integer">
+        <constraints nullable="false"/>
+      </column>
+      <column name="created_by" type="uuid"/>
+      <column name="created_date" type="timestamp without time zone" defaultValueComputed="now()">
+        <constraints nullable="false"/>
+      </column>
+      <column name="updated_by" type="uuid"/>
+      <column name="updated_date" type="timestamp without time zone"/>
+    </createTable>
+
+    <createTable tableName="pc_tenant_request">
+      <column name="id" type="uuid">
+        <constraints primaryKey="true" primaryKeyName="pk_pc_tenant_request_id"/>
+      </column>
+      <column name="pc_id" type="uuid">
+        <constraints unique="false" nullable="false" foreignKeyName="fk_pc_state_id" referencedTableName="pc_state"
+                     referencedColumnNames="id"/>
+      </column>
+      <column name="tenant_id" type="text">
+        <constraints nullable="false"/>
+      </column>
+      <column name="status" type="text">
+        <constraints nullable="false"/>
+      </column>
+      <column name="request_url" type="text">
+        <constraints nullable="false"/>
+      </column>
+      <column name="request_payload" type="text">
+      </column>
+      <column name="response" type="text">
+      </column>
+      <column name="response_status_code" type="text">
+      </column>
+      <column name="completed_date" type="timestamp without time zone"/>
+
+      <column name="created_by" type="uuid"/>
+      <column name="created_date" type="timestamp without time zone" defaultValueComputed="now()">
+        <constraints nullable="false"/>
+      </column>
+      <column name="updated_by" type="uuid"/>
+      <column name="updated_date" type="timestamp without time zone"/>
+    </createTable>
+    <createIndex indexName="pc_id_idx" tableName="pc_tenant_request">
+      <column name="pc_id"/>
+    </createIndex>
+  </changeSet>
+</databaseChangeLog>

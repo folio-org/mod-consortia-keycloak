@@ -1,0 +1,82 @@
+openapi: 3.0.0
+info:
+  title: Consortia Configuration integration API
+  description: "Consortia Configuration integration API"
+  version: 0.0.1
+paths:
+  /consortia-configuration:
+    get:
+      summary: Get consortium configuration
+      operationId: getConfiguration
+      responses:
+        '200':
+          $ref: '#/components/responses/ConsortiaConfiguration'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Save consortia configuration
+      operationId: saveConfiguration
+      responses:
+        '201':
+          $ref: '#/components/responses/ConsortiaConfiguration'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      requestBody:
+        $ref: '#/components/requestBodies/ConfigurationBody'
+components:
+  requestBodies:
+    ConfigurationBody:
+      description: Consortia configuration object
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/consortiaConfiguration.yaml#/ConsortiaConfiguration"
+  responses:
+    ConsortiaConfiguration:
+      description: Consortia configuration object
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/consortiaConfiguration.yaml#/ConsortiaConfiguration"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Error"
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Error"
+    Conflict:
+      description: Validation errors
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Errors"
+    Unauthorized:
+      description: Not authorized to perform requested action
+      content:
+        text/plain:
+          example: unable to perform action -- unauthorized
+    UnprocessableEntity:
+      description: Validation errors
+      content:
+        application/json:
+          schema:
+            $ref: 'schemas/common.yaml#/Errors'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Error"

@@ -1,0 +1,95 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: mod-consortia-keycloak
+  datasource:
+    username: ${DB_USERNAME:folio_admin}
+    password: ${DB_PASSWORD:folio_admin}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_DATABASE:okapi_modules}
+  kafka:
+    bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
+  sql:
+    init:
+      continue-on-error: true
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate.format_sql: true
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/changelog-master.xml
+  jackson:
+    default-property-inclusion: non_null
+    deserialization:
+      fail-on-unknown-properties: false
+    serialization:
+      write-dates-as-timestamps: false
+  cloud:
+    openfeign:
+      okhttp:
+        enabled: true
+folio:
+  environment: ${ENV:folio}
+  okapi-url: ${OKAPI_URL:http://sidecar:8081}
+  kafka:
+    numberOfPartitions: ${NUMBER_OF_PARTITIONS:1}
+    replicationFactor: ${REPLICATION_FACTOR:1}
+    listener:
+      user-created:
+        concurrency: ${KAFKA_EVENTS_CONCURRENCY:5}
+        topic-pattern: ${KAFKA_EVENTS_CONSUMER_PATTERN:(${folio.environment}\.)[a-zA-z0-9-]+\.\w+\.USER_CREATED}
+        group-id: ${folio.environment}-mod-consortia-keycloak-group
+      user-deleted:
+        concurrency: ${KAFKA_EVENTS_CONCURRENCY:5}
+        topic-pattern: ${KAFKA_EVENTS_CONSUMER_PATTERN:(${folio.environment}\.)[a-zA-z0-9-]+\.\w+\.USER_DELETED}
+        group-id: ${folio.environment}-mod-consortia-keycloak-group
+      user-updated:
+        concurrency: ${KAFKA_EVENTS_CONCURRENCY:5}
+        topic-pattern: ${KAFKA_EVENTS_CONSUMER_PATTERN:(${folio.environment}\.)[a-zA-z0-9-]+\.\w+\.USER_UPDATED}
+        group-id: ${folio.environment}-mod-consortia-keycloak-group
+      consortium-instance-sharing-complete:
+        concurrency: ${KAFKA_EVENTS_CONCURRENCY:5}
+        topic-pattern: ${KAFKA_EVENTS_CONSUMER_PATTERN:(${folio.environment}\.)[a-zA-z0-9-]+\.\w+\.CONSORTIUM_INSTANCE_SHARING_COMPLETE}
+        group-id: ${folio.environment}-mod-consortia-keycloak-group
+  tenant:
+    validation:
+      enabled: true
+  system-user:
+    enabled: ${SYSTEM_USER_ENABLED:false}
+    username: ${SYSTEM_USER_NAME:consortia-system-user}
+    password: ${SYSTEM_USER_PASSWORD}
+    lastname: SystemConsortia
+    permissionsFilePath: permissions/system-user-permissions.csv
+  timer:
+    publication-records-max-age-in-seconds: 86400
+  max-active-threads: 5
+feign:
+  client:
+    config:
+      default:
+        loggerLevel: basic
+management:
+  endpoints:
+    web:
+      base-path: /admin
+      exposure:
+        include: health, loggers
+  influx:
+    metrics:
+      export:
+        enabled: false
+logging:
+  level:
+    liquibase: info
+related-modules:
+  mod-users-id: ${MOD_USERS_ID}
+custom-fields:
+  backoff-delay: ${CUSTOM_FIELDS_RETRY_BACKOFF_DELAY:5000}
+  max-attempts: ${CUSTOM_FIELDS_RETRY_MAX_ATTEMPTS:5}

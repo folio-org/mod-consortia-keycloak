@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+  <changeSet id="MODCON-59@@create-sharing-instance-table" author="azizbekxm">
+
+    <createTable tableName="sharing_instance">
+      <column name="id" type="uuid">
+        <constraints primaryKey="true" primaryKeyName="pk_sharing_instance_id"/>
+      </column>
+      <column name="instance_id" type="uuid">
+        <constraints unique="true" uniqueConstraintName="uq_instance_id_source_tenant_id_target_tenant_id" nullable="false"/>
+      </column>
+      <column name="source_tenant_id" type="text">
+        <constraints unique="true" uniqueConstraintName="uq_instance_id_source_tenant_id_target_tenant_id" nullable="false"/>
+      </column>
+      <column name="target_tenant_id" type="text">
+        <constraints unique="true" uniqueConstraintName="uq_instance_id_source_tenant_id_target_tenant_id" nullable="false"/>
+      </column>
+      <column name="status" type="text">
+        <constraints unique="false" nullable="false"/>
+      </column>
+      <column name="error" type="text">
+        <constraints unique="false" nullable="true"/>
+      </column>
+      <column name="created_by" type="uuid"/>
+      <column name="created_date" type="timestamp without time zone" defaultValueComputed="now()">
+        <constraints nullable="false"/>
+      </column>
+      <column name="updated_by" type="uuid"/>
+      <column name="updated_date" type="timestamp without time zone"/>
+    </createTable>
+
+    <createIndex indexName="instance_id_idx" tableName="sharing_instance">
+      <column name="instance_id"/>
+    </createIndex>
+
+  </changeSet>
+</databaseChangeLog>

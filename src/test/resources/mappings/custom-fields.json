@@ -1,0 +1,29 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/custom-fields"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/custom-fields?query=name%3D%3DoriginalTenantId"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\n    \"customFields\": [\n        {\n            \"id\": \"b4bcde95-cd4a-4de1-a009-617f3e98abf5\",\n            \"name\": \"originalTenantId\",\n            \"refId\": \"originaltenantid\",\n            \"type\": \"TEXTBOX_LONG\",\n            \"entityType\": \"user\",\n            \"visible\": false,\n            \"required\": false,\n            \"isRepeatable\": false,\n            \"order\": 1,\n            \"helpText\": \"id of tenant where user created originally\",\n            \"textField\": {\n                \"fieldFormat\": \"TEXT\"\n            },\n            \"metadata\": {\n                \"createdDate\": \"2023-08-17T09:35:15.319+00:00\",\n                \"createdByUserId\": \"55f327a9-52cf-45ed-a07c-64e3d69e3a68\",\n                \"createdByUsername\": \"consortia-system-user\",\n                \"updatedDate\": \"2023-08-17T09:35:15.319+00:00\",\n                \"updatedByUserId\": \"55f327a9-52cf-45ed-a07c-64e3d69e3a68\"\n            }\n        },\n        {\n            \"id\": \"5f6e277f-c71b-4e12-a0e4-3149eeba8090\",\n            \"name\": \"originaltenantid\",\n            \"refId\": \"originaltenantid_2\",\n            \"type\": \"TEXTBOX_LONG\",\n            \"entityType\": \"user\",\n            \"visible\": false,\n            \"required\": false,\n            \"isRepeatable\": false,\n            \"order\": 2,\n            \"helpText\": \"id of tenant where user created originally\",\n            \"textField\": {\n                \"fieldFormat\": \"TEXT\"\n            },\n            \"metadata\": {\n                \"createdDate\": \"2023-08-17T11:05:00.952+00:00\",\n                \"createdByUserId\": \"55f327a9-52cf-45ed-a07c-64e3d69e3a68\",\n                \"createdByUsername\": \"consortia-system-user\",\n                \"updatedDate\": \"2023-08-17T11:05:00.952+00:00\",\n                \"updatedByUserId\": \"55f327a9-52cf-45ed-a07c-64e3d69e3a68\"\n            }\n        }\n    ],\n    \"totalRecords\": 2\n}",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

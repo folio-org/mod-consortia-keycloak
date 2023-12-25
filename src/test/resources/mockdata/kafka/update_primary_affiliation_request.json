@@ -1,0 +1,17 @@
+{
+  "id": "03670ef4-3fcc-41d9-98a2-4375b2420f65",
+  "action": "Edit",
+  "tenantId": "diku",
+  "performedBy": "d900646f-4cfe-54fa-b6ac-fd646620eb28",
+  "eventDate": 1681984177363,
+  "actionDate": 1681984177324,
+  "userDto": {
+    "username": "newTestUser",
+    "id": "148f7c24-54fc-4d7f-afff-da2dfcd902e3",
+    "active": true,
+    "departments": [],
+    "proxyFor": [],
+    "createdDate": 1681984177336,
+    "updatedDate": 1681984177336
+  }
+}

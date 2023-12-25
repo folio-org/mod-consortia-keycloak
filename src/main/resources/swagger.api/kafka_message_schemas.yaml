@@ -1,0 +1,21 @@
+openapi: 3.0.0
+info:
+  title: mod-consortia-keycloak schemas
+  version: v1
+servers:
+  - url: https://order-stub.com/
+paths:
+  /kafka-stub-endpoint:
+    get:
+      responses:
+        "200":
+          description: stub
+components:
+  schemas:
+    UUID:
+      type: string
+      format: uuid
+    userEvent:
+      $ref: 'schemas/userEvent.yaml'
+    primaryAffiliationEvent:
+      $ref: 'schemas/primaryAffiliationEvent.yaml'

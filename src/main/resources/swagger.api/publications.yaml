@@ -1,0 +1,148 @@
+openapi: 3.0.0
+info:
+  title: Publish coordinator API
+  description: "Publish coordinator API"
+  version: 0.0.1
+
+servers:
+  - url: /consortia/{consortiumId}/
+
+paths:
+  /publications:
+    post:
+      summary: Send post requests to the tenants
+      operationId: publishRequests
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+      responses:
+        '201':
+          $ref: '#/components/responses/Publication'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      requestBody:
+        $ref: '#/components/requestBodies/Publication'
+  /publications/{publicationId}:
+    get:
+      summary: Get publication details
+      operationId: getPublicationDetails
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/publicationId"
+      responses:
+        '200':
+          $ref: '#/components/responses/PublicationDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: Delete publication by Id
+      operationId: deletePublicationById
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/publicationId"
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /publications/{publicationId}/results:
+    get:
+      summary: Get publication results
+      operationId: getPublicationResults
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/publicationId"
+      responses:
+        '200':
+          $ref: '#/components/responses/PublicationResultCollection'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+components:
+  requestBodies:
+    Publication:
+      description: Publish coordinator request
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/publication_schema.yaml#/PublicationRequest"
+  responses:
+    Publication:
+      description: Returns a publish coordinator object
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/publication_schema.yaml#/PublicationResponse"
+    PublicationDetails:
+      description: Returns a publish coordinator request details
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/publication_schema.yaml#/PublicationDetailsResponse"
+    PublicationResultCollection:
+      description: Returns a publish coordinator results
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/publication_schema.yaml#/PublicationResultCollection"
+    NoContent:
+      description: No content
+    Conflict:
+      description: Validation errors
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Errors"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Errors"
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Errors"
+    Unauthorized:
+      description: Not authorized to perform requested action
+      content:
+        text/plain:
+          example: unable to perform action -- unauthorized
+    UnprocessableEntity:
+      description: Validation errors
+      content:
+        application/json:
+          schema:
+            $ref: 'schemas/common.yaml#/Errors'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/common.yaml#/Error"
+  parameters:
+    consortiumId:
+      in: path
+      name: consortiumId
+      schema:
+        $ref: "schemas/common.yaml#/uuid"
+      required: true
+      description: The ID of consortium
+    publicationId:
+      in: path
+      name: publicationId
+      schema:
+        $ref: "schemas/common.yaml#/uuid"
+      required: true
+      description: The ID of the publication

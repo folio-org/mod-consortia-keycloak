@@ -1,0 +1,19 @@
+{
+  "id": "398e2e2d-fa83-4377-b61b-ae187f93ff48",
+  "action": "Create",
+  "tenantId": "diku",
+  "performedBy": "d900646f-4cfe-54fa-b6ac-fd646620eb28",
+  "eventDate": 1681984177363,
+  "actionDate": 1681984177324,
+  "userDto": {
+    "username": "cons-user6252a7e6-7791-4511-8121-e61156abeb69",
+    "id": "710205f3-ad53-4a5b-88a3-02e640f9f6c9",
+    "active": true,
+    "departments": [],
+    "proxyFor": [],
+    "externalSystemId": "123",
+    "barcode": "abc123",
+    "createdDate": 1681984177336,
+    "updatedDate": 1681984177336
+  }
+}

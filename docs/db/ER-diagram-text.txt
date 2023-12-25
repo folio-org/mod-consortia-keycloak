@@ -1,0 +1,31 @@
+Table "consortium" {
+  "id" uuid [pk, not null]
+  "name" "text" [not null, unique]
+}
+
+Table "tenant" {
+  "id" "text" [pk, not null]
+  "name" "text" [not null, unique]
+  "consortium_id" uuid [not null]
+  "code" "text"
+  "is_central" bool
+}
+
+Table "user_tenant" {
+  "id" uuid [pk, not null]
+  "user_id" uuid [not null]
+  "username" "text" [not null]
+  "tenant_id" "text" [not null]
+  "is_primary" bool [not null]
+    Indexes {
+      (user_id)
+      (user_id, tenant_id) [unique]
+    }
+}
+Ref: "consortium"."id" < "tenant"."consortium_id"
+Ref: "user_tenant"."tenant_id" < "tenant"."id"
+
+Table "consortium_configuration" {
+  "id" uuid [pk, not null]
+  "central_tenant_id" string
+}

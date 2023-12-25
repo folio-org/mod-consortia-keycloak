@@ -1,0 +1,11 @@
+{
+  "id": "bb76d31e-4c64-4550-a61e-8d3d50fea803",
+  "action": "Delete",
+  "tenantId": "diku",
+  "eventDate": 1682500490922,
+  "userDto": {
+    "id": "6b0e118e-b4a8-4505-a8f6-c50828799331",
+    "departments": [],
+    "proxyFor": []
+  }
+}

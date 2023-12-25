@@ -1,0 +1,33 @@
+$schema: "http://json-schema.org/draft-04/schema#"
+description: "User event"
+type: object
+properties:
+  id:
+    description: "UUID of the event"
+    $ref: "uuid.yaml"
+  action:
+    description: "Action for user (Create, Edit or Delete)"
+    type: string
+    enum: [ "Create", "Edit", "Delete" ]
+  tenantId:
+    description: "The name of the user's tenant"
+    type: string
+  performedBy:
+    description: "UUID of the user who performed the action"
+    $ref: "uuid.yaml"
+  eventDate:
+    description: "Date time when event triggered"
+    format: "date-time"
+    type: string
+  actionDate:
+    description: "Date time when user action occurred"
+    format: "date-time"
+    type: string
+  isPersonalDataChanged:
+    description: "A flag to determine if personal data of a user changed"
+    type: boolean
+  userDto:
+    description: "Full snapshot of the user"
+    type: object
+    $ref: "user.yaml#/User"
+additionalProperties: false
