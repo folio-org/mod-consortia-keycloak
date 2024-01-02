@@ -131,4 +131,3 @@ components:
       $ref: schemas/capability/user/userCapabilitiesRequest.json
     capabilities:
       $ref: schemas/capability/capabilities.json
-
