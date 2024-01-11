@@ -585,7 +585,7 @@ class UserTenantServiceTest {
     var utEntity = createUserTenantEntity(UUID.randomUUID(), UUID.randomUUID(), "username", "diku");
 
     doNothing().when(consortiumService).checkConsortiumExistsOrThrow(any());
-    when(conversionService.convert(any(), any())).thenReturn(toDto(utEntity));
+    when(conversionService.convert(any(), eq(UserTenant.class))).thenReturn(toDto(utEntity));
     when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any())).thenReturn(Optional.of(utEntity));
 
     var result = userTenantService.checkUserIfHasPrimaryAffiliationByUserId(UUID.randomUUID(), String.valueOf(UUID.randomUUID()));
