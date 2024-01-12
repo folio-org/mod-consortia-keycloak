@@ -62,7 +62,7 @@
     <folio-backend-tools.version>1.0.2-SNAPSHOT</folio-backend-tools.version>
     <openapi-generator.version>6.2.1</openapi-generator.version>
     <mapstruct.version>1.5.3.Final</mapstruct.version>
-    <applications-poc-tools.version>1.0.0-SNAPSHOT</applications-poc-tools.version>
+    <applications-poc-tools.version>1.1.0-SNAPSHOT</applications-poc-tools.version>
 
     <!-- test dependencies -->
     <wiremock-standalone.version>2.27.2</wiremock-standalone.version>
