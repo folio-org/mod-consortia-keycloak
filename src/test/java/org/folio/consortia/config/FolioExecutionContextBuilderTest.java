@@ -1,23 +1,20 @@
 package org.folio.consortia.config;
 
-import org.apache.commons.lang3.StringUtils;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+
+import java.time.Instant;
+import java.util.UUID;
 import org.folio.spring.FolioModuleMetadata;
-import org.folio.spring.config.properties.FolioEnvironment;
 import org.folio.spring.context.ExecutionContextBuilder;
 import org.folio.spring.model.SystemUser;
 import org.folio.spring.model.UserToken;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-
 
 class FolioExecutionContextBuilderTest {
   private final ExecutionContextBuilder builder =
-    new ExecutionContextBuilder(mock(FolioEnvironment.class), mock(FolioModuleMetadata.class));
+    new ExecutionContextBuilder(mock(FolioModuleMetadata.class));
 
   @Test
   void canCreateSystemUserContext() {
