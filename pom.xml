@@ -70,7 +70,7 @@
 
     <!-- test dependencies -->
     <wiremock-standalone.version>2.27.2</wiremock-standalone.version>
-    <testcontainers.version>1.19.0</testcontainers.version>
+    <testcontainers.version>1.19.3</testcontainers.version>
     <snakeyaml.version>2.2</snakeyaml.version>
     <testcontainers-bom.version>1.19.3</testcontainers-bom.version>
     <maven-checkstyle-plugin.version>3.2.0</maven-checkstyle-plugin.version>
