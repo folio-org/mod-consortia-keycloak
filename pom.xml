@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
     <version>3.2.1</version>
-    <relativePath/>
+    <relativePath />
   </parent>
 
   <groupId>org.folio</groupId>
   <artifactId>mod-consortia-keycloak</artifactId>
   <name>mod-consortia-keycloak</name>
-  <version>1.1.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <description>Business logic to manage consortia in FOLIO</description>
   <packaging>jar</packaging>
 
@@ -44,7 +43,7 @@
       src/main/java/**/integration/**/model/**/*,
       src/main/java/**/*Application.java
     </sonar.exclusions>
-    <argLine/>
+    <argLine />
 
     <consortia.yaml.file>${project.basedir}/src/main/resources/swagger.api/consortia.yaml</consortia.yaml.file>
     <self.yaml.file>${project.basedir}/src/main/resources/swagger.api/self.yaml</self.yaml.file>
@@ -656,7 +655,7 @@
     <url>https://github.com/folio-org/mod-consortia-keycloak</url>
     <connection>scm:git:git://github.com:folio-org/mod-consortia-keycloak.git</connection>
     <developerConnection>scm:git:git@github.com:folio-org/mod-consortia-keycloak.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>v1.0.0</tag>
   </scm>
 
   <profiles>
