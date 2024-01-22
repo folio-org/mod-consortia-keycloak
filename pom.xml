@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
     <version>3.2.1</version>
-    <relativePath/>
+    <relativePath />
   </parent>
 
   <groupId>org.folio</groupId>
@@ -44,7 +43,7 @@
       src/main/java/**/integration/**/model/**/*,
       src/main/java/**/*Application.java
     </sonar.exclusions>
-    <argLine/>
+    <argLine />
 
     <consortia.yaml.file>${project.basedir}/src/main/resources/swagger.api/consortia.yaml</consortia.yaml.file>
     <self.yaml.file>${project.basedir}/src/main/resources/swagger.api/self.yaml</self.yaml.file>
@@ -62,11 +61,11 @@
     </sharing_settings.yaml.file>
 
     <!-- runtime dependencies -->
-    <folio-spring-base.version>7.3.0-SNAPSHOT</folio-spring-base.version>
+    <folio-spring-base.version>8.0.0</folio-spring-base.version>
     <folio-service-tools.version>3.1.0</folio-service-tools.version>
     <openapi-generator.version>6.2.1</openapi-generator.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
-    <applications-poc-tools.version>1.1.0-SNAPSHOT</applications-poc-tools.version>
+    <applications-poc-tools.version>1.0.0</applications-poc-tools.version>
 
     <!-- test dependencies -->
     <wiremock-standalone.version>2.27.2</wiremock-standalone.version>
@@ -580,7 +579,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
-        <version>3.0.0-M6</version>
+        <version>3.0.1</version>
         <configuration>
           <preparationGoals>clean verify</preparationGoals>
           <tagNameFormat>v@{project.version}</tagNameFormat>
@@ -627,6 +626,14 @@
     </repository>
   </repositories>
 
+  <pluginRepositories>
+    <pluginRepository>
+      <id>folio-nexus</id>
+      <name>FOLIO Maven repository</name>
+      <url>https://repository.folio.org/repository/maven-folio</url>
+    </pluginRepository>
+  </pluginRepositories>
+
   <distributionManagement>
     <repository>
       <id>folio-nexus</id>
@@ -643,6 +650,13 @@
       <layout>default</layout>
     </snapshotRepository>
   </distributionManagement>
+
+  <scm>
+    <url>https://github.com/folio-org/mod-consortia-keycloak</url>
+    <connection>scm:git:git://github.com:folio-org/mod-consortia-keycloak.git</connection>
+    <developerConnection>scm:git:git@github.com:folio-org/mod-consortia-keycloak.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
 
   <profiles>
     <profile>
