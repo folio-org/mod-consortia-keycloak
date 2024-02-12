@@ -1,12 +1,12 @@
 package org.folio.consortia.utils;
 
-import org.folio.consortia.domain.dto.Payload;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Base64;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-
-import java.util.Base64;
+import org.folio.consortia.domain.dto.Payload;
+import org.folio.consortia.exception.InvalidTokenException;
 
 @Slf4j
 public class TokenUtils {
@@ -17,15 +17,15 @@ public class TokenUtils {
 
   private TokenUtils() {}
 
-  public static boolean isValid(String token) {
+  public static Payload validateAndParseTokenPayload(String token) {
     if (StringUtils.isBlank(token)) {
-      return false;
+      throw new InvalidTokenException();
     }
 
     String[] tokenParts = token.split("\\.");
 
     if (tokenParts.length != 3) {
-      return false;
+      throw new InvalidTokenException();
     }
 
     String encodedPayload = tokenParts[1];
@@ -35,11 +35,13 @@ public class TokenUtils {
     try {
       Payload payload = OBJECT_MAPPER.readValue(decodedJson, Payload.class);
 
-      return !payload.getSub().contains(UNDEFINED_USER_NAME);
+      if (payload.getSub().contains(UNDEFINED_USER_NAME)) {
+        throw new InvalidTokenException();
+      }
+      return payload;
     } catch (Exception e) {
       log.error("Could not parse the token", e);
-      return false;
+      throw new InvalidTokenException();
     }
   }
-
 }

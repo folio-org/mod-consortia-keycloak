@@ -1,5 +1,6 @@
 package org.folio.consortia.domain.dto;
 
+import java.util.UUID;
 import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -7,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Payload {
 
   @JsonProperty("user_id")
-  private String userId;
+  private UUID userId;
 
   private String sub;
 
