@@ -281,19 +281,17 @@ public class PublicationServiceImpl implements PublicationService {
       throw new PublicationException(PublicationException.TENANT_LIST_EMPTY);
     }
     tenantService.checkTenantsAndConsortiumExistsOrThrow(consortiumId, List.copyOf(publication.getTenants()));
-    // condition check to support eureka system user approach
+    // condition to support eureka system user approach
+    var userAffiliated = userTenantService.checkUserIfHasPrimaryAffiliationByUserId(consortiumId, context.getUserId().toString());
     if (context.getUserId() == null) {
-      var userExists =
-        userTenantService.userHasPrimaryAffiliationByUsernameAndTenantId(SYSTEM_USER_NAME, context.getTenantId());
+      var userExists = userTenantService.userHasPrimaryAffiliationByUsernameAndTenantId(SYSTEM_USER_NAME, context.getTenantId());
       if (!userExists) {
         throw new PublicationException(PublicationException.PRIMARY_AFFILIATION_NOT_EXISTS);
       }
-    } else {
-      var userAffiliated =
-        userTenantService.checkUserIfHasPrimaryAffiliationByUserId(consortiumId, context.getUserId().toString());
-      if (!userAffiliated) {
-        throw new PublicationException(PublicationException.PRIMARY_AFFILIATION_NOT_EXISTS);
-      }
+      return;
+    }
+    if (!userAffiliated) {
+      throw new PublicationException(PublicationException.PRIMARY_AFFILIATION_NOT_EXISTS);
     }
   }
 

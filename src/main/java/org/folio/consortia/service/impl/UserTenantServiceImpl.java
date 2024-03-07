@@ -195,7 +195,8 @@ public class UserTenantServiceImpl implements UserTenantService {
   @Override
   public boolean checkUserIfHasPrimaryAffiliationByUserId(UUID consortiumId, String userId) {
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
-    var optionalUserTenant = userTenantRepository.findByUserIdAndIsPrimaryTrue(UUID.fromString(userId));
+    Optional<UserTenantEntity> optionalUserTenant = userTenantRepository
+      .findByUserIdAndIsPrimaryTrue(UUID.fromString(userId));
     return optionalUserTenant.isPresent();
   }
 
