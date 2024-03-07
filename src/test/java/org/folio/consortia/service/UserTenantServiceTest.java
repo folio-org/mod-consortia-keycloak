@@ -492,11 +492,6 @@ class UserTenantServiceTest {
   }
 
   @Test
-  void checkUserIfHasPrimaryAffiliationByUserId_positive_systemUserContextWithoutUserId() {
-    doNothing().when(consortiumService).checkConsortiumExistsOrThrow(any());
-  }
-
-  @Test
   void shouldFailWhileDeletingPrimaryAffiliation() {
     UUID userId = UUID.randomUUID();
     String tenantId = "dikue";
