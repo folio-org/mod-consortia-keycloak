@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.folio.consortia.domain.dto.PermissionUser;
 import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserTenant;
 import org.folio.consortia.domain.dto.UserTenantCollection;
@@ -302,6 +301,11 @@ public class UserTenantServiceImpl implements UserTenantService {
 
       userTenantRepository.deleteOrphansByUserIdAndIsPrimaryFalse(userId);
     }
+  }
+
+  @Override
+  public boolean userHasPrimaryAffiliationByUsernameAndTenantId(String username, String tenantId) {
+    return userTenantRepository.existsByUsernameAndTenantIdAndIsPrimaryTrue(username, tenantId);
   }
 
   private UserTenantEntity toEntity(UserTenant userTenantDto, UUID consortiumId, User user) {

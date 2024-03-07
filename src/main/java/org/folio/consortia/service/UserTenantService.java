@@ -1,7 +1,6 @@
 package org.folio.consortia.service;
 
 import java.util.UUID;
-
 import org.folio.consortia.domain.dto.UserTenant;
 import org.folio.consortia.domain.dto.UserTenantCollection;
 import org.folio.consortia.domain.entity.TenantEntity;
@@ -131,4 +130,12 @@ public interface UserTenantService {
    * @param userId id of user.
    */
   void deleteShadowUsers(UUID userId);
+
+  /**
+   * Check if user has primary affiliation.
+   *
+   * @param username the username
+   * @param tenantId the tenant id
+   */
+  boolean userHasPrimaryAffiliationByUsernameAndTenantId(String username, String tenantId);
 }
