@@ -2,10 +2,8 @@ package org.folio.consortia.service.impl;
 
 import static org.folio.spring.scope.FolioExecutionScopeExecutionContextManager.getRunnableWithCurrentFolioContext;
 
-import org.folio.consortia.exception.PublicationException;
-import org.folio.consortia.exception.ResourceNotFoundException;
-import org.folio.consortia.repository.PublicationStatusRepository;
-import org.folio.consortia.repository.PublicationTenantRequestRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +14,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.http.HttpException;
 import org.folio.consortia.domain.dto.PublicationDetailsResponse;
@@ -29,6 +29,10 @@ import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.dto.PublicationStatusError;
 import org.folio.consortia.domain.entity.PublicationStatusEntity;
 import org.folio.consortia.domain.entity.PublicationTenantRequestEntity;
+import org.folio.consortia.exception.PublicationException;
+import org.folio.consortia.exception.ResourceNotFoundException;
+import org.folio.consortia.repository.PublicationStatusRepository;
+import org.folio.consortia.repository.PublicationTenantRequestRepository;
 import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.HttpRequestService;
 import org.folio.consortia.service.PublicationService;
@@ -48,18 +52,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
-
 @Service
 @Log4j2
 @RequiredArgsConstructor
 public class PublicationServiceImpl implements PublicationService {
   private static final String PUBLICATION_ID_FIELD = "publicationId";
+  private static final String SYSTEM_USER_NAME = "mod-consortia-keycloak";
 
   private final TenantService tenantService;
   private final UserTenantService userTenantService;
@@ -283,9 +281,19 @@ public class PublicationServiceImpl implements PublicationService {
       throw new PublicationException(PublicationException.TENANT_LIST_EMPTY);
     }
     tenantService.checkTenantsAndConsortiumExistsOrThrow(consortiumId, List.copyOf(publication.getTenants()));
-    var userAffiliated = userTenantService.checkUserIfHasPrimaryAffiliationByUserId(consortiumId, context.getUserId().toString());
-    if (!userAffiliated) {
-      throw new PublicationException(PublicationException.PRIMARY_AFFILIATION_NOT_EXISTS);
+    // condition check to support eureka system user approach
+    if (context.getUserId() == null) {
+      var userExists =
+        userTenantService.userHasPrimaryAffiliationByUsernameAndTenantId(SYSTEM_USER_NAME, context.getTenantId());
+      if (!userExists) {
+        throw new PublicationException(PublicationException.PRIMARY_AFFILIATION_NOT_EXISTS);
+      }
+    } else {
+      var userAffiliated =
+        userTenantService.checkUserIfHasPrimaryAffiliationByUserId(consortiumId, context.getUserId().toString());
+      if (!userAffiliated) {
+        throw new PublicationException(PublicationException.PRIMARY_AFFILIATION_NOT_EXISTS);
+      }
     }
   }
 
