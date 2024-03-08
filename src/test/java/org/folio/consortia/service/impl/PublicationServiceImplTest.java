@@ -11,9 +11,11 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Set;
 import org.folio.consortia.domain.dto.PublicationHttpResponse;
 import org.folio.consortia.domain.entity.PublicationStatusEntity;
 import org.folio.consortia.domain.entity.PublicationTenantRequestEntity;
+import org.folio.consortia.exception.PublicationException;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.PublicationStatusRepository;
 import org.folio.consortia.repository.PublicationTenantRequestRepository;
@@ -25,6 +27,8 @@ import java.util.concurrent.CompletionException;
 
 import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.PublicationStatus;
+import org.folio.consortia.service.TenantService;
+import org.folio.consortia.service.UserTenantService;
 import org.folio.consortia.support.BaseUnitTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -60,6 +64,10 @@ class PublicationServiceImplTest extends BaseUnitTest {
   ConsortiumService consortiumService;
   @Captor
   ArgumentCaptor<PublicationTenantRequestEntity> ptreCaptor;
+  @Mock
+  private UserTenantService userTenantService;
+  @Mock
+  private TenantService tenantService;
 
   @Test
   void createTenantRequestEntitiesSuccess() throws JsonProcessingException {
@@ -197,4 +205,18 @@ class PublicationServiceImplTest extends BaseUnitTest {
       publicationService.deletePublicationById(consortiumId, publicationId));
   }
 
+  @Test
+  void publishRequest_negative_systemUserContextWithoutUserId() {
+    var consortiumId = UUID.randomUUID();
+
+    var publicationRequest = new PublicationRequest();
+    publicationRequest.setTenants(Set.of(CENTRAL_TENANT_NAME));
+    doNothing().when(tenantService).checkTenantsAndConsortiumExistsOrThrow(eq(consortiumId), any());
+    when(userTenantService.userHasPrimaryAffiliationByUsernameAndTenantId(anyString(), eq(CENTRAL_TENANT_NAME))).thenReturn(false);
+    when(folioExecutionContext.getUserId()).thenReturn(null);
+    when(folioExecutionContext.getInstance()).thenReturn(folioExecutionContext);
+
+    assertThrows(PublicationException.class, () ->
+      publicationService.publishRequest(consortiumId, publicationRequest));
+  }
 }
