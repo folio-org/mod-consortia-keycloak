@@ -1,8 +1,13 @@
 package org.folio.consortia.config;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.folio.consortia.domain.converter.ConsortiumConverter;
 import org.folio.consortia.domain.converter.TenantEntityToTenantConverter;
 import org.folio.consortia.domain.converter.UserTenantConverter;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -13,13 +18,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
 @Configuration
 @EnableAsync
+@EnableFeignClients("org.folio.consortia")
 public class AppConfig implements WebMvcConfigurer {
 
   @Override

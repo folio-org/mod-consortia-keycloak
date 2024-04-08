@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
+
+  <changeSet id="MODCONSKC-11@@update-date-with-default-in-consortia-configuration" author="dmtkachenko">
+    <addDefaultValue tableName="consortia_configuration" columnName="updated_date" defaultValueComputed="now()"/>
+
+    <update tableName="consortia_configuration">
+      <column name="updated_date" valueComputed="created_date"/>
+      <where>updated_date is NULL</where>
+    </update>
+
+    <addNotNullConstraint tableName="consortia_configuration" columnName="updated_date"/>
+  </changeSet>
+
+  <changeSet id="MODCONSKC-11@@update-date-with-default-in-consortium" author="dmtkachenko">
+    <addDefaultValue tableName="consortium" columnName="updated_date" defaultValueComputed="now()"/>
+
+    <update tableName="consortium">
+      <column name="updated_date" valueComputed="created_date"/>
+      <where>updated_date is NULL</where>
+    </update>
+
+    <addNotNullConstraint tableName="consortium" columnName="updated_date"/>
+  </changeSet>
+
+  <changeSet id="MODCONSKC-11@@update-date-with-default-in-pc-state" author="dmtkachenko">
+    <addDefaultValue tableName="pc_state" columnName="updated_date" defaultValueComputed="now()"/>
+
+    <update tableName="pc_state">
+      <column name="updated_date" valueComputed="created_date"/>
+      <where>updated_date is NULL</where>
+    </update>
+
+    <addNotNullConstraint tableName="pc_state" columnName="updated_date"/>
+  </changeSet>
+
+  <changeSet id="MODCONSKC-11@@update-date-with-default-in-pc-tenant-request" author="dmtkachenko">
+    <addDefaultValue tableName="pc_tenant_request" columnName="updated_date" defaultValueComputed="now()"/>
+
+    <update tableName="pc_tenant_request">
+      <column name="updated_date" valueComputed="created_date"/>
+      <where>updated_date is NULL</where>
+    </update>
+
+    <addNotNullConstraint tableName="pc_tenant_request" columnName="updated_date"/>
+  </changeSet>
+
+  <changeSet id="MODCONSKC-11@@update-date-with-default-in-sharing-instance" author="dmtkachenko">
+    <addDefaultValue tableName="sharing_instance" columnName="updated_date" defaultValueComputed="now()"/>
+
+    <update tableName="sharing_instance">
+      <column name="updated_date" valueComputed="created_date"/>
+      <where>updated_date is NULL</where>
+    </update>
+
+    <addNotNullConstraint tableName="sharing_instance" columnName="updated_date"/>
+  </changeSet>
+
+  <changeSet id="MODCONSKC-11@@update-date-with-default-in-sharing-setting" author="dmtkachenko">
+    <addDefaultValue tableName="sharing_setting" columnName="updated_date" defaultValueComputed="now()"/>
+
+    <update tableName="sharing_setting">
+      <column name="updated_date" valueComputed="created_date"/>
+      <where>updated_date is NULL</where>
+    </update>
+
+    <addNotNullConstraint tableName="sharing_setting" columnName="updated_date"/>
+  </changeSet>
+
+  <changeSet id="MODCONSKC-11@@update-date-with-default-in-tenant" author="dmtkachenko">
+    <addDefaultValue tableName="tenant" columnName="updated_date" defaultValueComputed="now()"/>
+
+    <update tableName="tenant">
+      <column name="updated_date" valueComputed="created_date"/>
+      <where>updated_date is NULL</where>
+    </update>
+
+    <addNotNullConstraint tableName="tenant" columnName="updated_date"/>
+  </changeSet>
+
+  <changeSet id="MODCONSKC-11@@update-date-with-default-in-user-tenant" author="dmtkachenko">
+    <addDefaultValue tableName="user_tenant" columnName="updated_date" defaultValueComputed="now()"/>
+
+    <update tableName="user_tenant">
+      <column name="updated_date" valueComputed="created_date"/>
+      <where>updated_date is NULL</where>
+    </update>
+
+    <addNotNullConstraint tableName="user_tenant" columnName="updated_date"/>
+  </changeSet>
+
+</databaseChangeLog>

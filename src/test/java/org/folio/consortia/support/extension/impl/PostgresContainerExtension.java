@@ -6,10 +6,15 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 public class PostgresContainerExtension implements BeforeAllCallback, AfterAllCallback {
-  private static final String SPRING_PROPERTY_NAME = "spring.datasource.url";
-  private static final String POSTGRES_IMAGE = "postgres:12-alpine";
-  private static final PostgreSQLContainer<?> CONTAINER = new PostgreSQLContainer<>(POSTGRES_IMAGE)
-    .withDatabaseName("okapi_modules").withUsername("folio_admin").withPassword("folio_admin");
+  private static final String SPRING_DATASOURCE_URL = "spring.datasource.url";
+  private static final String SPRING_DATASOURCE_USERNAME = "spring.datasource.username";
+  private static final String SPRING_DATASOURCE_PASSWORD = "spring.datasource.password";
+
+  @SuppressWarnings("resource")
+  private static final PostgreSQLContainer<?> CONTAINER = new PostgreSQLContainer<>("postgres:12-alpine")
+    .withDatabaseName("okapi_modules")
+    .withUsername("folio_admin")
+    .withPassword("folio_admin");
 
   @Override
   public void beforeAll(ExtensionContext context) {
@@ -17,11 +22,15 @@ public class PostgresContainerExtension implements BeforeAllCallback, AfterAllCa
       CONTAINER.start();
     }
 
-    System.setProperty(SPRING_PROPERTY_NAME, CONTAINER.getJdbcUrl());
+    System.setProperty(SPRING_DATASOURCE_URL, CONTAINER.getJdbcUrl());
+    System.setProperty(SPRING_DATASOURCE_USERNAME, CONTAINER.getUsername());
+    System.setProperty(SPRING_DATASOURCE_PASSWORD, CONTAINER.getPassword());
   }
 
   @Override
   public void afterAll(ExtensionContext context) {
-    System.clearProperty(SPRING_PROPERTY_NAME);
+    System.clearProperty(SPRING_DATASOURCE_URL);
+    System.clearProperty(SPRING_DATASOURCE_USERNAME);
+    System.clearProperty(SPRING_DATASOURCE_PASSWORD);
   }
 }

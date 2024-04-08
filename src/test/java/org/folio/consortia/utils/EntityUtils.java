@@ -1,19 +1,15 @@
 package org.folio.consortia.utils;
 
-import org.folio.consortia.domain.entity.ConsortiaConfigurationEntity;
-import org.folio.consortia.domain.entity.ConsortiumEntity;
-import org.folio.consortia.domain.entity.PublicationStatusEntity;
-import org.folio.consortia.domain.entity.PublicationTenantRequestEntity;
-import org.folio.consortia.domain.entity.SharingInstanceEntity;
-import org.folio.consortia.domain.entity.TenantDetailsEntity;
-import org.folio.consortia.domain.entity.TenantEntity;
-import org.folio.consortia.domain.entity.UserTenantEntity;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
+import lombok.experimental.UtilityClass;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.domain.dto.Consortium;
 import org.folio.consortia.domain.dto.Personal;
@@ -31,14 +27,16 @@ import org.folio.consortia.domain.dto.TenantCollection;
 import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
 import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserTenant;
+import org.folio.consortia.domain.entity.ConsortiaConfigurationEntity;
+import org.folio.consortia.domain.entity.ConsortiumEntity;
+import org.folio.consortia.domain.entity.PublicationStatusEntity;
+import org.folio.consortia.domain.entity.PublicationTenantRequestEntity;
+import org.folio.consortia.domain.entity.SharingInstanceEntity;
+import org.folio.consortia.domain.entity.SharingSettingEntity;
+import org.folio.consortia.domain.entity.TenantDetailsEntity;
+import org.folio.consortia.domain.entity.TenantEntity;
+import org.folio.consortia.domain.entity.UserTenantEntity;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class EntityUtils {
@@ -203,6 +201,22 @@ public class EntityUtils {
     sharingInstance.setCreatedDate(LocalDateTime.now());
     sharingInstance.setCreatedBy(UUID.fromString("dcfc317b-0d7c-4334-8656-596105fa6c99"));
     return sharingInstance;
+  }
+
+  public static PublicationStatusEntity createPublicationStatusEntity(PublicationStatus publicationStatus) {
+    var entity = new PublicationStatusEntity();
+    entity.setId(UUID.randomUUID());
+    entity.setStatus(publicationStatus);
+    entity.setTotalRecords(0);
+    return entity;
+  }
+
+  public static SharingSettingEntity createSharingSettingEntity(UUID settingId, String tenantId) {
+    var entity = new SharingSettingEntity();
+    entity.setId(UUID.randomUUID());
+    entity.setSettingId(settingId);
+    entity.setTenantId(tenantId);
+    return entity;
   }
 
   public static PublicationTenantRequestEntity createPublicationTenantRequestEntity(

@@ -14,7 +14,7 @@ import java.util.UUID;
  * getCurrentAuditor() is needed to get current logged in user.
  */
 @Configuration
-@EnableJpaAuditing(modifyOnCreate = false)
+@EnableJpaAuditing
 @RequiredArgsConstructor
 public class FolioAuditorAware implements AuditorAware<UUID> {
 

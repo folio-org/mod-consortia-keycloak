@@ -31,7 +31,7 @@ public abstract class AuditableEntity {
   private UUID createdBy;
 
   @LastModifiedDate
-  @Column(name = "updated_date")
+  @Column(name = "updated_date", nullable = false)
   private LocalDateTime updatedDate;
 
   @LastModifiedBy
