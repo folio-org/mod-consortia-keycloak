@@ -15,7 +15,7 @@ import java.util.UUID;
 
 import org.folio.consortia.domain.dto.UserTenant;
 import org.folio.consortia.domain.dto.UserTenantCollection;
-import org.folio.consortia.support.BaseIT;
+import org.folio.consortia.base.BaseIT;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.junit.jupiter.api.Test;

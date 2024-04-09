@@ -1,4 +1,4 @@
-package org.folio.consortia.support;
+package org.folio.consortia.base;
 
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS;
 

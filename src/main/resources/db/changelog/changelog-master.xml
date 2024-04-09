@@ -11,5 +11,5 @@
   <include file="changes/create-publish-coordinator-tables.xml" relativeToChangelogFile="true"/>
   <include file="changes/create-sharing-instance-action-table.xml" relativeToChangelogFile="true"/>
   <include file="changes/create-sharing-setting-table.xml" relativeToChangelogFile="true"/>
-  <include file="changes/set-default-for-updated-date.xml" relativeToChangelogFile="true"/>
+  <include file="changes/adjust-update-fields-of-auditable-info.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

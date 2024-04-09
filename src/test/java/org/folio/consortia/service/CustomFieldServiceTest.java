@@ -1,6 +1,6 @@
 package org.folio.consortia.service;
 
-import static org.folio.consortia.utils.EntityUtils.CENTRAL_TENANT_ID;
+import static org.folio.consortia.support.TestConstants.CENTRAL_TENANT_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -11,12 +11,9 @@ import org.folio.consortia.config.property.RelatedModulesProperties;
 import org.folio.consortia.domain.dto.CustomField;
 import org.folio.consortia.domain.dto.CustomFieldCollection;
 import org.folio.consortia.domain.dto.CustomFieldType;
-import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.service.impl.CustomFieldServiceImpl;
-import java.net.URI;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

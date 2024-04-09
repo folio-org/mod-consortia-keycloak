@@ -3,12 +3,15 @@ package org.folio.consortia.repository;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
-import static org.folio.consortia.utils.EntityUtils.CONSORTIUM_ID;
-import static org.folio.consortia.utils.EntityUtils.createConsortiumEntity;
+import static org.folio.consortia.support.EntityUtils.createConsortiumEntity;
+import static org.folio.consortia.support.TestConstants.CONSORTIUM_ID;
+import static org.folio.consortia.support.TestConstants.USER_ID;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+import org.folio.consortia.base.BaseRepositoryTest;
 import org.folio.consortia.domain.entity.ConsortiumEntity;
-import org.folio.consortia.support.BaseRepositoryTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -17,8 +20,13 @@ class ConsortiumRepositoryTest extends BaseRepositoryTest {
   @Autowired
   private ConsortiumRepository repository;
 
+  @BeforeEach
+  void returnTestUserIdFromFolioExecutionContext() {
+    when(folioExecutionContext.getUserId()).thenReturn(USER_ID);
+  }
+
   @Test
-  void create_positive_updateDateAndCreatedDateNotNull() {
+  void create_positive_updatedAndCreatedFieldsNotNull() {
     var entity = createConsortiumEntity(CONSORTIUM_ID.toString(), "Consortium");
     var now = LocalDateTime.now();
 
@@ -26,6 +34,8 @@ class ConsortiumRepositoryTest extends BaseRepositoryTest {
 
     var stored = entityManager.find(ConsortiumEntity.class, saved.getId());
     assertThat(stored.getCreatedDate()).isCloseTo(now, within(1, MINUTES));
+    assertThat(stored.getCreatedBy()).isEqualTo(USER_ID);
     assertThat(stored.getUpdatedDate()).isCloseTo(now, within(1, MINUTES));
+    assertThat(stored.getUpdatedBy()).isEqualTo(USER_ID);
   }
 }

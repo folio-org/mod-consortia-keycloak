@@ -1,6 +1,6 @@
 package org.folio.consortia.service;
 
-import static org.folio.consortia.utils.EntityUtils.createUserEntity;
+import static org.folio.consortia.support.EntityUtils.createUserEntity;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 

@@ -1,4 +1,4 @@
-package org.folio.consortia.utils;
+package org.folio.consortia.support;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -40,11 +40,6 @@ import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
 @UtilityClass
 public class EntityUtils {
-  public static final String RANDOM_USER_ID = "e0c74b9a-8d4c-4c38-8716-9997c6f7d26e";
-  public static final UUID CONSORTIUM_ID = UUID.fromString("7698e46-c3e3-11ed-afa1-0242ac120002");
-  public static final UUID ACTION_ID = UUID.fromString("dcfc317b-0d7c-4334-8656-596105fa6c99");
-  public static final UUID INSTANCE_ID = UUID.fromString("111841e3-e6fb-4191-8fd8-5674a5107c33");
-  public static final String CENTRAL_TENANT_ID = "consortium";
 
   public static ConsortiumEntity createConsortiumEntity(String id, String name) {
     ConsortiumEntity consortiumEntity = new ConsortiumEntity();
@@ -164,7 +159,7 @@ public class EntityUtils {
 
   public static SharingInstance createSharingInstance(UUID instanceIdentifier, String sourceTenantId, String targetTenantId) {
     SharingInstance sharingInstance = new SharingInstance();
-    sharingInstance.setId(ACTION_ID);
+    sharingInstance.setId(TestConstants.ACTION_ID);
     sharingInstance.setInstanceIdentifier(instanceIdentifier);
     sharingInstance.setSourceTenantId(sourceTenantId);
     sharingInstance.setTargetTenantId(targetTenantId);
@@ -183,7 +178,7 @@ public class EntityUtils {
 
   public static SharingInstanceEntity createSharingInstanceEntity(UUID instanceIdentifier, String sourceTenantId, String targetTenantId) {
     SharingInstanceEntity sharingInstance = new SharingInstanceEntity();
-    sharingInstance.setId(ACTION_ID);
+    sharingInstance.setId(TestConstants.ACTION_ID);
     sharingInstance.setInstanceId(instanceIdentifier);
     sharingInstance.setSourceTenantId(sourceTenantId);
     sharingInstance.setTargetTenantId(targetTenantId);

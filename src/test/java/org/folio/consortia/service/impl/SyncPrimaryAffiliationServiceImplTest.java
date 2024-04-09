@@ -1,6 +1,6 @@
 package org.folio.consortia.service.impl;
 
-import static org.folio.consortia.utils.EntityUtils.createTenantEntity;
+import static org.folio.consortia.support.EntityUtils.createTenantEntity;
 import static org.folio.consortia.utils.InputOutputTestUtils.getMockDataAsString;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;

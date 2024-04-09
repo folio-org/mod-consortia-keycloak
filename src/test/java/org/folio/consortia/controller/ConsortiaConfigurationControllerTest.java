@@ -1,6 +1,6 @@
 package org.folio.consortia.controller;
 
-import static org.folio.consortia.utils.EntityUtils.createConsortiaConfigurationEntity;
+import static org.folio.consortia.support.EntityUtils.createConsortiaConfigurationEntity;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -14,7 +14,7 @@ import org.folio.consortia.repository.ConsortiaConfigurationRepository;
 import java.util.List;
 import java.util.UUID;
 
-import org.folio.consortia.support.BaseIT;
+import org.folio.consortia.base.BaseIT;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

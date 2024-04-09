@@ -1,4 +1,4 @@
-package org.folio.consortia.support;
+package org.folio.consortia.base;
 
 import static org.folio.spring.integration.XOkapiHeaders.TENANT;
 import static org.folio.spring.integration.XOkapiHeaders.TOKEN;

@@ -1,4 +1,4 @@
-package org.folio.consortia.support;
+package org.folio.consortia.base;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
