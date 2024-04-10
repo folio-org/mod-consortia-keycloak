@@ -29,7 +29,7 @@ import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserTenantService;
-import org.folio.consortia.support.BaseUnitTest;
+import org.folio.consortia.base.BaseUnitTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

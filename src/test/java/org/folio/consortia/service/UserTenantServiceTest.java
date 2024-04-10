@@ -1,8 +1,8 @@
 package org.folio.consortia.service;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.folio.consortia.utils.EntityUtils.RANDOM_USER_ID;
-import static org.folio.consortia.utils.EntityUtils.createUserEntity;
+import static org.folio.consortia.support.EntityUtils.createUserEntity;
+import static org.folio.consortia.support.TestConstants.USER_ID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -14,17 +14,26 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import org.folio.consortia.client.PermissionsClient;
 import org.folio.consortia.client.UsersKeycloakClient;
 import org.folio.consortia.domain.converter.UserTenantConverter;
 import org.folio.consortia.domain.dto.PermissionUser;
 import org.folio.consortia.domain.dto.PermissionUserCollection;
+import org.folio.consortia.domain.dto.User;
+import org.folio.consortia.domain.dto.UserEvent;
+import org.folio.consortia.domain.dto.UserTenant;
+import org.folio.consortia.domain.dto.UserTenantCollection;
 import org.folio.consortia.domain.entity.ConsortiumEntity;
 import org.folio.consortia.domain.entity.TenantEntity;
 import org.folio.consortia.domain.entity.UserTenantEntity;
@@ -34,18 +43,6 @@ import org.folio.consortia.exception.UserAffiliationException;
 import org.folio.consortia.repository.ConsortiumRepository;
 import org.folio.consortia.repository.UserTenantRepository;
 import org.folio.consortia.service.impl.UserTenantServiceImpl;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
-import org.folio.consortia.domain.dto.User;
-import org.folio.consortia.domain.dto.UserEvent;
-import org.folio.consortia.domain.dto.UserTenant;
-import org.folio.consortia.domain.dto.UserTenantCollection;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.integration.XOkapiHeaders;
@@ -208,7 +205,7 @@ class UserTenantServiceTest {
 
   @Test
   void shouldUpdateFirstAndLastNames() {
-    UUID userId = UUID.fromString(RANDOM_USER_ID);
+    UUID userId = USER_ID;
     String tenantId = "diku";
     UUID associationId = UUID.randomUUID();
     User primaryUser = createUserEntity(userId);
@@ -236,7 +233,7 @@ class UserTenantServiceTest {
 
   @Test
   void shouldNotDoAnyActionWhenEmptyUserTenantEntityListReturned() {
-    UUID userId = UUID.fromString(RANDOM_USER_ID);
+    UUID userId = USER_ID;
     String tenantId = "diku";
 
     List<UserTenantEntity> emptyListOfUserTenantEntities = new ArrayList<>();

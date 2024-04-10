@@ -23,8 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.folio.consortia.utils.EntityUtils.createConsortiaConfiguration;
-import static org.folio.consortia.utils.EntityUtils.createConsortiaConfigurationEntity;
+import static org.folio.consortia.support.EntityUtils.createConsortiaConfiguration;
+import static org.folio.consortia.support.EntityUtils.createConsortiaConfigurationEntity;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;

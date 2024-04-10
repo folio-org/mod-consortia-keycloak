@@ -4,7 +4,7 @@
                     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
 
-  <changeSet id="MODCONSKC-11@@update-date-with-default-in-consortia-configuration" author="dmtkachenko">
+  <changeSet id="MODCONSKC-11@@adjust-update-fields-in-consortia-configuration" author="dmtkachenko">
     <addDefaultValue tableName="consortia_configuration" columnName="updated_date" defaultValueComputed="now()"/>
 
     <update tableName="consortia_configuration">
@@ -13,9 +13,14 @@
     </update>
 
     <addNotNullConstraint tableName="consortia_configuration" columnName="updated_date"/>
+
+    <update tableName="consortia_configuration">
+      <column name="updated_by" valueComputed="created_by"/>
+      <where>updated_by is NULL</where>
+    </update>
   </changeSet>
 
-  <changeSet id="MODCONSKC-11@@update-date-with-default-in-consortium" author="dmtkachenko">
+  <changeSet id="MODCONSKC-11@@adjust-update-fields-in-consortium" author="dmtkachenko">
     <addDefaultValue tableName="consortium" columnName="updated_date" defaultValueComputed="now()"/>
 
     <update tableName="consortium">
@@ -24,9 +29,14 @@
     </update>
 
     <addNotNullConstraint tableName="consortium" columnName="updated_date"/>
+
+    <update tableName="consortium">
+      <column name="updated_by" valueComputed="created_by"/>
+      <where>updated_by is NULL</where>
+    </update>
   </changeSet>
 
-  <changeSet id="MODCONSKC-11@@update-date-with-default-in-pc-state" author="dmtkachenko">
+  <changeSet id="MODCONSKC-11@@adjust-update-fields-in-pc-state" author="dmtkachenko">
     <addDefaultValue tableName="pc_state" columnName="updated_date" defaultValueComputed="now()"/>
 
     <update tableName="pc_state">
@@ -35,9 +45,14 @@
     </update>
 
     <addNotNullConstraint tableName="pc_state" columnName="updated_date"/>
+
+    <update tableName="pc_state">
+      <column name="updated_by" valueComputed="created_by"/>
+      <where>updated_by is NULL</where>
+    </update>
   </changeSet>
 
-  <changeSet id="MODCONSKC-11@@update-date-with-default-in-pc-tenant-request" author="dmtkachenko">
+  <changeSet id="MODCONSKC-11@@adjust-update-fields-in-pc-tenant-request" author="dmtkachenko">
     <addDefaultValue tableName="pc_tenant_request" columnName="updated_date" defaultValueComputed="now()"/>
 
     <update tableName="pc_tenant_request">
@@ -46,9 +61,14 @@
     </update>
 
     <addNotNullConstraint tableName="pc_tenant_request" columnName="updated_date"/>
+
+    <update tableName="pc_tenant_request">
+      <column name="updated_by" valueComputed="created_by"/>
+      <where>updated_by is NULL</where>
+    </update>
   </changeSet>
 
-  <changeSet id="MODCONSKC-11@@update-date-with-default-in-sharing-instance" author="dmtkachenko">
+  <changeSet id="MODCONSKC-11@@adjust-update-fields-in-sharing-instance" author="dmtkachenko">
     <addDefaultValue tableName="sharing_instance" columnName="updated_date" defaultValueComputed="now()"/>
 
     <update tableName="sharing_instance">
@@ -57,9 +77,14 @@
     </update>
 
     <addNotNullConstraint tableName="sharing_instance" columnName="updated_date"/>
+
+    <update tableName="sharing_instance">
+      <column name="updated_by" valueComputed="created_by"/>
+      <where>updated_by is NULL</where>
+    </update>
   </changeSet>
 
-  <changeSet id="MODCONSKC-11@@update-date-with-default-in-sharing-setting" author="dmtkachenko">
+  <changeSet id="MODCONSKC-11@@adjust-update-fields-in-sharing-setting" author="dmtkachenko">
     <addDefaultValue tableName="sharing_setting" columnName="updated_date" defaultValueComputed="now()"/>
 
     <update tableName="sharing_setting">
@@ -68,9 +93,14 @@
     </update>
 
     <addNotNullConstraint tableName="sharing_setting" columnName="updated_date"/>
+
+    <update tableName="sharing_setting">
+      <column name="updated_by" valueComputed="created_by"/>
+      <where>updated_by is NULL</where>
+    </update>
   </changeSet>
 
-  <changeSet id="MODCONSKC-11@@update-date-with-default-in-tenant" author="dmtkachenko">
+  <changeSet id="MODCONSKC-11@@adjust-update-fields-in-tenant" author="dmtkachenko">
     <addDefaultValue tableName="tenant" columnName="updated_date" defaultValueComputed="now()"/>
 
     <update tableName="tenant">
@@ -79,9 +109,14 @@
     </update>
 
     <addNotNullConstraint tableName="tenant" columnName="updated_date"/>
+
+    <update tableName="tenant">
+      <column name="updated_by" valueComputed="created_by"/>
+      <where>updated_by is NULL</where>
+    </update>
   </changeSet>
 
-  <changeSet id="MODCONSKC-11@@update-date-with-default-in-user-tenant" author="dmtkachenko">
+  <changeSet id="MODCONSKC-11@@adjust-update-fields-in-user-tenant" author="dmtkachenko">
     <addDefaultValue tableName="user_tenant" columnName="updated_date" defaultValueComputed="now()"/>
 
     <update tableName="user_tenant">
@@ -90,6 +125,11 @@
     </update>
 
     <addNotNullConstraint tableName="user_tenant" columnName="updated_date"/>
+
+    <update tableName="user_tenant">
+      <column name="updated_by" valueComputed="created_by"/>
+      <where>updated_by is NULL</where>
+    </update>
   </changeSet>
 
 </databaseChangeLog>

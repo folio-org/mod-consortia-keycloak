@@ -2,8 +2,8 @@ package org.folio.consortia.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.folio.consortia.support.BaseIT.asJsonString;
-import static org.folio.consortia.utils.EntityUtils.RANDOM_USER_ID;
+import static org.folio.consortia.base.BaseIT.asJsonString;
+import static org.folio.consortia.support.TestConstants.USER_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -14,14 +14,14 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.folio.common.domain.model.error.Error;
-import org.folio.common.domain.model.error.ErrorResponse;
-import org.folio.common.utils.CqlQuery;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import java.util.List;
 import java.util.UUID;
+import org.folio.common.domain.model.error.Error;
+import org.folio.common.domain.model.error.ErrorResponse;
+import org.folio.common.utils.CqlQuery;
 import org.folio.consortia.client.CapabilitiesClient;
 import org.folio.consortia.client.UserCapabilitiesClient;
 import org.folio.consortia.client.UserPermissionsClient;
@@ -59,7 +59,7 @@ class CapabilitiesUserServiceTest {
 
   @Test
   void shouldThrowErrorForEmptyPermissionFileWhileAdding() {
-    PermissionUser permissionUser = PermissionUser.of(UUID.randomUUID().toString(), RANDOM_USER_ID, List.of());
+    PermissionUser permissionUser = PermissionUser.of(UUID.randomUUID().toString(), USER_ID.toString(), List.of());
 
     Assertions.assertThrows(java.lang.IllegalStateException.class,
       () -> capabilitiesUserService.addPermissions(permissionUser, EMPTY_PERMISSIONS_FILE_PATH));
@@ -74,7 +74,7 @@ class CapabilitiesUserServiceTest {
 
   @Test
   void shouldAddPermissionsToPermissionUser() {
-    PermissionUser permissionUser = PermissionUser.of(UUID.randomUUID().toString(), RANDOM_USER_ID, List.of());
+    PermissionUser permissionUser = PermissionUser.of(UUID.randomUUID().toString(), USER_ID.toString(), List.of());
 
     var capabilities = new Capabilities().addCapabilitiesItem(new Capability());
     when(capabilitiesClient.queryCapabilities(any(), anyInt(), anyInt())).thenReturn(capabilities);
@@ -84,7 +84,7 @@ class CapabilitiesUserServiceTest {
 
   @Test
   void addPermissions_negative_capabilityNotFound() {
-    PermissionUser permissionUser = PermissionUser.of(UUID.randomUUID().toString(), RANDOM_USER_ID, List.of());
+    PermissionUser permissionUser = PermissionUser.of(UUID.randomUUID().toString(), USER_ID.toString(), List.of());
 
     var query = CqlQuery.exactMatchAny("permission", List.of("ui-users.editperms")).toString();
     when(capabilitiesClient.queryCapabilities(query, 50, 0)).thenReturn(new Capabilities());

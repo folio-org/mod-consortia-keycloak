@@ -1,10 +1,10 @@
 package org.folio.consortia.service;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.folio.consortia.utils.EntityUtils.ACTION_ID;
-import static org.folio.consortia.utils.EntityUtils.CONSORTIUM_ID;
-import static org.folio.consortia.utils.EntityUtils.createSharingInstance;
-import static org.folio.consortia.utils.EntityUtils.createSharingInstanceEntity;
+import static org.folio.consortia.support.TestConstants.ACTION_ID;
+import static org.folio.consortia.support.TestConstants.CONSORTIUM_ID;
+import static org.folio.consortia.support.EntityUtils.createSharingInstance;
+import static org.folio.consortia.support.EntityUtils.createSharingInstanceEntity;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;

@@ -12,7 +12,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.folio.consortia.support.BaseIT;
+import org.folio.consortia.base.BaseIT;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

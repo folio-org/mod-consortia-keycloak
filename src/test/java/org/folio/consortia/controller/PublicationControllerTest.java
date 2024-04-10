@@ -1,7 +1,7 @@
 package org.folio.consortia.controller;
 
 import static org.awaitility.Awaitility.await;
-import static org.folio.consortia.utils.EntityUtils.createPublicationTenantRequestEntity;
+import static org.folio.consortia.support.EntityUtils.createPublicationTenantRequestEntity;
 import static org.folio.consortia.utils.InputOutputTestUtils.getMockDataAsString;
 import static org.folio.consortia.utils.InputOutputTestUtils.getMockDataObject;
 import static org.folio.consortia.utils.InputOutputTestUtils.writeValueAsString;
@@ -41,7 +41,7 @@ import java.util.stream.IntStream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.PublicationStatus;
-import org.folio.consortia.support.BaseIT;
+import org.folio.consortia.base.BaseIT;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

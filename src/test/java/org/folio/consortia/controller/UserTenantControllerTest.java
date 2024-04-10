@@ -1,8 +1,8 @@
 package org.folio.consortia.controller;
 
-import static org.folio.consortia.utils.EntityUtils.CENTRAL_TENANT_ID;
-import static org.folio.consortia.utils.EntityUtils.createUserTenant;
-import static org.folio.consortia.utils.EntityUtils.createUserTenantEntity;
+import static org.folio.consortia.support.TestConstants.CENTRAL_TENANT_ID;
+import static org.folio.consortia.support.EntityUtils.createUserTenant;
+import static org.folio.consortia.support.EntityUtils.createUserTenantEntity;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -30,7 +30,7 @@ import java.util.UUID;
 
 import org.folio.consortia.domain.dto.UserTenant;
 import org.folio.consortia.domain.dto.UserTenantCollection;
-import org.folio.consortia.support.BaseIT;
+import org.folio.consortia.base.BaseIT;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

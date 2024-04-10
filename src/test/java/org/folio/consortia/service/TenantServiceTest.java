@@ -1,10 +1,10 @@
 package org.folio.consortia.service;
 
-import static org.folio.consortia.utils.EntityUtils.createConsortiaConfiguration;
-import static org.folio.consortia.utils.EntityUtils.createTenant;
-import static org.folio.consortia.utils.EntityUtils.createTenantDetailsEntity;
-import static org.folio.consortia.utils.EntityUtils.createTenantEntity;
-import static org.folio.consortia.utils.EntityUtils.createUser;
+import static org.folio.consortia.support.EntityUtils.createConsortiaConfiguration;
+import static org.folio.consortia.support.EntityUtils.createTenant;
+import static org.folio.consortia.support.EntityUtils.createTenantDetailsEntity;
+import static org.folio.consortia.support.EntityUtils.createTenantEntity;
+import static org.folio.consortia.support.EntityUtils.createUser;
 import static org.folio.consortia.utils.InputOutputTestUtils.getMockDataAsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

@@ -1,9 +1,9 @@
 package org.folio.consortia.controller;
 
-import static org.folio.consortia.utils.EntityUtils.ACTION_ID;
-import static org.folio.consortia.utils.EntityUtils.CONSORTIUM_ID;
-import static org.folio.consortia.utils.EntityUtils.INSTANCE_ID;
-import static org.folio.consortia.utils.EntityUtils.createSharingInstance;
+import static org.folio.consortia.support.TestConstants.ACTION_ID;
+import static org.folio.consortia.support.TestConstants.CONSORTIUM_ID;
+import static org.folio.consortia.support.TestConstants.INSTANCE_ID;
+import static org.folio.consortia.support.EntityUtils.createSharingInstance;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -20,7 +20,7 @@ import org.folio.consortia.service.SharingInstanceService;
 import java.util.UUID;
 
 import org.folio.consortia.domain.dto.SharingInstance;
-import org.folio.consortia.support.BaseIT;
+import org.folio.consortia.base.BaseIT;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;

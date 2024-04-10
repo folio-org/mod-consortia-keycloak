@@ -1,6 +1,6 @@
 package org.folio.consortia.service;
 
-import static org.folio.consortia.utils.EntityUtils.createTenantEntity;
+import static org.folio.consortia.support.EntityUtils.createTenantEntity;
 import static org.folio.consortia.utils.InputOutputTestUtils.getMockDataAsString;
 import static org.folio.spring.integration.XOkapiHeaders.TENANT;
 import static org.folio.spring.integration.XOkapiHeaders.TOKEN;

@@ -1,6 +1,6 @@
 package org.folio.consortia.controller;
 
-import static org.folio.consortia.utils.EntityUtils.createConsortiumEntity;
+import static org.folio.consortia.support.EntityUtils.createConsortiumEntity;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.folio.consortia.support.BaseIT;
+import org.folio.consortia.base.BaseIT;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
