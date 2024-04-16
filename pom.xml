@@ -12,7 +12,7 @@
   <groupId>org.folio</groupId>
   <artifactId>mod-consortia-keycloak</artifactId>
   <name>mod-consortia-keycloak</name>
-  <version>1.2.0</version>
+  <version>1.3.0-SNAPSHOT</version>
   <description>Business logic to manage consortia in FOLIO</description>
   <packaging>jar</packaging>
 
@@ -655,7 +655,7 @@
     <url>https://github.com/folio-org/mod-consortia-keycloak</url>
     <connection>scm:git:git://github.com:folio-org/mod-consortia-keycloak.git</connection>
     <developerConnection>scm:git:git@github.com:folio-org/mod-consortia-keycloak.git</developerConnection>
-    <tag>v1.2.0</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <profiles>
