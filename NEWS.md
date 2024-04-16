@@ -1,4 +1,9 @@
-## Version `v1.2.0` (in progress)
+## Version `v1.3.0` (in progress)
+
+---
+## Version `v1.2.0` (16.04.2024)
+### Changes:
+* Set updatedBy to the same value as createdBy in migration script and set update metadata upon record creation (MODCONSKC-11)
 
 ---
 ## Version `v1.1.1` (08.03.2024)
