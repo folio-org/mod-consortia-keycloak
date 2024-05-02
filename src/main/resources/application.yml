@@ -9,6 +9,13 @@ spring:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_DATABASE:okapi_modules}
   kafka:
     bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
+    security:
+      protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
+    ssl:
+      key-store-password: ${KAFKA_SSL_KEYSTORE_PASSWORD:}
+      key-store-location: ${KAFKA_SSL_KEYSTORE_LOCATION:}
+      trust-store-password: ${KAFKA_SSL_TRUSTSTORE_PASSWORD:}
+      trust-store-location: ${KAFKA_SSL_TRUSTSTORE_LOCATION:}
   sql:
     init:
       continue-on-error: true
