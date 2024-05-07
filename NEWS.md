@@ -1,4 +1,9 @@
-## Version `v1.3.0` (in progress)
+## Version `v1.4.0` (in progress)
+
+## Version `v1.3.0` (07.05.2023)
+### Changes:
+* Port Poppy CSP changes from mod-consortia -> mod-consortia-keycloak ([MODCONSKC-12](https://folio-org.atlassian.net/browse/MODCONSKC-12)).
+* Add support of TLS when connecting to MSK ([MODCONSKC-10](https://folio-org.atlassian.net/browse/MODCONSKC-10)).
 
 ---
 ## Version `v1.2.0` (16.04.2024)
