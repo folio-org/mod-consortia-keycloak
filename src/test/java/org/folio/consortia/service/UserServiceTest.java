@@ -1,23 +1,24 @@
 package org.folio.consortia.service;
 
+import static org.folio.consortia.support.EntityUtils.createOkapiHeaders;
 import static org.folio.consortia.support.EntityUtils.createUserEntity;
+import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
-import org.folio.consortia.client.UsersKeycloakClient;
-import org.folio.consortia.domain.dto.UserType;
-import org.folio.consortia.exception.ResourceNotFoundException;
-import org.folio.consortia.service.impl.UserServiceImpl;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
+import org.folio.consortia.client.UsersKeycloakClient;
 import org.folio.consortia.domain.dto.User;
+import org.folio.consortia.domain.dto.UserType;
+import org.folio.consortia.service.impl.UserServiceImpl;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
-import org.folio.spring.integration.XOkapiHeaders;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -45,39 +46,52 @@ class UserServiceTest {
     User user = createUserEntity(false);
     Mockito.doNothing().when(usersKeycloakClient).saveUser(user);
     User createdUser = userService.createUser(user);
-    Assertions.assertEquals(user, createdUser);
+    assertEquals(user, createdUser);
   }
 
   @Test
   void shouldUpdateUser() {
     User user = createUserEntity(false);
-    Mockito.doNothing().when(usersKeycloakClient).updateUser(user.getId(), user);
-    Assertions.assertDoesNotThrow(() -> userService.updateUser(user));
+    doNothing().when(usersKeycloakClient).updateUser(user.getId(), user);
+    assertDoesNotThrow(() -> userService.updateUser(user));
   }
 
   @Test
   void shouldDeleteUser() {
     User user = createUserEntity(false);
-    Mockito.doNothing().when(usersKeycloakClient).deleteUser(user.getId());
-    Assertions.assertDoesNotThrow(() -> userService.deleteById(user.getId()));
+    doNothing().when(usersKeycloakClient).deleteUser(user.getId());
+    assertDoesNotThrow(() -> userService.deleteById(user.getId()));
   }
 
   @Test
   void shouldThrowNotFoundWhilePrepareShadowUser() {
-    when(folioExecutionContext.getTenantId()).thenReturn("diku");
-    Map<String, Collection<String>> okapiHeaders = new HashMap<>();
-    okapiHeaders.put(XOkapiHeaders.TENANT, List.of("diku"));
-    when(folioExecutionContext.getOkapiHeaders()).thenReturn(okapiHeaders);
-    Mockito.when(usersKeycloakClient.getUsersByUserId(any())).thenReturn(new User());
-    Assertions.assertThrows(ResourceNotFoundException.class, () -> userService.prepareShadowUser(UUID.randomUUID(), ""));
+    mockOkapiHeaders();
+    when(usersKeycloakClient.getUsersByUserId(any())).thenReturn(new User());
+
+    assertThrows(org.folio.consortia.exception.ResourceNotFoundException.class,
+      () -> userService.prepareShadowUser(UUID.randomUUID(), ""));
   }
 
   @Test
   void shouldPrepareShadowUser() {
+    when(usersKeycloakClient.getUsersByUserId(any())).thenReturn(createUserEntity(true));
+    mockOkapiHeaders();
+
+    User shadow = userService.prepareShadowUser(UUID.randomUUID(), "diku");
+
+    assertEquals(UserType.SHADOW.getName(), shadow.getType());
+    assertEquals("diku", shadow.getCustomFields().get("originaltenantid"));
+    assertEquals(true, shadow.getActive());
+    assertEquals("testFirst", shadow.getPersonal().getFirstName());
+    assertEquals("testLast", shadow.getPersonal().getLastName());
+    assertEquals("Test@mail.com", shadow.getPersonal().getEmail());
+    assertEquals("email", shadow.getPersonal().getPreferredContactTypeId());
+    assertNull(shadow.getBarcode());
+  }
+
+  private void mockOkapiHeaders() {
     when(folioExecutionContext.getTenantId()).thenReturn("diku");
-    when(folioExecutionContext.getFolioModuleMetadata()).thenReturn(folioModuleMetadata);
-    Map<String, Collection<String>> okapiHeaders = new HashMap<>();
-    okapiHeaders.put(XOkapiHeaders.TENANT, List.of("diku"));
+    Map<String, Collection<String>> okapiHeaders = createOkapiHeaders();
     when(folioExecutionContext.getOkapiHeaders()).thenReturn(okapiHeaders);
     Mockito.when(usersKeycloakClient.getUsersByUserId(any())).thenReturn(createUserEntity(true));
     User user = userService.prepareShadowUser(UUID.randomUUID(), "diku");
@@ -87,5 +101,4 @@ class UserServiceTest {
     Assertions.assertEquals("testFirst", user.getPersonal().getFirstName());
     Assertions.assertEquals("testLast", user.getPersonal().getLastName());
   }
-
 }

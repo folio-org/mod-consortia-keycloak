@@ -94,7 +94,7 @@ class SyncPrimaryAffiliationServiceImplTest {
 
     // stub collection of 2 users
     when(tenantService.getByTenantId(anyString())).thenReturn(tenantEntity1);
-    when(userTenantRepository.findByUserId(any(), any())).thenReturn(new PageImpl<>(Collections.emptyList()));
+    when(userTenantRepository.findAnyByUserId(any(), any())).thenReturn(new PageImpl<>(Collections.emptyList()));
     when(tenantRepository.findById(anyString())).thenReturn(Optional.of(tenantEntity1));
     when(userService.getUsersByQuery(anyString(), anyInt(), anyInt())).thenReturn(userCollection);
     when(consortiaConfigurationService.getCentralTenantId(anyString())).thenReturn(tenantId);
@@ -125,7 +125,7 @@ class SyncPrimaryAffiliationServiceImplTest {
 
     // stub collection of 2 users
     when(tenantService.getByTenantId(anyString())).thenReturn(tenantEntity1);
-    when(userTenantRepository.findByUserId(any(), any())).thenReturn(new PageImpl<>(Collections.emptyList()));
+    when(userTenantRepository.findAnyByUserId(any(), any())).thenReturn(new PageImpl<>(Collections.emptyList()));
     when(tenantRepository.findById(anyString())).thenReturn(Optional.of(tenantEntity1));
     when(userService.getUsersByQuery(anyString(), anyInt(), anyInt())).thenReturn(userCollection);
     when(consortiaConfigurationService.getCentralTenantId(anyString())).thenReturn(centralTenantId);
@@ -222,7 +222,7 @@ class SyncPrimaryAffiliationServiceImplTest {
   }
 
   @Test
-  void createPrimaryAffiliationsPartialFailure() throws JsonProcessingException {
+  void createPrimaryAffiliationsPartialFailure() {
     var consortiumId = UUID.randomUUID();
     var tenantId = "ABC1";
     var centralTenantId = "diku";

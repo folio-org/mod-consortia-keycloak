@@ -30,7 +30,7 @@ class FolioConsortiaApplicationTest {
     }
 
     @Override
-    public ResponseEntity<Void> postTenant(@Valid TenantAttributes tenantAttributes) {
+    public ResponseEntity<Void> postTenant(TenantAttributes tenantAttributes) {
       return ResponseEntity.status(HttpStatus.CREATED).build();
     }
   }

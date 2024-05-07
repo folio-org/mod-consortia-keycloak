@@ -11,6 +11,7 @@ perms.users.assign.immutable
 perms.users.assign.mutable
 perms.users.get
 user-tenants.item.post
+user-tenants.item.delete
 consortia.sync-primary-affiliations.item.post
 consortia.create-primary-affiliations.item.post
 departments.item.post
@@ -34,6 +35,9 @@ inventory-storage.call-number-types.item.delete
 inventory-storage.classification-types.item.post
 inventory-storage.classification-types.item.put
 inventory-storage.classification-types.item.delete
+inventory-storage.contributor-name-types.item.post
+inventory-storage.contributor-name-types.item.put
+inventory-storage.contributor-name-types.item.delete
 inventory-storage.electronic-access-relationships.item.post
 inventory-storage.electronic-access-relationships.item.put
 inventory-storage.electronic-access-relationships.item.delete
@@ -43,6 +47,9 @@ inventory-storage.holdings-note-types.item.delete
 inventory-storage.holdings-types.item.post
 inventory-storage.holdings-types.item.put
 inventory-storage.holdings-types.item.delete
+inventory-storage.holdings-sources.item.post
+inventory-storage.holdings-sources.item.put
+inventory-storage.holdings-sources.item.delete
 inventory-storage.statistical-codes.item.post
 inventory-storage.statistical-codes.item.put
 inventory-storage.statistical-codes.item.delete

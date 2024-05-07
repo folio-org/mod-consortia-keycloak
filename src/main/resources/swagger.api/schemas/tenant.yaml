@@ -14,6 +14,8 @@ Tenant:
       maxLength: 150
     isCentral:
       type: boolean
+    isDeleted:
+      type: boolean
   additionalProperties: false
   required:
     - id

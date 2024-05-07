@@ -14,15 +14,21 @@ import java.util.UUID;
 
 @Repository
 public interface UserTenantRepository extends JpaRepository<UserTenantEntity, UUID> {
+
+  @Query("SELECT ut FROM UserTenantEntity ut WHERE ut.tenant.isDeleted= FALSE")
+  Page<UserTenantEntity> getAll(Pageable pageable);
+
+  @Query("SELECT ut FROM UserTenantEntity ut WHERE ut.userId= ?1 AND ut.tenant.isDeleted= FALSE")
   Page<UserTenantEntity> findByUserId(UUID userId, Pageable pageable);
 
-  @Query("SELECT ut FROM UserTenantEntity ut WHERE ut.username= ?1 AND ut.tenant.id= ?2")
+  @Query("SELECT ut FROM UserTenantEntity ut WHERE ut.userId= ?1")
+  Page<UserTenantEntity> findAnyByUserId(UUID userId, Pageable pageable);
+
+  @Query("SELECT ut FROM UserTenantEntity ut WHERE ut.username= ?1 AND ut.tenant.id= ?2 AND ut.tenant.isDeleted= FALSE")
   Optional<UserTenantEntity> findByUsernameAndTenantId(String username, String tenantId);
 
   @Query("SELECT ut FROM UserTenantEntity ut WHERE ut.userId= ?1 AND ut.tenant.id= ?2")
   Optional<UserTenantEntity> findByUserIdAndTenantId(UUID userId, String tenantId);
-
-  boolean existsByTenantId(String tenantId);
 
   @Query("SELECT ut FROM UserTenantEntity ut WHERE ut.userId= ?1 AND ut.isPrimary= true")
   Optional<UserTenantEntity> findByUserIdAndIsPrimaryTrue(UUID userId);

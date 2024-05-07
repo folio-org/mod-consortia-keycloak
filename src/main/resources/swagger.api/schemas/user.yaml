@@ -64,7 +64,7 @@ User:
       description: Object that contains custom field
       type: object
       additionalProperties: true
-  additionalProperties: false
+  additionalProperties: true
 
 Personal:
   type: object
@@ -103,7 +103,11 @@ Personal:
     preferredContactTypeId:
       description: Id of user's preferred contact type
       type: string
-  additionalProperties: false
+    profilePictureLink:
+      description: Link to the profile picture
+      type: string
+      format: uri
+  additionalProperties: true
   required:
     - lastName
 

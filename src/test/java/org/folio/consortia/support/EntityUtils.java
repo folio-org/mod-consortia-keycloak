@@ -1,10 +1,14 @@
 package org.folio.consortia.support;
 
+import static org.folio.spring.integration.XOkapiHeaders.TENANT;
+import static org.folio.spring.integration.XOkapiHeaders.TOKEN;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,10 +40,15 @@ import org.folio.consortia.domain.entity.SharingSettingEntity;
 import org.folio.consortia.domain.entity.TenantDetailsEntity;
 import org.folio.consortia.domain.entity.TenantEntity;
 import org.folio.consortia.domain.entity.UserTenantEntity;
+import org.folio.spring.integration.XOkapiHeaders;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
 @UtilityClass
 public class EntityUtils {
+  public static final UUID ACTION_ID = UUID.fromString("dcfc317b-0d7c-4334-8656-596105fa6c99");
+  public static final UUID INSTANCE_ID = UUID.fromString("111841e3-e6fb-4191-8fd8-5674a5107c33");
+  public static final String CENTRAL_TENANT_ID = "consortium";
+  public  static final String TENANT_ID = "diku";
 
   public static ConsortiumEntity createConsortiumEntity(String id, String name) {
     ConsortiumEntity consortiumEntity = new ConsortiumEntity();
@@ -62,6 +71,7 @@ public class EntityUtils {
     tenantEntity.setName(name);
     tenantEntity.setIsCentral(isCentral);
     tenantEntity.setConsortiumId(UUID.randomUUID());
+    tenantEntity.setIsDeleted(false);
     return tenantEntity;
   }
 
@@ -72,6 +82,7 @@ public class EntityUtils {
     tenantEntity.setName("testtenant1");
     tenantEntity.setIsCentral(false);
     tenantEntity.setConsortiumId(UUID.randomUUID());
+    tenantEntity.setIsDeleted(false);
     return tenantEntity;
   }
 
@@ -81,6 +92,17 @@ public class EntityUtils {
     tenantEntity.setCode("ABC");
     tenantEntity.setName(name);
     tenantEntity.setIsCentral(false);
+    tenantEntity.setIsDeleted(false);
+    return tenantEntity;
+  }
+
+  public static TenantEntity createTenantEntity(String id) {
+    TenantEntity tenantEntity = new TenantEntity();
+    tenantEntity.setId(id);
+    tenantEntity.setCode("ABC");
+    tenantEntity.setName(id);
+    tenantEntity.setIsCentral(false);
+    tenantEntity.setIsDeleted(false);
     return tenantEntity;
   }
 
@@ -90,6 +112,7 @@ public class EntityUtils {
     tenantDetailsEntity.setCode("ABC");
     tenantDetailsEntity.setName("testtenant1");
     tenantDetailsEntity.setIsCentral(false);
+    tenantDetailsEntity.setIsDeleted(false);
     tenantDetailsEntity.setConsortiumId(UUID.randomUUID());
     tenantDetailsEntity.setSetupStatus(SetupStatusEnum.COMPLETED);
     return tenantDetailsEntity;
@@ -101,6 +124,7 @@ public class EntityUtils {
     tenantDetailsEntity.setCode("ABC");
     tenantDetailsEntity.setName(name);
     tenantDetailsEntity.setIsCentral(false);
+    tenantDetailsEntity.setIsDeleted(false);
     tenantDetailsEntity.setSetupStatus(SetupStatusEnum.IN_PROGRESS);
     return tenantDetailsEntity;
   }
@@ -111,6 +135,7 @@ public class EntityUtils {
     tenant.setName(name);
     tenant.setIsCentral(false);
     tenant.setCode("ABC");
+    tenant.setIsDeleted(false);
     return tenant;
   }
 
@@ -119,6 +144,7 @@ public class EntityUtils {
     tenant.setId(id);
     tenant.setName(name);
     tenant.setIsCentral(isCentral);
+    tenant.setIsDeleted(false);
     tenant.setCode("ABC");
     return tenant;
   }
@@ -297,6 +323,10 @@ public class EntityUtils {
     return new User().id(UUID.randomUUID().toString()).username(username);
   }
 
+  public static User createUser(UUID id, String username) {
+    return new User().id(id.toString()).username(username);
+  }
+
   public static User createUserEntity(Boolean updateble) {
     User user = new User();
     Personal personal = new Personal();
@@ -309,6 +339,7 @@ public class EntityUtils {
     user.setUsername("xyz");
     user.setPersonal(personal);
     user.setActive(Boolean.FALSE.equals(updateble));
+    user.setBarcode("0420690");
     return user;
   }
 
@@ -325,5 +356,13 @@ public class EntityUtils {
     user.setPersonal(personal);
     user.setActive(true);
     return user;
+  }
+
+  public static Map<String, Collection<String>> createOkapiHeaders() {
+    Map<String, Collection<String>> map = new HashMap<>();
+    map.put(TENANT, List.of("diku"));
+    map.put(TOKEN, List.of(TOKEN));
+    map.put(XOkapiHeaders.USER_ID, List.of(UUID.randomUUID().toString()));
+    return map;
   }
 }

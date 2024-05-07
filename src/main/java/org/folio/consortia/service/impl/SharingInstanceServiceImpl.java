@@ -1,11 +1,15 @@
 package org.folio.consortia.service.impl;
 
-import org.folio.consortia.exception.ResourceNotFoundException;
-import org.folio.consortia.repository.SharingInstanceRepository;
-import org.folio.consortia.repository.SharingInstanceRepository.Specifications;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import jakarta.transaction.Transactional;
 import java.util.Objects;
 import java.util.UUID;
-
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.client.InventoryClient;
 import org.folio.consortia.config.kafka.KafkaService;
@@ -13,6 +17,9 @@ import org.folio.consortia.domain.dto.SharingInstance;
 import org.folio.consortia.domain.dto.SharingInstanceCollection;
 import org.folio.consortia.domain.dto.Status;
 import org.folio.consortia.domain.entity.SharingInstanceEntity;
+import org.folio.consortia.exception.ResourceNotFoundException;
+import org.folio.consortia.repository.SharingInstanceRepository;
+import org.folio.consortia.repository.SharingInstanceRepository.Specifications;
 import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.InventoryService;
 import org.folio.consortia.service.SharingInstanceService;
@@ -21,20 +28,10 @@ import org.folio.consortia.utils.HelperUtils;
 import org.folio.consortia.utils.TenantContextUtils;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
+import org.folio.spring.data.OffsetRequest;
 import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
-
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
 
 @Service
 @Log4j2
@@ -76,7 +73,7 @@ public class SharingInstanceServiceImpl implements SharingInstanceService {
     if (Objects.equals(centralTenantId, sourceTenantId)) {
       JsonNode inventoryInstance;
 
-      try (var context = new FolioExecutionContextSetter(
+      try (var ignored = new FolioExecutionContextSetter(
         TenantContextUtils.prepareContextForTenant(sourceTenantId, folioModuleMetadata, folioExecutionContext))) {
         inventoryInstance = inventoryService.getById(sharingInstance.getInstanceIdentifier());
       } catch (Exception ex) {
@@ -84,7 +81,7 @@ public class SharingInstanceServiceImpl implements SharingInstanceService {
         return updateFieldsAndSaveInCaseOfException(sharingInstance, GET_INSTANCE_EXCEPTION_MSG, ex);
       }
 
-      try (var context = new FolioExecutionContextSetter(
+      try (var ignored = new FolioExecutionContextSetter(
         TenantContextUtils.prepareContextForTenant(targetTenantId, folioModuleMetadata, folioExecutionContext))) {
         String source = switch (inventoryInstance.get("source").asText().toLowerCase()) {
           case "folio" -> HelperUtils.CONSORTIUM_FOLIO_INSTANCE_SOURCE;
@@ -105,21 +102,47 @@ public class SharingInstanceServiceImpl implements SharingInstanceService {
 
       sharingInstance.setStatus(Status.IN_PROGRESS);
     }
-    SharingInstanceEntity savedSharingInstance = sharingInstanceRepository.save(toEntity(sharingInstance));
+
+    SharingInstanceEntity savedSharingInstance = saveSharingInstance(sharingInstance);
     log.info("start:: sharingInstance with id: {}, instanceId: {}, sourceTenantId: {}, targetTenantId: {} has been saved with status: {}",
       savedSharingInstance.getId(), savedSharingInstance.getInstanceId(), sourceTenantId, targetTenantId, savedSharingInstance.getStatus());
     return converter.convert(savedSharingInstance, SharingInstance.class);
   }
 
+  /**
+   * This method save sharing instance record to database.
+   * Before to save sharing instance to db, previous attempt will be checked.
+   * If a matching previous attempt is found, the method updates it with the new attempt's error and status information.
+   * Otherwise, new record will be created.
+   *
+   * @param sharingInstance sharingInstanceDto
+   * @return saved sharing instance entity
+   */
+  private SharingInstanceEntity saveSharingInstance(SharingInstance sharingInstance) {
+    var existingSharingInstanceOptional = sharingInstanceRepository.findByInstanceAndTenantIds(
+      sharingInstance.getInstanceIdentifier(), sharingInstance.getSourceTenantId(), sharingInstance.getTargetTenantId());
+
+    if (existingSharingInstanceOptional.isEmpty()) {
+      log.info("saveSharingInstance:: There is no existing record, so creating new record");
+      return sharingInstanceRepository.save(toEntity(sharingInstance));
+    }
+
+    log.info("saveSharingInstance:: Existed sharingInstance is being updated with new attempt with status={}", sharingInstance.getStatus());
+    var existingSharingInstance = existingSharingInstanceOptional.get();
+    existingSharingInstance.setError(sharingInstance.getError());
+    existingSharingInstance.setStatus(sharingInstance.getStatus());
+    return sharingInstanceRepository.save(existingSharingInstance);
+  }
+
   @Override
   public SharingInstanceCollection getSharingInstances(UUID consortiumId, UUID instanceIdentifier, String sourceTenantId,
-      String targetTenantId, Status status, Integer offset, Integer limit) {
+                                                       String targetTenantId, Status status, Integer offset, Integer limit) {
     log.debug("getSharingInstances:: parameters consortiumId: {}, instanceIdentifier: {}, sourceTenantId: {}, targetTenantId: {}, status: {}.",
       consortiumId, instanceIdentifier, sourceTenantId, targetTenantId, status);
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
     var specification = Specifications.constructSpecification(instanceIdentifier, sourceTenantId, targetTenantId, status);
 
-    var sharingInstancePage = sharingInstanceRepository.findAll(specification, PageRequest.of(offset, limit));
+    var sharingInstancePage = sharingInstanceRepository.findAll(specification, OffsetRequest.of(offset, limit));
     var result = new SharingInstanceCollection();
     result.setSharingInstances(sharingInstancePage.stream().map(o -> converter.convert(o, SharingInstance.class)).toList());
     result.setTotalRecords((int) sharingInstancePage.getTotalElements());
@@ -182,6 +205,13 @@ public class SharingInstanceServiceImpl implements SharingInstanceService {
     throw new IllegalArgumentException("Both 'sourceTenantId' and 'targetTenantId' cannot be member tenants.");
   }
 
+  private SharingInstance updateFieldsAndSaveInCaseOfException(SharingInstance sharingInstance, String message, Exception ex) {
+    sharingInstance.setStatus(Status.ERROR);
+    sharingInstance.setError(String.format(message, InventoryClient.getReason(ex)));
+    var savedSharingInstance = saveSharingInstance(sharingInstance);
+    return converter.convert(savedSharingInstance, SharingInstance.class);
+  }
+
   private SharingInstanceEntity toEntity(SharingInstance dto) {
     SharingInstanceEntity entity = new SharingInstanceEntity();
     entity.setId(UUID.randomUUID());
@@ -191,12 +221,5 @@ public class SharingInstanceServiceImpl implements SharingInstanceService {
     entity.setStatus(dto.getStatus());
     entity.setError(dto.getError());
     return entity;
-  }
-
-  private SharingInstance updateFieldsAndSaveInCaseOfException(SharingInstance sharingInstance, String message, Exception ex) {
-    sharingInstance.setStatus(Status.ERROR);
-    sharingInstance.setError(String.format(message, InventoryClient.getReason(ex)));
-    var savedSharingInstance = sharingInstanceRepository.save(toEntity(sharingInstance));
-    return converter.convert(savedSharingInstance, SharingInstance.class);
   }
 }

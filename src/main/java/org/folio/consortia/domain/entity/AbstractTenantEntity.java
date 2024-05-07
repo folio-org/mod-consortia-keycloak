@@ -23,16 +23,19 @@ public abstract class AbstractTenantEntity extends AuditableEntity {
   private String name;
   private UUID consortiumId;
   private Boolean isCentral;
+  private Boolean isDeleted;
 
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (!(o instanceof AbstractTenantEntity that)) return false;
-    return Objects.equals(id, that.id) && Objects.equals(code, that.code) && Objects.equals(name, that.name) && Objects.equals(consortiumId, that.consortiumId) && Objects.equals(isCentral, that.isCentral);
+    return Objects.equals(id, that.id) && Objects.equals(code, that.code) &&
+      Objects.equals(name, that.name) && Objects.equals(consortiumId, that.consortiumId) &&
+      Objects.equals(isCentral, that.isCentral) && Objects.equals(isDeleted, that.isDeleted);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, code, name, consortiumId, isCentral);
+    return Objects.hash(id, code, name, consortiumId, isCentral, isDeleted);
   }
 }

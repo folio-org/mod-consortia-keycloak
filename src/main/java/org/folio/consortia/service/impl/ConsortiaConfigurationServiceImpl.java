@@ -1,19 +1,18 @@
 package org.folio.consortia.service.impl;
 
-import org.folio.consortia.exception.ResourceAlreadyExistException;
-import org.folio.consortia.exception.ResourceNotFoundException;
-import org.folio.consortia.repository.ConsortiaConfigurationRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.domain.entity.ConsortiaConfigurationEntity;
+import org.folio.consortia.exception.ResourceAlreadyExistException;
+import org.folio.consortia.exception.ResourceNotFoundException;
+import org.folio.consortia.repository.ConsortiaConfigurationRepository;
 import org.folio.consortia.service.ConsortiaConfigurationService;
 import org.folio.consortia.utils.TenantContextUtils;
 import org.folio.spring.FolioExecutionContext;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Log4j2
 @Service
@@ -52,6 +51,10 @@ public class ConsortiaConfigurationServiceImpl implements ConsortiaConfiguration
     }
     log.info("getConfiguration:: configuration with centralTenantId={} is retrieved", configList.get(0).getCentralTenantId());
     return configList.get(0);
+  }
+
+  public boolean isCentralTenantConfigurationExists() {
+    return configurationRepository.count() > 0;
   }
 
   private void checkAnyConsortiaConfigurationNotExistsOrThrow() {

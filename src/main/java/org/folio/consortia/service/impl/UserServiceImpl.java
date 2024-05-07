@@ -2,12 +2,14 @@ package org.folio.consortia.service.impl;
 
 import static org.folio.consortia.utils.TenantContextUtils.prepareContextForTenant;
 
+import feign.FeignException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.folio.consortia.client.UsersClient;
 import org.folio.consortia.client.UsersKeycloakClient;
 import org.folio.consortia.domain.dto.Personal;
@@ -17,15 +19,10 @@ import org.folio.consortia.exception.ConsortiumClientException;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.service.UserService;
 import org.folio.consortia.utils.HelperUtils;
-import org.folio.consortia.utils.TenantContextUtils;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.springframework.stereotype.Service;
-
-import feign.FeignException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 
 @Service
 @Log4j2
@@ -86,29 +83,34 @@ public class UserServiceImpl implements UserService {
   }
 
   public User prepareShadowUser(UUID userId, String tenantId) {
-    try (var context = new FolioExecutionContextSetter(
+    try (var ignored = new FolioExecutionContextSetter(
       prepareContextForTenant(tenantId, folioModuleMetadata, folioExecutionContext))) {
       log.info("prepareShadowUser:: Try to get user of tenant={} ", folioExecutionContext.getTenantId());
-      User user = new User();
-      User userOptional = usersKeycloakClient.getUsersByUserId(userId.toString());
 
-      if (Objects.nonNull(userOptional.getId())) {
-        user.setId(userId.toString());
-        user.setUsername(String.format("%s_%s", userOptional.getUsername(), HelperUtils.randomString(RANDOM_STRING_COUNT)));
-        user.setType(UserType.SHADOW.getName());
-        user.setActive(true);
-        if (Objects.nonNull(userOptional.getPersonal())) {
-          // these firstname, lastname fields needed to correctly build UI metadata objects
-          user.setPersonal(new Personal()
-            .firstName(userOptional.getPersonal().getFirstName())
-            .lastName(userOptional.getPersonal().getLastName()));
-        }
-        user.setCustomFields(Map.of(ORIGINAL_TENANT_ID_REF_ID, tenantId));
-      } else {
+      var realUser = usersKeycloakClient.getUsersByUserId(userId.toString());
+      if (Objects.isNull(realUser.getId())) {
         log.warn("Could not find real user with id: {} in his home tenant: {}", userId.toString(), tenantId);
         throw new ResourceNotFoundException(USER_ID, userId.toString());
       }
-      return user;
+
+      var shadowUser = new User();
+      shadowUser.setId(userId.toString());
+      shadowUser.setUsername(String.format("%s_%s", realUser.getUsername(), HelperUtils.randomString(RANDOM_STRING_COUNT)));
+      shadowUser.setType(UserType.SHADOW.getName());
+      shadowUser.setActive(true);
+
+      if (Objects.nonNull(realUser.getPersonal())) {
+        // these firstname, lastname fields needed to correctly build UI metadata objects
+        shadowUser.setPersonal(new Personal()
+          .firstName(realUser.getPersonal().getFirstName())
+          .lastName(realUser.getPersonal().getLastName())
+          .email(realUser.getPersonal().getEmail())
+          .preferredContactTypeId(realUser.getPersonal().getPreferredContactTypeId())
+        );
+      }
+
+      shadowUser.setCustomFields(Map.of(ORIGINAL_TENANT_ID_REF_ID, tenantId));
+      return shadowUser;
     }
   }
 }

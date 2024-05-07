@@ -10,20 +10,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.folio.consortia.domain.entity.ConsortiumEntity;
-import org.folio.consortia.exception.ResourceAlreadyExistException;
-import org.folio.consortia.repository.ConsortiumRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 import org.folio.consortia.base.BaseIT;
+import org.folio.consortia.domain.entity.ConsortiumEntity;
+import org.folio.consortia.exception.ResourceAlreadyExistException;
+import org.folio.consortia.repository.ConsortiumRepository;
+import org.folio.spring.data.OffsetRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 
 class ConsortiumControllerTest extends BaseIT {
   private static final String CONSORTIUM_RESOURCE_EXIST_MSG_TEMPLATE = "System can not have more than one consortium record";
@@ -161,8 +160,8 @@ class ConsortiumControllerTest extends BaseIT {
     List<ConsortiumEntity> consortiumEntityList = new ArrayList<>();
     consortiumEntityList.add(consortiumEntity);
 
-    when(consortiumRepository.findAll(PageRequest.of(0, 1)))
-      .thenReturn(new PageImpl<>(consortiumEntityList, PageRequest.of(0, 1), consortiumEntityList.size()));
+    when(consortiumRepository.findAll(OffsetRequest.of(0, 1)))
+      .thenReturn(new PageImpl<>(consortiumEntityList, OffsetRequest.of(0, 1), consortiumEntityList.size()));
 
     this.mockMvc.perform(
         get("/consortia")

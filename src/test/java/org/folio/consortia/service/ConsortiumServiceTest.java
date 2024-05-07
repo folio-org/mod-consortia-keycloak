@@ -6,6 +6,7 @@ import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.ConsortiumRepository;
 import org.folio.consortia.service.impl.ConsortiumServiceImpl;
 import org.folio.consortia.domain.dto.Consortium;
+import org.folio.spring.data.OffsetRequest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -15,7 +16,6 @@ import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,8 +44,8 @@ class ConsortiumServiceTest {
     List<ConsortiumEntity> consortiumEntityList = new ArrayList<>();
     consortiumEntityList.add(consortiumEntity);
 
-    when(consortiumRepository.findAll(PageRequest.of(0, 1)))
-      .thenReturn(new PageImpl<>(consortiumEntityList, PageRequest.of(0, 1), consortiumEntityList.size()));
+    when(consortiumRepository.findAll(OffsetRequest.of(0, 1)))
+      .thenReturn(new PageImpl<>(consortiumEntityList, OffsetRequest.of(0, 1), consortiumEntityList.size()));
 
     var consortiumCollection = consortiumService.getAll();
     Assertions.assertEquals(1, consortiumCollection.getTotalRecords());

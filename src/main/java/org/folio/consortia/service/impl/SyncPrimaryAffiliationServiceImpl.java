@@ -1,11 +1,11 @@
 package org.folio.consortia.service.impl;
 
-import org.folio.consortia.repository.UserTenantRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.consortia.client.SyncPrimaryAffiliationClient;
@@ -17,18 +17,16 @@ import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
 import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.entity.TenantEntity;
 import org.folio.consortia.domain.entity.UserTenantEntity;
+import org.folio.consortia.repository.UserTenantRepository;
 import org.folio.consortia.service.LockService;
 import org.folio.consortia.service.PrimaryAffiliationService;
 import org.folio.consortia.service.SyncPrimaryAffiliationService;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
+import org.folio.spring.data.OffsetRequest;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 
 @Service
 @Log4j2
@@ -118,7 +116,7 @@ public class SyncPrimaryAffiliationServiceImpl implements SyncPrimaryAffiliation
       var user = userList.get(idx);
       try {
         log.info("createPrimaryUserAffiliations:: Processing users: {} of {}", idx + 1, userList.size());
-        Page<UserTenantEntity> userTenantPage = userTenantRepository.findByUserId(UUID.fromString(user.getId()), PageRequest.of(0, 1));
+        Page<UserTenantEntity> userTenantPage = userTenantRepository.findAnyByUserId(UUID.fromString(user.getId()), OffsetRequest.of(0, 1));
 
         if (userTenantPage.getTotalElements() > 0) {
           log.info("createPrimaryUserAffiliations:: Primary affiliation already exists for tenant/user: {}/{}",

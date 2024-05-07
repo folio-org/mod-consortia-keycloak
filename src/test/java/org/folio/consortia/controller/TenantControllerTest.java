@@ -35,12 +35,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import org.folio.consortia.base.BaseIT;
 import org.folio.consortia.client.CapabilitiesClient;
 import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.SyncPrimaryAffiliationClient;
 import org.folio.consortia.client.UserCapabilitiesClient;
 import org.folio.consortia.client.UserPermissionsClient;
 import org.folio.consortia.client.UserTenantsClient;
+import org.folio.consortia.client.UsersClient;
 import org.folio.consortia.client.UsersKeycloakClient;
 import org.folio.consortia.config.kafka.KafkaService;
 import org.folio.consortia.domain.dto.Capabilities;
@@ -63,9 +65,10 @@ import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
 import org.folio.consortia.service.UserTenantService;
 import org.folio.consortia.service.impl.ConsortiaConfigurationServiceImpl;
-import org.folio.consortia.base.BaseIT;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
+import org.folio.spring.context.ExecutionContextBuilder;
+import org.folio.spring.data.OffsetRequest;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.folio.spring.service.PrepareSystemUserService;
 import org.folio.spring.service.SystemUserScopedExecutionService;
@@ -77,7 +80,6 @@ import org.mockito.Mock;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
@@ -86,6 +88,7 @@ class TenantControllerTest extends BaseIT {
   private static final String TENANT_REQUEST_BODY =
     "{\"id\":\"diku1234\",\"code\":\"TST\",\"name\":\"diku_tenant_name1234\", \"isCentral\":false}";
   private static final String CONSORTIUM_ID = "7698e46-c3e3-11ed-afa1-0242ac120002";
+  private static final String CENTRAL_TENANT_REQUEST_BODY = "{\"id\":\"diku1234\",\"code\":\"TST\",\"name\":\"diku_tenant_name1234\", \"isCentral\":true}";
   private static final String CENTRAL_TENANT_ID = "diku";
   public static final String SYNC_PRIMARY_AFFILIATIONS_URL =
     "/consortia/%s/tenants/%s/sync-primary-affiliations?centralTenantId=%s";
@@ -130,6 +133,10 @@ class TenantControllerTest extends BaseIT {
   SyncPrimaryAffiliationClient syncPrimaryAffiliationClient;
   @MockBean
   UsersKeycloakClient usersKeycloakClient;
+  @MockBean
+  UsersClient usersClient;
+  @MockBean
+  ExecutionContextBuilder executionContextBuilder;
 
   /* Success cases */
   @Test
@@ -141,13 +148,12 @@ class TenantControllerTest extends BaseIT {
     tenantEntityList.add(tenantEntity1);
     tenantEntityList.add(tenantEntity2);
 
-    when(tenantRepository.findByConsortiumId(any(), any(PageRequest.of(0, 2)
-      .getClass()))).thenReturn(new PageImpl<>(tenantEntityList, PageRequest.of(0, 2), tenantEntityList.size()));
+    when(tenantRepository.findByConsortiumId(any(), any(OffsetRequest.of(1, 2).getClass())))
+      .thenReturn(new PageImpl<>(tenantEntityList, OffsetRequest.of(2, 2), tenantEntityList.size()));
     when(consortiumRepository.existsById(consortiumId)).thenReturn(true);
     var headers = defaultHeaders();
 
-    this.mockMvc.perform(
-        get("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/tenants?limit=2&offset=1").headers(headers))
+    this.mockMvc.perform(get("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/tenants?limit=2&offset=2").headers(headers))
       .andExpectAll(status().isOk(), content().contentType(MediaType.APPLICATION_JSON_VALUE));
   }
 
@@ -198,13 +204,40 @@ class TenantControllerTest extends BaseIT {
 
   @ParameterizedTest
   @ValueSource(strings = {TENANT_REQUEST_BODY})
-  void shouldUpdateTenant(String contentString) throws Exception {
-    TenantEntity tenant = createTenantEntity();
-
+  void shouldReAddSoftDeletedTenant(String contentString) throws Exception {
     var headers = defaultHeaders();
-    when(tenantRepository.existsById(any())).thenReturn(true);
+    String adminUser = UUID.randomUUID().toString();
+    TenantEntity centralTenant = createTenantEntity(CENTRAL_TENANT_ID, CENTRAL_TENANT_ID, "AAA", true);
+    var existedTenant = createTenantEntity("diku1234", "diku_tenant_name1234");
+    existedTenant.setIsDeleted(true);
+
+    var tenantDetailsEntity = new TenantDetailsEntity();
+    tenantDetailsEntity.setConsortiumId(centralTenant.getConsortiumId());
+    tenantDetailsEntity.setId("diku1234");
+
+    doNothing().when(userTenantsClient).postUserTenant(any());
     when(consortiumRepository.existsById(any())).thenReturn(true);
-    when(tenantRepository.save(any())).thenReturn(tenant);
+    when(tenantRepository.findById("diku1234")).thenReturn(Optional.of(existedTenant));
+    when(tenantDetailsRepository.save(any(TenantDetailsEntity.class))).thenReturn(tenantDetailsEntity);
+    when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(centralTenant));
+    doReturn(folioExecutionContext).when(executionContextBuilder).buildContext(anyString());
+
+    this.mockMvc.perform(
+        post("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/tenants?adminUserId=" + adminUser)
+          .headers(headers).content(contentString))
+      .andExpect(status().isCreated());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {TENANT_REQUEST_BODY})
+  void shouldUpdateTenant(String contentString) throws Exception {
+    var existingTenant = createTenantEntity();
+    var updatedTenant = createTenantEntity();
+    var headers = defaultHeaders();
+
+    when(tenantRepository.findById(anyString())).thenReturn(Optional.of(existingTenant));
+    when(consortiumRepository.existsById(any())).thenReturn(true);
+    when(tenantRepository.save(any())).thenReturn(updatedTenant);
 
     this.mockMvc.perform(
         put("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/tenants/diku1234")
@@ -240,7 +273,7 @@ class TenantControllerTest extends BaseIT {
       andExpectAll(
         status().is4xxClientError(),
         content().contentType(MediaType.APPLICATION_JSON_VALUE),
-        jsonPath("$.errors[0].message", is("Page size must not be less than one")));
+        jsonPath("$.errors[0].message", is("Limit cannot be negative or zero: 0")));
   }
 
   @Test
@@ -330,20 +363,38 @@ class TenantControllerTest extends BaseIT {
 
 
   @ParameterizedTest
-  @ValueSource(strings = {TENANT_REQUEST_BODY})
-  void shouldGet4xxErrorWhileSavingDuplicateName(String contentString) throws Exception {
+  @ValueSource(strings = {CENTRAL_TENANT_REQUEST_BODY})
+  void shouldGet4xxErrorWhileSavingDuplicateCentralTenant(String contentString) throws Exception {
     var headers = defaultHeaders();
     UUID consortiumId = UUID.fromString(CONSORTIUM_ID);
     TenantEntity centralTenant = createTenantEntity(CENTRAL_TENANT_ID, CENTRAL_TENANT_ID, "TTA", true);
-    PermissionUser permissionUser = new PermissionUser();
-    PermissionUserCollection permissionUserCollection = new PermissionUserCollection();
-    permissionUserCollection.setPermissionUsers(List.of(permissionUser));
 
     doReturn(new User()).when(usersKeycloakClient).getUsersByUserId(any());
     when(consortiumRepository.existsById(consortiumId)).thenReturn(true);
     when(tenantRepository.existsById(any(String.class))).thenReturn(true);
+    when(tenantRepository.existsByIsCentralTrue()).thenReturn(true);
     when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(centralTenant));
-    doNothing().when(configurationClient).saveConfiguration(createConsortiaConfiguration(CENTRAL_TENANT_ID));
+
+    this.mockMvc.perform(
+        post("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/tenants?adminUserId=111841e3-e6fb-4191-9fd8-5674a5107c34")
+          .headers(headers).content(contentString))
+      .andExpectAll(
+        status().is4xxClientError(),
+        jsonPath("$.errors[0].message", is("Object with isCentral [true] is already presented in the system")),
+        jsonPath("$.errors[0].code", is("DUPLICATE_ERROR")));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {TENANT_REQUEST_BODY})
+  void shouldGet4xxErrorWhileSavingExistingTenant(String contentString) throws Exception {
+    var headers = defaultHeaders();
+    UUID consortiumId = UUID.fromString(CONSORTIUM_ID);
+    var existedTenant = createTenantEntity("diku1234", "diku_tenant_name1234");
+    existedTenant.setIsDeleted(false);
+
+    when(consortiumRepository.existsById(consortiumId)).thenReturn(true);
+    when(tenantRepository.existsById(any(String.class))).thenReturn(true);
+    when(tenantRepository.findById(anyString())).thenReturn(Optional.of(existedTenant));
 
     this.mockMvc.perform(
         post("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/tenants?adminUserId=111841e3-e6fb-4191-9fd8-5674a5107c34")
@@ -358,10 +409,10 @@ class TenantControllerTest extends BaseIT {
   @ValueSource(strings = {TENANT_REQUEST_BODY})
   void shouldThrowValidationErrorWhileUpdateTenant(String contentString) throws Exception {
     var headers = defaultHeaders();
+    var existingTenant = createTenantEntity();
 
-    when(tenantRepository.existsById(any())).thenReturn(true);
+    when(tenantRepository.findById(any())).thenReturn(Optional.of(existingTenant));
     when(consortiumRepository.existsById(any())).thenReturn(true);
-    when(tenantRepository.save(any(TenantEntity.class))).thenReturn(TenantEntity.class.newInstance());
 
     this.mockMvc.perform(
         put("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/tenants/TestID")
@@ -390,20 +441,23 @@ class TenantControllerTest extends BaseIT {
         jsonPath("$.errors[0].code", is("NOT_FOUND_ERROR")));
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = {TENANT_REQUEST_BODY})
-  void shouldThrownHasActiveAffiliationExceptionWhileDeletingTenant(String contentString) throws Exception {
+  @Test
+  void shouldThrownExceptionWhenDeletingCentralTenant() throws Exception {
     var headers = defaultHeaders();
-    when(tenantRepository.existsById(any())).thenReturn(true);
+    String tenantId = "diku";
+    var centralTenant = createTenantEntity(tenantId);
+    centralTenant.setIsCentral(true);
+
+    when(tenantRepository.findById(any())).thenReturn(Optional.of(centralTenant));
     when(consortiumRepository.existsById(any())).thenReturn(true);
-    when(userTenantRepository.existsByTenantId("diku1234")).thenReturn(true);
 
     this.mockMvc.perform(
-        delete("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/tenants/diku1234")
-          .headers(headers).content(contentString))
+        delete("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/tenants/diku")
+          .headers(headers))
       .andExpectAll(
         status().is4xxClientError(),
-        jsonPath("$.errors[0].code", is("VALIDATION_ERROR")));
+        jsonPath("$.errors[0].code", is("VALIDATION_ERROR")),
+        jsonPath("$.errors[0].message", is("Central tenant [diku] cannot be deleted.")));
   }
 
   @Test
