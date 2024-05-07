@@ -8,10 +8,13 @@ import static org.springframework.util.ReflectionUtils.setField;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.ArrayList;
 import java.util.PrimitiveIterator;
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.github.tomakehurst.wiremock.common.ClasspathFileSource;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
+import com.github.tomakehurst.wiremock.extension.responsetemplating.TemplateEngine;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -24,7 +27,7 @@ public class OkapiExtension implements BeforeAllCallback, AfterAllCallback {
   private static final WireMockServer WIRE_MOCK = new WireMockServer(
     wireMockConfig()
       .port(nextFreePort())
-      .extensions(new ResponseTemplateTransformer(true))
+      .extensions(new ResponseTemplateTransformer(TemplateEngine.defaultTemplateEngine(), true, new ClasspathFileSource("/"), new ArrayList<>()))
   );
 
   private static int nextFreePort() {

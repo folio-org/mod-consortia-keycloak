@@ -1,8 +1,8 @@
 package org.folio.consortia.controller;
 
-import static org.folio.consortia.support.TestConstants.CENTRAL_TENANT_ID;
 import static org.folio.consortia.support.EntityUtils.createUserTenant;
 import static org.folio.consortia.support.EntityUtils.createUserTenantEntity;
+import static org.folio.consortia.support.TestConstants.CENTRAL_TENANT_ID;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -15,22 +15,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import feign.FeignException;
+import feign.Request;
+import feign.RequestTemplate;
+import feign.Response;
+import java.nio.charset.Charset;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import org.folio.consortia.base.BaseIT;
 import org.folio.consortia.client.UsersKeycloakClient;
+import org.folio.consortia.domain.dto.UserTenant;
+import org.folio.consortia.domain.dto.UserTenantCollection;
 import org.folio.consortia.domain.entity.UserTenantEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.ConsortiumRepository;
 import org.folio.consortia.repository.UserTenantRepository;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserTenantService;
-import java.nio.charset.Charset;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
-import org.folio.consortia.domain.dto.UserTenant;
-import org.folio.consortia.domain.dto.UserTenantCollection;
-import org.folio.consortia.base.BaseIT;
+import org.folio.spring.data.OffsetRequest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -42,23 +46,18 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-
-import feign.FeignException;
-import feign.Request;
-import feign.RequestTemplate;
-import feign.Response;
 
 @EntityScan(basePackageClasses = UserTenantEntity.class)
 class UserTenantControllerTest extends BaseIT {
 
   private static final String CONSORTIUM_ID = "7698e46-c3e3-11ed-afa1-0242ac120002";
   private static final String PERMISSION_EXCEPTION_MSG = "[403 Forbidden] during [GET] to " +
-    "[http://users/8c54ff1e-5954-4227-8402-9a5dd061a350] [UsersClient#getUsersByUserId(String)]: " +
+    "[http://users/8c54ff1e-5954-4227-8402-9a5dd061a350] [UsersClient#getUserById(String)]: " +
     "[Access for user 'ss_admin' (b82b46b6-9a6e-46f0-b986-5c643d9ba036) requires permission: users.item.get]";
+
   @Mock
   private UserTenantService userTenantService;
   @InjectMocks
@@ -122,7 +121,7 @@ class UserTenantControllerTest extends BaseIT {
     Page<UserTenantEntity> userTenantPage = new PageImpl<>(List.of(createUserTenantEntity(consortiumId)));
 
     when(consortiumRepository.existsById(consortiumId)).thenReturn(true);
-    when(userTenantRepository.findAll(PageRequest.of(1, 2))).thenReturn(userTenantPage);
+    when(userTenantRepository.getAll(OffsetRequest.of(1, 2))).thenReturn(userTenantPage);
 
     this.mockMvc.perform(
         get("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/user-tenants?limit=2&offset=1")
@@ -223,6 +222,7 @@ class UserTenantControllerTest extends BaseIT {
       .request(request)
       .build();
   }
+
   private Response createUnknownResponse(String message) {
     Request request = Request.create(Request.HttpMethod.GET, "", Map.of(), null, Charset.defaultCharset(),
       new RequestTemplate());

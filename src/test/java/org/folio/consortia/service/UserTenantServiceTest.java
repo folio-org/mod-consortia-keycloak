@@ -45,6 +45,7 @@ import org.folio.consortia.repository.UserTenantRepository;
 import org.folio.consortia.service.impl.UserTenantServiceImpl;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
+import org.folio.spring.data.OffsetRequest;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.junit.jupiter.api.Assertions;
@@ -62,7 +63,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 
 @SpringBootTest
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
@@ -103,10 +103,10 @@ class UserTenantServiceTest {
   void shouldGetUserTenantList() {
     // given
     List<UserTenantEntity> userTenantEntities = List.of(new UserTenantEntity(), new UserTenantEntity());
-    Page<UserTenantEntity> userTenantPage = new PageImpl<>(userTenantEntities, PageRequest.of(0, 10), userTenantEntities.size());
+    Page<UserTenantEntity> userTenantPage = new PageImpl<>(userTenantEntities, OffsetRequest.of(0, 10), userTenantEntities.size());
 
     when(consortiumRepository.findById(UUID.fromString(CONSORTIUM_ID))).thenReturn(Optional.of(createConsortiumEntity()));
-    when(userTenantRepository.findAll(PageRequest.of(0, 10))).thenReturn(userTenantPage);
+    when(userTenantRepository.getAll(OffsetRequest.of(0, 10))).thenReturn(userTenantPage);
 
     // when
     var result = userTenantService.get(UUID.fromString(CONSORTIUM_ID), 0, 10);
@@ -151,7 +151,8 @@ class UserTenantServiceTest {
     when(consortiumRepository.findById(UUID.fromString(CONSORTIUM_ID))).thenReturn(Optional.of(createConsortiumEntity()));
     when(conversionService.convert(userTenant, UserTenant.class)).thenReturn(toDto(userTenant));
     when(conversionService.convert(userTenant2, UserTenant.class)).thenReturn(toDto(userTenant2));
-    when(userTenantRepository.findByUserId(userId, PageRequest.of(0, 10))).thenReturn(new PageImpl<>(userTenantEntities, PageRequest.of(0, 10), userTenantEntities.size()));
+    when(userTenantRepository.findByUserId(userId, OffsetRequest.of(0, 10)))
+      .thenReturn(new PageImpl<>(userTenantEntities, OffsetRequest.of(0, 10), userTenantEntities.size()));
 
     // when
     UserTenantCollection result = userTenantService.getByUserId(UUID.fromString(CONSORTIUM_ID), userId, 0, 10);
@@ -443,7 +444,7 @@ class UserTenantServiceTest {
     UUID userId = UUID.randomUUID();
 
     when(consortiumRepository.findById(UUID.fromString(CONSORTIUM_ID))).thenReturn(Optional.of(createConsortiumEntity()));
-    when(userTenantRepository.findByUserId(userId, PageRequest.of(0, 10))).thenReturn(new PageImpl<>(new ArrayList<>()));
+    when(userTenantRepository.findByUserId(userId, OffsetRequest.of(0, 10))).thenReturn(new PageImpl<>(new ArrayList<>()));
 
     UUID id = UUID.fromString(CONSORTIUM_ID);
     // throw exception
@@ -575,7 +576,8 @@ class UserTenantServiceTest {
     when(userService.getById(any())).thenThrow(java.lang.IllegalStateException.class);
     mockOkapiHeaders();
 
-    assertThrows(java.lang.IllegalStateException.class, () -> userTenantService.save(UUID.fromString(CONSORTIUM_ID), tenant, false));
+    assertThrows(java.lang.IllegalStateException.class,
+      () -> userTenantService.save(UUID.fromString(CONSORTIUM_ID), tenant, false));
   }
 
   @Test

@@ -31,6 +31,10 @@ public interface TenantService {
 
   /**
    * Inserts single tenant based on consortiumId.
+   * Method checks whether requesting tenant is soft deleted or new tenant.
+   * For re-adding soft deleted tenant,
+   *   tenant is_deleted flag will be changed to false and dummy user will be created in mod_users.user-tenants table
+   * For new tenant, all necessary actions will be done.
    *
    * @param consortiumId  the consortiumId
    * @param tenantDto  the tenantDto

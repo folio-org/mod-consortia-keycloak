@@ -1,5 +1,7 @@
 package org.folio.consortia.service.impl;
 
+import static org.folio.consortia.utils.HelperUtils.checkIdenticalOrThrow;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -7,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
+import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.SyncPrimaryAffiliationClient;
 import org.folio.consortia.client.UserTenantsClient;
@@ -31,15 +34,14 @@ import org.folio.consortia.service.LockService;
 import org.folio.consortia.service.PermissionUserService;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
-import org.folio.consortia.utils.HelperUtils;
 import org.folio.consortia.utils.TenantContextUtils;
 import org.folio.spring.FolioExecutionContext;
+import org.folio.spring.context.ExecutionContextBuilder;
+import org.folio.spring.data.OffsetRequest;
 import org.folio.spring.scope.FolioExecutionContextSetter;
-import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,8 +54,7 @@ public class TenantServiceImpl implements TenantService {
   private static final String SHADOW_ADMIN_PERMISSION_FILE_PATH = "permissions/admin-user-permissions.csv";
   private static final String SHADOW_SYSTEM_USER_PERMISSION_FILE_PATH = "permissions/system-user-permissions.csv";
   private static final String TENANTS_IDS_NOT_MATCHED_ERROR_MSG = "Request body tenantId and path param tenantId should be identical";
-  private static final String TENANT_HAS_ACTIVE_USER_ASSOCIATIONS_ERROR_MSG = "Cannot delete tenant with ID {tenantId} because it has an association with a user. "
-      + "Please remove the user association before attempting to delete the tenant.";
+
   private static final String DUMMY_USERNAME = "dummy_user";
   @Value("${folio.system-user.username}")
   private String systemUserUsername;
@@ -67,7 +68,7 @@ public class TenantServiceImpl implements TenantService {
   private final ConsortiaConfigurationClient configurationClient;
   private final PermissionUserService permissionUserService;
   private final UserService userService;
-  private final SystemUserScopedExecutionService systemUserScopedExecutionService;
+  private final ExecutionContextBuilder contextBuilder;
   private final UserTenantsClient userTenantsClient;
   private final SyncPrimaryAffiliationClient syncPrimaryAffiliationClient;
   private final CleanupService cleanupService;
@@ -77,7 +78,7 @@ public class TenantServiceImpl implements TenantService {
   public TenantCollection get(UUID consortiumId, Integer offset, Integer limit) {
     TenantCollection result = new TenantCollection();
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
-    Page<TenantEntity> page = tenantRepository.findByConsortiumId(consortiumId, PageRequest.of(offset, limit));
+    Page<TenantEntity> page = tenantRepository.findByConsortiumId(consortiumId, OffsetRequest.of(offset, limit));
     result.setTenants(page.map(o -> converter.convert(o, Tenant.class)).getContent());
     result.setTotalRecords((int) page.getTotalElements());
     return result;
@@ -87,8 +88,7 @@ public class TenantServiceImpl implements TenantService {
   public TenantCollection getAll(UUID consortiumId) {
     TenantCollection result = new TenantCollection();
     List<Tenant> list = tenantRepository.findByConsortiumId(consortiumId)
-      .stream()
-      .map(o -> converter.convert(o, Tenant.class)).toList();
+      .stream().map(o -> converter.convert(o, Tenant.class)).toList();
     result.setTenants(list);
     result.setTotalRecords(list.size());
     return result;
@@ -118,18 +118,42 @@ public class TenantServiceImpl implements TenantService {
   @Override
   @Transactional
   public Tenant save(UUID consortiumId, UUID adminUserId, Tenant tenantDto) {
-    log.info("save:: Trying to save a tenant by consortiumId '{}', tenant object with id '{}' and isCentral={}", consortiumId,
-        tenantDto.getId(), tenantDto.getIsCentral());
+    log.info("save:: Trying to save a tenant with id={}, consortiumId={} and isCentral={}", tenantDto.getId(),
+      consortiumId, tenantDto.getIsCentral());
+    validateConsortiumAndTenantForSaveOperation(consortiumId, tenantDto);
+    validateCodeAndNameUniqueness(tenantDto);
 
-    // validation part
-    checkTenantNotExistsAndConsortiumExistsOrThrow(consortiumId, tenantDto.getId());
-    checkCodeAndNameUniqueness(tenantDto);
-    if (tenantDto.getIsCentral()) {
-      checkCentralTenantExistsOrThrow();
+    var existingTenant = tenantRepository.findById(tenantDto.getId());
+
+    // checked whether tenant exists or not.
+    return existingTenant.isPresent() ? reAddSoftDeletedTenant(consortiumId, existingTenant.get(), tenantDto)
+      : addNewTenant(consortiumId, tenantDto, adminUserId);
+  }
+
+  private Tenant reAddSoftDeletedTenant(UUID consortiumId, TenantEntity existingTenant, Tenant tenantDto) {
+    log.info("reAddSoftDeletedTenant:: Re-adding soft deleted tenant with id={}", tenantDto.getId());
+    validateExistingTenant(existingTenant);
+
+    tenantDto.setIsDeleted(false);
+    var savedTenant = saveTenant(consortiumId, tenantDto, SetupStatusEnum.COMPLETED);
+
+    String centralTenantId = getCentralTenantId();
+    try (var ignored = new FolioExecutionContextSetter(contextBuilder.buildContext(tenantDto.getId()))) {
+      createUserTenantWithDummyUser(tenantDto.getId(), centralTenantId, consortiumId);
+      log.info("reAddSoftDeletedTenant:: Dummy user re-created in user-tenants table");
+    } catch (Exception e) {
+      log.error("Failed to create dummy user with centralTenantId: {}, tenant: {}" +
+        " and error message: {}", centralTenantId, tenantDto.getId(), e.getMessage(), e);
     }
+    return savedTenant;
+  }
 
-    // save tenant to db
+  private Tenant addNewTenant(UUID consortiumId, Tenant tenantDto, UUID adminUserId) {
+    log.info("addNewTenant:: Creating new tenant with id={}, consortiumId={}, and adminUserId={}",
+      tenantDto.getId(), consortiumId, adminUserId);
+
     lockService.lockTenantSetupWithinTransaction();
+    tenantDto.setIsDeleted(false);
     Tenant savedTenant = saveTenant(consortiumId, tenantDto, SetupStatusEnum.IN_PROGRESS);
 
     // save admin user tenant association for non-central tenant
@@ -145,7 +169,7 @@ public class TenantServiceImpl implements TenantService {
       userTenantRepository.save(createUserTenantEntity(consortiumId, shadowAdminUser, tenantDto));
       // creating shadow user of consortia system user of central tenant with same permissions.
       var centralSystemUser = userService.getByUsername(systemUserUsername)
-        .orElseThrow(() ->  new ResourceNotFoundException("systemUserUsername", systemUserUsername));
+        .orElseThrow(() -> new ResourceNotFoundException("systemUserUsername", systemUserUsername));
       shadowSystemUser = userService.prepareShadowUser(UUID.fromString(centralSystemUser.getId()), folioExecutionContext.getTenantId());
       userTenantRepository.save(createUserTenantEntity(consortiumId, shadowSystemUser, tenantDto));
     }
@@ -156,7 +180,7 @@ public class TenantServiceImpl implements TenantService {
 
     var allHeaders = new CaseInsensitiveMap<>(folioExecutionContext.getOkapiHeaders());
     allHeaders.put("x-okapi-tenant", List.of(tenantDto.getId()));
-    try (var fex = new FolioExecutionContextSetter(folioExecutionContext.getFolioModuleMetadata(), allHeaders)) {
+    try (var ignored = new FolioExecutionContextSetter(folioExecutionContext.getFolioModuleMetadata(), allHeaders)) {
       configurationClient.saveConfiguration(createConsortiaConfigurationBody(centralTenantId));
       if (!tenantDto.getIsCentral()) {
         createUserTenantWithDummyUser(tenantDto.getId(), centralTenantId, consortiumId);
@@ -174,16 +198,20 @@ public class TenantServiceImpl implements TenantService {
   @Override
   @Transactional
   public Tenant update(UUID consortiumId, String tenantId, Tenant tenantDto) {
-    consortiumService.checkConsortiumExistsOrThrow(consortiumId);
-    checkTenantExistsOrThrow(tenantId);
-    HelperUtils.checkIdenticalOrThrow(tenantId, tenantDto.getId(), TENANTS_IDS_NOT_MATCHED_ERROR_MSG);
+    log.debug("update:: Trying to update tenant '{}' in consortium '{}'", tenantId, consortiumId);
+    var existedTenant = tenantRepository.findById(tenantId)
+      .orElseThrow(() -> new ResourceNotFoundException("id", tenantId));
+
+    validateTenantForUpdateOperation(consortiumId, tenantId, tenantDto, existedTenant);
+    // isDeleted flag cannot be changed by put request
+    tenantDto.setIsDeleted(existedTenant.getIsDeleted());
     return updateTenant(consortiumId, tenantDto);
   }
 
   @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void updateTenantSetupStatus(String tenantId, String centralTenantId, SetupStatusEnum setupStatus) {
-    try (var ctx = new FolioExecutionContextSetter(TenantContextUtils.prepareContextForTenant(centralTenantId,
+    try (var ignored = new FolioExecutionContextSetter(TenantContextUtils.prepareContextForTenant(centralTenantId,
       folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext))) {
       tenantDetailsRepository.setSetupStatusByTenantId(setupStatus, tenantId);
       log.info("updateTenantSetupStatus:: tenant id={} status updated to {}", tenantId, setupStatus);
@@ -194,13 +222,23 @@ public class TenantServiceImpl implements TenantService {
   @Transactional
   public void delete(UUID consortiumId, String tenantId) {
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
-    checkTenantExistsOrThrow(tenantId);
-    if (userTenantRepository.existsByTenantId(tenantId)) {
-      throw new IllegalArgumentException(TENANT_HAS_ACTIVE_USER_ASSOCIATIONS_ERROR_MSG);
+    var tenant = tenantRepository.findById(tenantId);
+
+    if (tenant.isEmpty()) {
+      throw new ResourceNotFoundException("id", tenantId);
     }
+
+    validateTenantForDeleteOperation(tenant.get());
+
+    var softDeletedTenant = tenant.get();
+    softDeletedTenant.setIsDeleted(true);
     // clean publish coordinator tables first, because after tenant removal it will be ignored by cleanup service
     cleanupService.clearPublicationTables();
-    tenantRepository.deleteById(tenantId);
+    tenantRepository.save(softDeletedTenant);
+
+    try (var ignored = new FolioExecutionContextSetter(contextBuilder.buildContext(tenantId))) {
+      userTenantsClient.deleteUserTenants();
+    }
   }
 
   private Tenant saveTenant(UUID consortiumId, Tenant tenantDto, SetupStatusEnum setupStatus) {
@@ -213,22 +251,21 @@ public class TenantServiceImpl implements TenantService {
   }
 
   private Tenant updateTenant(UUID consortiumId, Tenant tenantDto) {
-    log.debug("updateTenant:: Trying to update tenant with consoritumId={} and tenant with id={}", consortiumId, tenantDto);
     TenantEntity entity = toTenantEntity(consortiumId, tenantDto);
     TenantEntity updatedTenant = tenantRepository.save(entity);
     log.info("updateTenant:: Tenant '{}' successfully updated", updatedTenant.getId());
     return converter.convert(updatedTenant, Tenant.class);
   }
 
-  /*
-    Dummy user will be used to support cross-tenant requests checking in mod-authtoken,
-    if user-tenant table contains some record in institutional tenant - it means mod-consortia enabled for
-    this tenant and will allow cross-tenant request.
-
-    @param tenantId tenant id
-    @param centralTenantId central tenant id
-    @param consortiumId consortium id
-  */
+  /**
+   * Dummy user will be used to support cross-tenant requests checking in mod-authtoken,
+   * if user-tenant table contains some record in institutional tenant - it means mod-consortia enabled for
+   * this tenant and will allow cross-tenant request.
+   *
+   * @param tenantId        tenant id
+   * @param centralTenantId central tenant id
+   * @param consortiumId    consortium id
+   */
   private void createUserTenantWithDummyUser(String tenantId, String centralTenantId, UUID consortiumId) {
     UserTenant userTenant = new UserTenant();
     userTenant.setId(UUID.randomUUID());
@@ -240,22 +277,6 @@ public class TenantServiceImpl implements TenantService {
 
     log.info("Creating userTenant with dummy user with id {}.", userTenant.getId());
     userTenantsClient.postUserTenant(userTenant);
-  }
-
-  private void checkTenantNotExistsAndConsortiumExistsOrThrow(UUID consortiumId, String tenantId) {
-    consortiumService.checkConsortiumExistsOrThrow(consortiumId);
-    if (tenantRepository.existsById(tenantId)) {
-      throw new ResourceAlreadyExistException("id", tenantId);
-    }
-  }
-
-  private void checkCodeAndNameUniqueness(Tenant tenant) {
-    if (tenantRepository.existsByName(tenant.getName())) {
-      throw new ResourceAlreadyExistException("name", tenant.getName());
-    }
-    if (tenantRepository.existsByCode(tenant.getCode())) {
-      throw new ResourceAlreadyExistException("code", tenant.getCode());
-    }
   }
 
   @Override
@@ -281,9 +302,42 @@ public class TenantServiceImpl implements TenantService {
     }
   }
 
-  private void checkCentralTenantExistsOrThrow() {
-    if (tenantRepository.existsByIsCentralTrue()) {
+  private void validateTenantForUpdateOperation(UUID consortiumId, String tenantId, Tenant tenantDto, TenantEntity existedTenant) {
+    consortiumService.checkConsortiumExistsOrThrow(consortiumId);
+    checkIdenticalOrThrow(tenantId, tenantDto.getId(), TENANTS_IDS_NOT_MATCHED_ERROR_MSG);
+    if (ObjectUtils.notEqual(tenantDto.getIsCentral(), existedTenant.getIsCentral())) {
+      throw new IllegalArgumentException(String.format("'isCentral' field cannot be changed. It should be '%s'", existedTenant.getIsCentral()));
+    }
+  }
+
+  private void validateConsortiumAndTenantForSaveOperation(UUID consortiumId, Tenant tenantDto) {
+    consortiumService.checkConsortiumExistsOrThrow(consortiumId);
+    if (tenantDto.getIsCentral() && tenantRepository.existsByIsCentralTrue()) {
       throw new ResourceAlreadyExistException("isCentral", "true");
+    }
+  }
+
+  private void validateCodeAndNameUniqueness(Tenant tenant) {
+    if (tenantRepository.existsByNameForOtherTenant(tenant.getName(), tenant.getId())) {
+      throw new ResourceAlreadyExistException("name", tenant.getName());
+    }
+    if (tenantRepository.existsByCodeForOtherTenant(tenant.getCode(), tenant.getId())) {
+      throw new ResourceAlreadyExistException("code", tenant.getCode());
+    }
+  }
+
+  private void validateExistingTenant(TenantEntity existingTenant) {
+    if (Boolean.FALSE.equals(existingTenant.getIsDeleted())) {
+      throw new ResourceAlreadyExistException("id", existingTenant.getId());
+    }
+  }
+
+  private void validateTenantForDeleteOperation(TenantEntity tenant) {
+    if (Boolean.TRUE.equals(tenant.getIsDeleted())) {
+      throw new IllegalArgumentException(String.format("Tenant [%s] has already been soft deleted.", tenant.getId()));
+    }
+    if (Boolean.TRUE.equals(tenant.getIsCentral())) {
+      throw new IllegalArgumentException(String.format("Central tenant [%s] cannot be deleted.", tenant.getId()));
     }
   }
 
@@ -301,6 +355,7 @@ public class TenantServiceImpl implements TenantService {
     entity.setCode(tenantDto.getCode());
     entity.setIsCentral(tenantDto.getIsCentral());
     entity.setConsortiumId(consortiumId);
+    entity.setIsDeleted(tenantDto.getIsDeleted());
     return entity;
   }
 
@@ -312,6 +367,7 @@ public class TenantServiceImpl implements TenantService {
     entity.setIsCentral(tenantDto.getIsCentral());
     entity.setConsortiumId(consortiumId);
     entity.setSetupStatus(setupStatus);
+    entity.setIsDeleted(tenantDto.getIsDeleted());
     return entity;
   }
 

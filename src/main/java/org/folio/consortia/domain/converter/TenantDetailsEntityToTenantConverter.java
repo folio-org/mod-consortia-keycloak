@@ -14,6 +14,7 @@ public class TenantDetailsEntityToTenantConverter implements Converter<TenantDet
     tenant.setCode(source.getCode());
     tenant.setName(source.getName());
     tenant.setIsCentral(source.getIsCentral());
+    tenant.setIsDeleted(source.getIsDeleted());
     return tenant;
   }
 }

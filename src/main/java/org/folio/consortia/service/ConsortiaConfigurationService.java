@@ -27,4 +27,9 @@ public interface ConsortiaConfigurationService {
    */
   ConsortiaConfiguration createConfiguration(String centralTenantId);
 
+  /**
+   * Check if there is any central tenant
+   * @return boolean value based one whether central tenant configuration exists or not
+   */
+  boolean isCentralTenantConfigurationExists();
 }

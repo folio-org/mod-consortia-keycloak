@@ -206,6 +206,47 @@ class SharingInstanceServiceTest {
   }
 
   @Test
+  void shouldUpdatePreviousSharingInstanceWhenAfterSuccessfulUpdate() throws JsonProcessingException {
+    String sourceTenantId = "mobius";
+    String targetTenantId = "college";
+    SharingInstance sharingInstance = createSharingInstance(instanceIdentifier, sourceTenantId, targetTenantId);
+    SharingInstanceEntity sharingInstanceEntity = new SharingInstanceEntity();
+    SharingInstanceEntity existingSharingInstanceEntity = createSharingInstanceEntity(sharingInstance.getId(), instanceIdentifier, sourceTenantId, targetTenantId);
+    SharingInstanceEntity updatingSharingInstanceEntity = createSharingInstanceEntity(sharingInstance.getId(), instanceIdentifier, sourceTenantId, targetTenantId);
+    updatingSharingInstanceEntity.setStatus(Status.COMPLETE);
+
+    // skip validation part
+    when(consortiumRepository.existsById(any())).thenReturn(true);
+    doNothing().when(tenantService).checkTenantExistsOrThrow(anyString());
+    when(folioExecutionContext.getOkapiHeaders()).thenReturn(headers);
+
+    when(tenantService.getCentralTenantId()).thenReturn("mobius");
+    when(conversionService.convert(any(), eq(SharingInstance.class))).thenReturn(toDto(sharingInstanceEntity));
+    when(sharingInstanceRepository.findByInstanceAndTenantIds(instanceIdentifier, sourceTenantId, targetTenantId))
+      .thenReturn(Optional.of(existingSharingInstanceEntity));
+
+    // existing object should be updated, not created new one
+    when(sharingInstanceRepository.save(updatingSharingInstanceEntity)).thenReturn(updatingSharingInstanceEntity);
+
+    // return instance as JsonNode when getting
+    ObjectMapper objectMapper = new ObjectMapper();
+    JsonNode inventoryInstance = objectMapper.readTree("{ \"source\" : \"folio\" } ");
+
+    when(inventoryService.getById(any())).thenReturn(inventoryInstance);
+
+    // do nothing when posting inventory instance
+    doNothing().when(inventoryService).saveInstance(anyString());
+
+    // verify status field gets updated and save() method gets called
+    sharingInstanceService.start(UUID.randomUUID(), sharingInstance);
+
+    assertThat(sharingInstance.getError()).isNull();
+    assertThat(sharingInstance.getStatus()).isEqualTo(Status.COMPLETE);
+    verify(sharingInstanceRepository, times(1)).save(any());
+    verify(sharingInstanceRepository, times(1)).findByInstanceAndTenantIds(any(), anyString(), anyString());
+  }
+
+  @Test
   void shouldPromoteSharingInstanceWithCompleteStatus() throws JsonProcessingException {
     SharingInstance sharingInstance = createSharingInstance(instanceIdentifier, "college", "mobius");
     SharingInstanceEntity sharingInstanceEntity = new SharingInstanceEntity();
