@@ -65,13 +65,13 @@
     <folio-service-tools.version>4.0.1</folio-service-tools.version>
     <openapi-generator.version>7.5.0</openapi-generator.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
-    <applications-poc-tools.version>1.4.0</applications-poc-tools.version>
+    <applications-poc-tools.version>1.4.1</applications-poc-tools.version>
 
     <!-- test dependencies -->
     <wiremock-standalone.version>3.0.1</wiremock-standalone.version>
     <testcontainers.version>1.19.8</testcontainers.version>
     <snakeyaml.version>2.2</snakeyaml.version>
-    <testcontainers-bom.version>1.19.3</testcontainers-bom.version>
+    <testcontainers-bom.version>1.19.8</testcontainers-bom.version>
     <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
   </properties>
 
