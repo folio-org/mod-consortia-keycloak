@@ -61,9 +61,9 @@
     </sharing_settings.yaml.file>
 
     <!-- runtime dependencies -->
-    <folio-spring-base.version>8.1.0</folio-spring-base.version>
+    <folio-spring-base.version>8.1.1</folio-spring-base.version>
     <folio-service-tools.version>4.0.1</folio-service-tools.version>
-    <openapi-generator.version>7.5.0</openapi-generator.version>
+    <openapi-generator.version>7.6.0</openapi-generator.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
     <applications-poc-tools.version>1.4.1</applications-poc-tools.version>
 
