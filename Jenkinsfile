@@ -7,7 +7,7 @@ node('jenkins-agent-java17-bigmem') {
   stage('Build Docker Image') {
     dir('mod-consortia-keycloak') {
       EurekaImage image = new EurekaImage(this)
-      image.setModuleName('mod-users-keycloak')
+      image.setModuleName('mod-consortia-keycloak')
       image.makeImage()
     }
   }
