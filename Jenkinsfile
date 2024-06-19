@@ -3,11 +3,14 @@
 import org.folio.eureka.EurekaImage
 import org.jenkinsci.plugins.workflow.libs.Library
 
+String moduleName = 'mod-consortia-keycloak'
+
 node('jenkins-agent-java17-bigmem') {
   stage('Build Docker Image') {
-    dir('mod-consortia-keycloak') {
+    dir(moduleName) {
       EurekaImage image = new EurekaImage(this)
-      image.setModuleName('mod-consortia-keycloak')
+      common.checkEcrRepoExistence(moduleName)
+      image.setModuleName(moduleName)
       image.makeImage()
     }
   }
