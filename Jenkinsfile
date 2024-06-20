@@ -9,7 +9,6 @@ node('jenkins-agent-java17-bigmem') {
   stage('Build Docker Image') {
     dir(moduleName) {
       EurekaImage image = new EurekaImage(this)
-      common.checkEcrRepoExistence(moduleName)
       image.setModuleName(moduleName)
       image.makeImage()
     }
