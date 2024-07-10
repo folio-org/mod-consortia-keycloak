@@ -1,3 +1,8 @@
+## Version `v1.4.1` (10.07.2024)
+### Changes:
+* Upgrade application-poc-tools to v1.5.4.
+
+---
 ## Version `v1.4.0` (20.06.2024)
 ### Changes:
 * Build Container Image for application ([RANCHER-1515](https://folio-org.atlassian.net/browse/RANCHER-1515)).
