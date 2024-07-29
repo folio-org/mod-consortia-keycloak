@@ -544,7 +544,7 @@
   ],
   "metadata": {
     "user": {
-      "type": "module",
+      "type": "system",
       "permissions": [
         "consortia.consortia-configuration.item.post",
         "users.collection.get",
