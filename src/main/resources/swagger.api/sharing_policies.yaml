@@ -1,22 +1,22 @@
 openapi: 3.0.0
 info:
-  title: Sharing setting integration API
-  description: "Sharing setting integration API"
+  title: Sharing policy integration API
+  description: "Sharing policy integration API"
   version: 0.0.1
 servers:
   - url: /consortia/{consortiumId}/sharing
 paths:
-  /settings:
+  /policies:
     post:
-      summary: start setting sharing
-      operationId: startSharingSetting
+      summary: start policy sharing
+      operationId: startSharingPolicy
       parameters:
         - $ref: "#/components/parameters/consortiumId"
       requestBody:
-        $ref: "#/components/requestBodies/SharingSettingBody"
+        $ref: "#/components/requestBodies/SharingPolicyBody"
       responses:
         "201":
-          $ref: "#/components/responses/SharingSettingResponse"
+          $ref: "#/components/responses/SharingPolicyResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
@@ -27,18 +27,18 @@ paths:
           $ref: "#/components/responses/Conflict"
         "500":
           $ref: "#/components/responses/InternalServerError"
-  /settings/{settingId}:
+  /policies/{policyId}:
     delete:
-      summary: delete sharing setting
-      operationId: deleteSharingSetting
+      summary: delete sharing policy
+      operationId: deleteSharingPolicy
       parameters:
         - $ref: "#/components/parameters/consortiumId"
-        - $ref: "#/components/parameters/settingId"
+        - $ref: "#/components/parameters/policyId"
       requestBody:
-        $ref: "#/components/requestBodies/SharingSettingBody"
+        $ref: "#/components/requestBodies/SharingPolicyBody"
       responses:
         "200":
-          $ref: "#/components/responses/SharingSettingDeleteResponse"
+          $ref: "#/components/responses/SharingPolicyDeleteResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
@@ -51,26 +51,26 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 components:
   requestBodies:
-    SharingSettingBody:
-      description: Sharing settings object
+    SharingPolicyBody:
+      description: Sharing policies object
       required: true
       content:
         application/json:
           schema:
-            $ref: "schemas/sharingSetting.yaml#/SharingSettingRequest"
+            $ref: "schemas/sharingPolicy.yaml#/SharingPolicyRequest"
   responses:
-    SharingSettingResponse:
-      description: Returns a sharing setting object response for post operation
+    SharingPolicyResponse:
+      description: Returns a sharing policy object response for post operation
       content:
         application/json:
           schema:
-            $ref: "schemas/sharingSetting.yaml#/SharingSettingResponse"
-    SharingSettingDeleteResponse:
-      description: Returns a sharing setting response for delete operation
+            $ref: "schemas/sharingPolicy.yaml#/SharingPolicyResponse"
+    SharingPolicyDeleteResponse:
+      description: Returns a sharing policy response for delete operation
       content:
         application/json:
           schema:
-            $ref: "schemas/sharingSetting.yaml#/SharingSettingDeleteResponse"
+            $ref: "schemas/sharingPolicy.yaml#/SharingPolicyDeleteResponse"
     NoContent:
       description: No content
     Conflict:
@@ -116,10 +116,10 @@ components:
         $ref: "schemas/common.yaml#/uuid"
       required: true
       description: The ID of consortium
-    settingId:
+    policyId:
       in: path
-      name: settingId
+      name: policyId
       schema:
         $ref: "schemas/common.yaml#/uuid"
       required: true
-      description: The ID of setting
+      description: The ID of policy

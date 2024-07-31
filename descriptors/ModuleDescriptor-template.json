@@ -340,6 +340,26 @@
             "consortia.sharing-settings.item.delete"
           ],
           "modulePermissions": []
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/consortia/{consortiumId}/sharing/policies",
+          "permissionsRequired": [
+            "consortia.sharing-policies.item.post"
+          ],
+          "modulePermissions": []
+        },
+        {
+          "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/consortia/{consortiumId}/sharing/policies/{policyId}",
+          "permissionsRequired": [
+            "consortia.sharing-policies.item.delete"
+          ],
+          "modulePermissions": []
         }
       ]
     },
@@ -411,7 +431,9 @@
         "consortia.publications.item.delete",
         "consortia.publications-results.item.get",
         "consortia.sharing-settings.item.post",
-        "consortia.sharing-settings.item.delete"
+        "consortia.sharing-settings.item.delete",
+        "consortia.sharing-policies.item.post",
+        "consortia.sharing-policies.item.delete"
       ]
     },
     {
@@ -540,6 +562,16 @@
       "permissionName": "consortia.sharing-settings.item.delete",
       "displayName": "delete sharing setting",
       "description": "Delete sharing setting"
+    },
+    {
+      "permissionName": "consortia.sharing-policies.item.post",
+      "displayName": "post sharing policy",
+      "description": "Create sharing policy"
+    },
+    {
+      "permissionName": "consortia.sharing-policies.item.delete",
+      "displayName": "delete sharing policy",
+      "description": "Delete sharing policy"
     }
   ],
   "launchDescriptor": {

@@ -15,7 +15,6 @@ import static org.folio.consortia.utils.InputOutputTestUtils.getMockDataObject;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,7 +27,7 @@ import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.ConsortiumRepository;
 import org.folio.consortia.repository.PublicationStatusRepository;
 import org.folio.consortia.repository.SharingSettingRepository;
-import org.folio.consortia.service.impl.SharingSettingServiceImpl;
+import org.folio.consortia.service.impl.SharingSettingService;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashSet;
@@ -71,7 +70,7 @@ class SharingSettingServiceTest {
   private static final String SHARING_SETTING_REQUEST_SAMPLE_WITHOUT_PAYLOAD = "mockdata/sharing_settings/sharing_setting_request_without_payload.json";
 
   @InjectMocks
-  private SharingSettingServiceImpl sharingSettingService;
+  private SharingSettingService sharingSettingService;
   @Mock
   private ConsortiumRepository consortiumRepository;
   @Mock
@@ -205,7 +204,7 @@ class SharingSettingServiceTest {
     // expected arguments for publish method parameters
     when(publicationService.publishRequest(CONSORTIUM_ID, expectedPublicationRequest)).thenReturn(publicationResponse);
 
-    Method method = SharingSettingServiceImpl.class.getDeclaredMethod("updateSettingsForFailedTenants", UUID.class, UUID.class, SharingSettingRequest.class);
+    Method method = SharingSettingService.class.getDeclaredMethod("updateSettingsForFailedTenants", UUID.class, UUID.class, SharingSettingRequest.class);
     method.setAccessible(true);
     method.invoke(sharingSettingService, CONSORTIUM_ID, publicationId, sharingSettingRequest);
 
