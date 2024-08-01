@@ -201,16 +201,16 @@ class SharingSettingServiceTest {
     when(objectMapper.convertValue(any(), eq(JsonNode.class))).thenReturn(node);
     when(folioExecutionContext.getTenantId()).thenReturn("mobius");
     when(systemUserScopedExecutionService.executeSystemUserScoped(eq("mobius"), any())).then(SharingSettingServiceTest::callSecondArgument);
-    // expected arguments for publish method parameters
     when(publicationService.publishRequest(CONSORTIUM_ID, expectedPublicationRequest)).thenReturn(publicationResponse);
 
-    Method method = SharingSettingService.class.getDeclaredMethod("updateSettingsForFailedTenants", UUID.class, UUID.class, SharingSettingRequest.class);
+    // Use reflection to access the protected method in BaseSharingService
+    Method method = SharingSettingService.class.getSuperclass().getDeclaredMethod("updateConfigsForFailedTenants", UUID.class, UUID.class, Object.class);
     method.setAccessible(true);
     method.invoke(sharingSettingService, CONSORTIUM_ID, publicationId, sharingSettingRequest);
 
-    verify(publicationService).getPublicationDetails(any(), any());
+    verify(publicationService).getPublicationDetails(CONSORTIUM_ID, publicationId);
     verify(publicationService).checkPublicationDetailsExists(CONSORTIUM_ID, publicationId);
-    verify(publicationService).publishRequest(any(), any());
+    verify(publicationService).publishRequest(CONSORTIUM_ID, expectedPublicationRequest);
   }
 
   // Negative cases
@@ -273,7 +273,7 @@ class SharingSettingServiceTest {
     final ObjectMapper mapper = new ObjectMapper();
     final ObjectNode root = mapper.createObjectNode();
     root.set("group", mapper.convertValue("space", JsonNode.class));
-    root.set("source", mapper.convertValue("local", JsonNode.class));
+    root.set("source", mapper.convertValue("user", JsonNode.class));
     expectedPublicationRequest.setPayload(root);
     return expectedPublicationRequest;
   }

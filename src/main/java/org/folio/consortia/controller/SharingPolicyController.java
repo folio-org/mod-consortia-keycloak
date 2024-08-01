@@ -25,7 +25,7 @@ public class SharingPolicyController implements PoliciesApi {
   public ResponseEntity<SharingPolicyResponse> startSharingPolicy(UUID consortiumId,
                                                                   SharingPolicyRequest sharingPolicyRequest) {
     return ResponseEntity
-      .status(OK)
+      .status(CREATED)
       .body(sharingPolicyService.start(consortiumId, sharingPolicyRequest));
   }
 
@@ -33,7 +33,7 @@ public class SharingPolicyController implements PoliciesApi {
   public ResponseEntity<SharingPolicyDeleteResponse> deleteSharingPolicy(UUID consortiumId, UUID policyId,
                                                                          SharingPolicyRequest sharingPolicyRequest) {
     return ResponseEntity
-      .status(CREATED)
+      .status(OK)
       .body(sharingPolicyService.delete(consortiumId, policyId, sharingPolicyRequest));
   }
 

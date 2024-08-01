@@ -24,7 +24,7 @@ class SharingSettingControllerTest extends BaseIT {
 
   @ParameterizedTest
   @ValueSource(strings = {"{\"settingId\":\"1844767a-8367-4926-9999-514c35840399\",\"url\":\"/organizations-storage/organizations\",\"payload\":{\"name\":\"ORG-NAME\",\"source\":\"local\"}}" })
-  void shouldStartSharingSetting3(String body) throws Exception {
+  void shouldStartSharingSetting(String body) throws Exception {
     var headers = defaultHeaders();
     UUID createSettingsPcId = UUID.randomUUID();
     UUID updateSettingsPcId = UUID.randomUUID();
