@@ -40,7 +40,7 @@ class SharingPolicyControllerTest extends BaseIT {
           .content(body)
           .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isCreated())
-      .andExpect(jsonPath("$.createPoliciesPCId").value(String.valueOf(updatePoliciesPcId)))
+      .andExpect(jsonPath("$.createPoliciesPCId").value(String.valueOf(createPoliciesPcId)))
       .andExpect(jsonPath("$.updatePoliciesPCId").value(String.valueOf(updatePoliciesPcId)));
   }
 
@@ -54,7 +54,7 @@ class SharingPolicyControllerTest extends BaseIT {
     when(sharingPolicyService.delete(any(), any(), any())).thenReturn(sharingPolicyDeleteResponse);
 
     this.mockMvc.perform(
-        delete("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/sharing/polices/1844767a-8367-4926-9999-514c35840399")
+        delete("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/sharing/policies/1844767a-8367-4926-9999-514c35840399")
           .headers(headers)
           .content(body)
           .contentType(MediaType.APPLICATION_JSON))
