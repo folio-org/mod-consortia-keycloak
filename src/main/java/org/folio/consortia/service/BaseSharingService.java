@@ -139,7 +139,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
 
   protected abstract PublicationRequest createPublicationRequest(TRequest sharingConfigRequest, String httpMethod);
   protected abstract TEntity createSharingConfigEntityFromRequest(TRequest sharingConfigRequest, String tenantId);
-  protected abstract TResponse createSharingConfigResponse(UUID createSettingsPcId, UUID updateSettingsPcId);
+  protected abstract TResponse createSharingConfigResponse(UUID createConfigsPcId, UUID updateConfigsPcId);
   protected abstract TDeleteResponse createSharingConfigResponse(UUID publishRequestId);
 
   private String getClassName(TRequest sharingConfigRequest) {
@@ -152,10 +152,10 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
   }
 
   private void checkEqualsOfPayloadIdWithConfigId(TRequest sharingConfigRequest) {
-    String sharingSettingId = String.valueOf(getConfigId(sharingConfigRequest));
+    String sharingConfigId = String.valueOf(getConfigId(sharingConfigRequest));
     JsonNode payloadNode = objectMapper.convertValue(getPayload(sharingConfigRequest), JsonNode.class);
     String payloadId = payloadNode.get("id").asText();
-    if (ObjectUtils.notEqual(sharingSettingId, payloadId)) {
+    if (ObjectUtils.notEqual(sharingConfigId, payloadId)) {
       throw new IllegalArgumentException("Mismatch ID in payload with ID");
     }
   }
@@ -227,8 +227,8 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
 
   private void updateConfigsForFailedTenants(UUID consortiumId, UUID publicationId,
                                              TRequest sharingConfigRequest) throws InterruptedException {
-    log.debug("updateSettingsForFailedTenants:: Trying to update {}s for failed tenants for consortiumId={}" +
-        " publicationId={} and sharingSettingRequestId={}", getClassName(sharingConfigRequest), consortiumId,
+    log.debug("updateConfigsForFailedTenants:: Trying to update {}s for failed tenants for consortiumId={}" +
+        " publicationId={} and sharingConfigRequestId={}", getClassName(sharingConfigRequest), consortiumId,
       publicationId, getConfigId(sharingConfigRequest));
     boolean isPublicationStatusReady = false;
     int i = 0;
@@ -260,7 +260,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
 
   private void updateFailedConfigsToLocalSource(UUID consortiumId, TRequest sharingConfigRequest,
                                                 Set<String> failedTenantList) {
-    log.info("updateFailedSettingsToLocalSource:: Updating failed '{}' tenants {}s ",
+    log.info("updateFailedConfigsToLocalSource:: Updating failed '{}' tenants {}s ",
       failedTenantList.size(), getClassName(sharingConfigRequest));
     ObjectNode updatedPayload = updatePayload(sharingConfigRequest, SourceValues.USER.getValue());
 

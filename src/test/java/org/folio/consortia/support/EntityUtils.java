@@ -23,6 +23,9 @@ import org.folio.consortia.domain.dto.PublicationResult;
 import org.folio.consortia.domain.dto.PublicationResultCollection;
 import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.dto.SharingInstance;
+import org.folio.consortia.domain.dto.SharingPolicyDeleteResponse;
+import org.folio.consortia.domain.dto.SharingPolicyRequest;
+import org.folio.consortia.domain.dto.SharingPolicyResponse;
 import org.folio.consortia.domain.dto.SharingSettingDeleteResponse;
 import org.folio.consortia.domain.dto.SharingSettingRequest;
 import org.folio.consortia.domain.dto.SharingSettingResponse;
@@ -45,8 +48,6 @@ import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
 @UtilityClass
 public class EntityUtils {
-  public static final UUID ACTION_ID = UUID.fromString("dcfc317b-0d7c-4334-8656-596105fa6c99");
-  public static final UUID INSTANCE_ID = UUID.fromString("111841e3-e6fb-4191-8fd8-5674a5107c33");
   public static final String CENTRAL_TENANT_ID = "consortium";
   public  static final String TENANT_ID = "diku";
 
@@ -263,6 +264,14 @@ public class EntityUtils {
     return new SharingSettingDeleteResponse().pcId(pcId);
   }
 
+  public static SharingPolicyResponse createSharingPolicyResponse(UUID createPolicyPcId, UUID updatePolicyPcId) {
+    return new SharingPolicyResponse().createPoliciesPCId(createPolicyPcId).updatePoliciesPCId(updatePolicyPcId);
+  }
+
+  public static SharingPolicyDeleteResponse createSharingPolicyResponseForDelete(UUID pcId) {
+    return new SharingPolicyDeleteResponse().pcId(pcId);
+  }
+
   public static TenantCollection createTenantCollection(List<Tenant> tenants) {
     TenantCollection tenantCollection = new TenantCollection();
     tenantCollection.setTenants(tenants);
@@ -270,14 +279,27 @@ public class EntityUtils {
     return tenantCollection;
   }
 
-  public static PublicationRequest createPublicationRequestForSetting(SharingSettingRequest sharingSetting, String method){
+  public static PublicationRequest createPublicationRequest(SharingSettingRequest sharingPolicyRequest, String method){
     PublicationRequest publicationRequest = new PublicationRequest();
-    publicationRequest.setUrl(sharingSetting.getUrl());
+    publicationRequest.setUrl(sharingPolicyRequest.getUrl());
     publicationRequest.setMethod(method);
     final ObjectMapper mapper = new ObjectMapper();
     final ObjectNode root = mapper.createObjectNode();
     root.set("id", mapper.convertValue("1844767a-8367-4926-9999-514c35840399", JsonNode.class));
     root.set("name", mapper.convertValue("ORG-NAME", JsonNode.class));
+    root.set("source", mapper.convertValue("consortium", JsonNode.class));
+    publicationRequest.setPayload(root);
+    return publicationRequest;
+  }
+
+  public static PublicationRequest createPublicationRequest(SharingPolicyRequest sharingPolicyRequest, String method){
+    PublicationRequest publicationRequest = new PublicationRequest();
+    publicationRequest.setUrl(sharingPolicyRequest.getUrl());
+    publicationRequest.setMethod(method);
+    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectNode root = mapper.createObjectNode();
+    root.set("id", mapper.convertValue("2844767a-8367-4926-9999-514c35840399", JsonNode.class));
+    root.set("name", mapper.convertValue("Policy for role: 004d7a66-c51d-402a-9c9f-3bdcdbbcdbe7", JsonNode.class));
     root.set("source", mapper.convertValue("consortium", JsonNode.class));
     publicationRequest.setPayload(root);
     return publicationRequest;
@@ -305,6 +327,16 @@ public class EntityUtils {
     Map<String, String> payload = new HashMap<>();
     payload.put("id", "1844767a-8367-4926-9999-514c35840399");
     payload.put("name", "ORG-NAME");
+    payload.put("source", "local");
+    ObjectMapper mapper = new ObjectMapper();
+    String json = mapper.writeValueAsString(payload);
+    return mapper.readTree(json);
+  }
+
+  public static JsonNode createJsonNodeForRolePayload() throws JsonProcessingException {
+    Map<String, String> payload = new HashMap<>();
+    payload.put("id", "2844767a-8367-4926-9999-514c35840399");
+    payload.put("name", "Policy for role: 004d7a66-c51d-402a-9c9f-3bdcdbbcdbe7");
     payload.put("source", "local");
     ObjectMapper mapper = new ObjectMapper();
     String json = mapper.writeValueAsString(payload);
