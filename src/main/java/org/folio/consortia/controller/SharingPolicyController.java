@@ -19,6 +19,7 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/consortia/{consortiumId}/sharing")
 @RequiredArgsConstructor
 public class SharingPolicyController implements PoliciesApi {
+
   private final SharingPolicyService sharingPolicyService;
 
   @Override

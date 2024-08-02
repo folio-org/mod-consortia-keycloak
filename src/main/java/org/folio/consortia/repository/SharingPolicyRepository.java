@@ -18,6 +18,6 @@ public interface SharingPolicyRepository extends JpaRepository<SharingPolicyEnti
   boolean existsByPolicyId(UUID policyId);
 
   @Modifying
-  @Query("DELETE FROM SharingPolicyEntity sp where sp.policyId = ?1")
+  @Query("DELETE FROM SharingPolicyEntity sp WHERE sp.policyId = ?1")
   void deleteByPolicyId(UUID policyId);
 }
