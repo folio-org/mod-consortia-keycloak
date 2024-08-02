@@ -222,7 +222,7 @@ class SharingPolicyServiceTest {
     when(consortiumRepository.existsById(CONSORTIUM_ID)).thenReturn(true);
     when(objectMapper.convertValue(any(), eq(JsonNode.class))).thenReturn(node);
 
-    assertThrows(IllegalArgumentException.class, () -> sharingPolicyService.start(CONSORTIUM_ID, sharingPolicyRequest));
+    assertThrows(java.lang.IllegalArgumentException.class, () -> sharingPolicyService.start(CONSORTIUM_ID, sharingPolicyRequest));
     verify(publicationService, times(0)).publishRequest(any(), any());
   }
 
@@ -234,7 +234,7 @@ class SharingPolicyServiceTest {
 
     when(consortiumRepository.existsById(CONSORTIUM_ID)).thenReturn(true);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(java.lang.IllegalArgumentException.class,
       () -> sharingPolicyService.delete(CONSORTIUM_ID, policyId, sharingPolicyRequest));
     verify(publicationService, times(0)).publishRequest(any(), any());
   }
@@ -245,7 +245,7 @@ class SharingPolicyServiceTest {
 
     when(consortiumRepository.existsById(CONSORTIUM_ID)).thenReturn(true);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(java.lang.IllegalArgumentException.class,
       () -> sharingPolicyService.delete(CONSORTIUM_ID, sharingPolicyRequest.getPolicyId(), sharingPolicyRequest));
     verify(publicationService, times(0)).publishRequest(any(), any());
   }
