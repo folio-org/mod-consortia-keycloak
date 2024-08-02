@@ -110,7 +110,7 @@ class SharingPolicyServiceTest {
     var publicationRequestPut = createPublicationRequest(sharingPolicyRequest, HttpMethod.PUT.toString());
     publicationRequestPut.setMethod("PUT");
     publicationRequestPut.setTenants(Set.of("tenant1"));
-    publicationRequestPut.setUrl("/consortia/policy/2844767a-8367-4926-9999-514c35840399");
+    publicationRequestPut.setUrl("/policy/2844767a-8367-4926-9999-514c35840399");
     var publicationRequestPost = createPublicationRequest(sharingPolicyRequest, HttpMethod.POST.toString());
     publicationRequestPost.setMethod("POST");
     publicationRequestPost.setTenants(Set.of("tenant2"));
@@ -150,7 +150,7 @@ class SharingPolicyServiceTest {
     // "tenant1" exists in tenant policy association so that tenant1 is in DELETE request publication,
     var expectedPublicationRequestDelete = createPublicationRequest(sharingPolicyRequest, HttpMethod.DELETE.toString());
     expectedPublicationRequestDelete.setTenants(Set.of("tenant1"));
-    expectedPublicationRequestDelete.setUrl("/consortia/policy/2844767a-8367-4926-9999-514c35840399");
+    expectedPublicationRequestDelete.setUrl("/policy/2844767a-8367-4926-9999-514c35840399");
     Map<String, String> map = new LinkedHashMap<>();
     map.put("id", "2844767a-8367-4926-9999-514c35840399");
     map.put("name", "Policy for role: 004d7a66-c51d-402a-9c9f-3bdcdbbcdbe7");
