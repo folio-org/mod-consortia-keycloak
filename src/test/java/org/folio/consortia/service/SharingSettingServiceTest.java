@@ -212,7 +212,7 @@ class SharingSettingServiceTest {
     method.invoke(sharingSettingService, CONSORTIUM_ID, publicationId, sharingSettingRequest);
 
     verify(publicationService).getPublicationDetails(CONSORTIUM_ID, publicationId);
-    verify(publicationService).checkPublicationDetailsExists(CONSORTIUM_ID, publicationId);
+    verify(publicationService, times(3)).checkPublicationDetailsExists(CONSORTIUM_ID, publicationId);
     verify(publicationService).publishRequest(CONSORTIUM_ID, expectedPublicationRequest);
   }
 
