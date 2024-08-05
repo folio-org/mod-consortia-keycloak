@@ -194,7 +194,10 @@ class SharingPolicyServiceTest {
     ReflectionTestUtils.setField(sharingPolicyService, "maxTries", 60);
     ReflectionTestUtils.setField(sharingPolicyService, "interval", 200);
 
-    when(publicationService.checkPublicationDetailsExists(CONSORTIUM_ID, publicationId)).thenReturn(true);
+    when(publicationService.checkPublicationDetailsExists(CONSORTIUM_ID, publicationId))
+      .thenReturn(false)
+      .thenReturn(false)
+      .thenReturn(true);
     when(publicationService.getPublicationDetails(CONSORTIUM_ID, publicationId)).thenReturn(publicationDetails);
     when(publicationService.getPublicationResults(CONSORTIUM_ID, publicationId)).thenReturn(publicationResultCollection);
     when(objectMapper.convertValue(any(), eq(JsonNode.class))).thenReturn(node);
@@ -203,12 +206,12 @@ class SharingPolicyServiceTest {
     when(publicationService.publishRequest(CONSORTIUM_ID, expectedPublicationRequest)).thenReturn(publicationResponse);
 
     // Use reflection to access the protected method in BaseSharingService
-    Method method = SharingPolicyService.class.getSuperclass().getDeclaredMethod("updateConfigsForFailedTenants", UUID.class, UUID.class, Object.class);
+    Method method = SharingPolicyService.class.getSuperclass().getDeclaredMethod("updateConfigsForFailedTenantsWithRetry", UUID.class, UUID.class, Object.class);
     method.setAccessible(true);
     method.invoke(sharingPolicyService, CONSORTIUM_ID, publicationId, sharingPolicyRequest);
 
     verify(publicationService).getPublicationDetails(CONSORTIUM_ID, publicationId);
-    verify(publicationService).checkPublicationDetailsExists(CONSORTIUM_ID, publicationId);
+    verify(publicationService, times(3)).checkPublicationDetailsExists(CONSORTIUM_ID, publicationId);
     verify(publicationService).publishRequest(CONSORTIUM_ID, expectedPublicationRequest);
   }
 

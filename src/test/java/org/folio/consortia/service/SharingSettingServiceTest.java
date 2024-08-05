@@ -195,7 +195,10 @@ class SharingSettingServiceTest {
     ReflectionTestUtils.setField(sharingSettingService, "maxTries", 60);
     ReflectionTestUtils.setField(sharingSettingService, "interval", 200);
 
-    when(publicationService.checkPublicationDetailsExists(CONSORTIUM_ID, publicationId)).thenReturn(true);
+    when(publicationService.checkPublicationDetailsExists(CONSORTIUM_ID, publicationId))
+      .thenReturn(false)
+      .thenReturn(false)
+      .thenReturn(true);
     when(publicationService.getPublicationDetails(CONSORTIUM_ID, publicationId)).thenReturn(publicationDetails);
     when(publicationService.getPublicationResults(CONSORTIUM_ID, publicationId)).thenReturn(publicationResultCollection);
     when(objectMapper.convertValue(any(), eq(JsonNode.class))).thenReturn(node);
@@ -204,7 +207,7 @@ class SharingSettingServiceTest {
     when(publicationService.publishRequest(CONSORTIUM_ID, expectedPublicationRequest)).thenReturn(publicationResponse);
 
     // Use reflection to access the protected method in BaseSharingService
-    Method method = SharingSettingService.class.getSuperclass().getDeclaredMethod("updateConfigsForFailedTenants", UUID.class, UUID.class, Object.class);
+    Method method = SharingSettingService.class.getSuperclass().getDeclaredMethod("updateConfigsForFailedTenantsWithRetry", UUID.class, UUID.class, Object.class);
     method.setAccessible(true);
     method.invoke(sharingSettingService, CONSORTIUM_ID, publicationId, sharingSettingRequest);
 

@@ -1,9 +1,18 @@
 package org.folio.consortia.service;
 
+import static org.folio.spring.scope.FolioExecutionScopeExecutionContextManager.getRunnableWithCurrentFolioContext;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -22,15 +31,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.retry.RetryException;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static org.folio.spring.scope.FolioExecutionScopeExecutionContextManager.getRunnableWithCurrentFolioContext;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -115,15 +120,11 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     return systemUserScopedExecutionService.executeSystemUserScoped(folioExecutionContext.getTenantId(), () -> {
       var pcId = publishRequest(consortiumId, publicationDeleteRequest);
       var sharingConfigDeleteResponse = createSharingConfigResponse(pcId);
+
       // update sources of failed requests
-      asyncTaskExecutor.execute(getRunnableWithCurrentFolioContext(() -> {
-        try {
-          updateConfigsForFailedTenants(consortiumId, pcId, sharingConfigRequest);
-        } catch (InterruptedException e) {
-          log.error("Thread sleep was interrupted", e);
-          Thread.currentThread().interrupt();
-        }
-      }));
+      asyncTaskExecutor.execute(getRunnableWithCurrentFolioContext(() ->
+        updateConfigsForFailedTenantsWithRetry(consortiumId, pcId, sharingConfigRequest)));
+
       return sharingConfigDeleteResponse;
     });
   }
@@ -225,37 +226,68 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     return null;
   }
 
-  private void updateConfigsForFailedTenants(UUID consortiumId, UUID publicationId,
-                                             TRequest sharingConfigRequest) throws InterruptedException {
+  /**
+   * The method execute <code>updateConfigsForFailedTenants</code> method with retry.
+   * Retry based on <code>maxTries</code>
+   * Fixed backoff period based on <code>interval</code>
+   * @param consortiumId id of consortium
+   * @param publicationId id of publication
+   * @param sharingConfigRequest sharing config request
+   */
+  private void updateConfigsForFailedTenantsWithRetry(UUID consortiumId, UUID publicationId,
+                                                      TRequest sharingConfigRequest) {
+    RetryTemplate retryTemplate = new RetryTemplate();
+
+    // Set the retry policy
+    SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(maxTries);
+    retryTemplate.setRetryPolicy(retryPolicy);
+
+    // Set the backoff policy
+    FixedBackOffPolicy backOffPolicy = new FixedBackOffPolicy();
+    backOffPolicy.setBackOffPeriod(interval); // in milliseconds
+    retryTemplate.setBackOffPolicy(backOffPolicy);
+
+    retryTemplate.execute(context -> updateConfigsForFailedTenants(consortiumId, publicationId, sharingConfigRequest));
+  }
+
+  private boolean updateConfigsForFailedTenants(UUID consortiumId, UUID publicationId,
+                                                TRequest sharingConfigRequest) {
     log.debug("updateConfigsForFailedTenants:: Trying to update {}s for failed tenants for consortiumId={}" +
         " publicationId={} and sharingConfigRequestId={}", getClassName(sharingConfigRequest), consortiumId,
       publicationId, getConfigId(sharingConfigRequest));
-    boolean isPublicationStatusReady = false;
-    int i = 0;
-    while (Boolean.FALSE.equals(isPublicationStatusReady) && i++ < maxTries) {
-      Thread.sleep(interval);
 
-      boolean isPublicationStatusExists = publicationService.checkPublicationDetailsExists(consortiumId, publicationId);
-      if (isPublicationStatusExists) {
-        PublicationDetailsResponse publicationDetails =
-          publicationService.getPublicationDetails(consortiumId, publicationId);
-        if (ObjectUtils.notEqual(publicationDetails.getStatus(), PublicationStatus.IN_PROGRESS)) {
-          isPublicationStatusReady = true;
-          log.info("updateConfigsForFailedTenants:: publication status '{}' for sharing {} '{}'",
-            publicationDetails.getId(), getClassName(sharingConfigRequest), getConfigId(sharingConfigRequest));
+    boolean isPublicationStatusReady = isPublicationStatusReady(consortiumId, publicationId);
+    if (isPublicationStatusReady) {
+      Set<String> failedTenantList = getFailedTenantList(consortiumId, publicationId);
+      log.info("updateConfigsForFailedTenants:: '{}' tenant(s) failed ", failedTenantList.size());
 
-          Set<String> failedTenantList =
-            publicationService.getPublicationResults(consortiumId, publicationId).getPublicationResults()
-              .stream().filter(publicationResult -> HttpStatus.valueOf(publicationResult.getStatusCode()).isError())
-              .map(PublicationResult::getTenantId).collect(Collectors.toSet());
-          log.info("updateConfigsForFailedTenants:: '{}' tenant(s) failed ", failedTenantList.size());
-
-          if (ObjectUtils.isNotEmpty(failedTenantList)) {
-            updateFailedConfigsToLocalSource(consortiumId, sharingConfigRequest, failedTenantList);
-          }
-        }
+      if (ObjectUtils.isNotEmpty(failedTenantList)) {
+        updateFailedConfigsToLocalSource(consortiumId, sharingConfigRequest, failedTenantList);
       }
+      return true;
+
+    } else {
+      String errMsg = String.format("updateConfigsForFailedTenants:: Publication status is not ready or doesn't exist for " +
+        "consortiumId=%s, publicationId=%s and sharingConfigRequestId=%s", consortiumId, publicationId, getConfigId(sharingConfigRequest));
+      log.error(errMsg);
+      throw new RetryException(errMsg);
     }
+  }
+
+  private boolean isPublicationStatusReady(UUID consortiumId, UUID publicationId) {
+    boolean isPublicationStatusExists = publicationService.checkPublicationDetailsExists(consortiumId, publicationId);
+    if (isPublicationStatusExists) {
+      PublicationDetailsResponse publicationDetails =
+        publicationService.getPublicationDetails(consortiumId, publicationId);
+      return ObjectUtils.notEqual(publicationDetails.getStatus(), PublicationStatus.IN_PROGRESS);
+    }
+    return false;
+  }
+
+  private Set<String> getFailedTenantList(UUID consortiumId, UUID publicationId) {
+    return publicationService.getPublicationResults(consortiumId, publicationId).getPublicationResults()
+      .stream().filter(publicationResult -> HttpStatus.valueOf(publicationResult.getStatusCode()).isError())
+      .map(PublicationResult::getTenantId).collect(Collectors.toSet());
   }
 
   private void updateFailedConfigsToLocalSource(UUID consortiumId, TRequest sharingConfigRequest,
