@@ -62,7 +62,6 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     log.debug("start:: Trying to share '{}' with consortiumId: {}, sharing {} id: {}",
       configName, consortiumId, configName, configId);
 
-    // validations for consortium id and equal between payload and config id
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
     checkEqualsOfPayloadIdWithConfigId(sharingConfigRequest);
 
@@ -84,7 +83,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     log.info("start:: set source as '{}' in payload of {}: {}",
       updatedPayload.get(SOURCE), configName, configId);
 
-    // create PC request with POST and PUT Http method to create configs as a consortia-system-user
+    // create PC request with POST and PUT Http method to create configs, using 'consortia-system-user'
     return systemUserScopedExecutionService.executeSystemUserScoped(folioExecutionContext.getTenantId(), () -> {
       UUID createConfigsPcId = publishRequest(consortiumId, publicationPostRequest);
       UUID updateConfigsPcId = publishRequest(consortiumId, publicationPutRequest);
@@ -97,26 +96,24 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
   @SneakyThrows
   public TDeleteResponse delete(UUID consortiumId, UUID configId, TRequest sharingConfigRequest) {
     String configName = getClassName(sharingConfigRequest);
-    log.debug("start:: Trying to delete sharing '{}' with consortiumId: {}, sharing {} ID: {}",
+    log.debug("delete:: Trying to delete sharing '{}' with consortiumId: {}, sharing {} ID: {}",
       configName, consortiumId, configName, configId);
 
     validateSharingConfigRequestOrThrow(configId, sharingConfigRequest);
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
 
-    // Add required tenants to publication delete request
     Set<String> sharingConfigTenants = findTenantsByConfigId(configId);
     TenantCollection allTenants = tenantService.getAll(consortiumId);
     var publicationDeleteRequest = createPublicationRequest(sharingConfigRequest, HttpMethod.DELETE.toString());
-    linkTenantsToPublicationDeleteRequest(allTenants, sharingConfigRequest, sharingConfigTenants,
-      publicationDeleteRequest);
-    log.info("start:: tenants with size: {} successfully added to appropriate DELETE publication " +
+    linkTenantsToPublicationDeleteRequest(allTenants, sharingConfigRequest, sharingConfigTenants, publicationDeleteRequest);
+    log.info("delete:: Tenants with size: {} successfully added to appropriate DELETE publication " +
       "request for {}: {}", allTenants.getTotalRecords(), configName, configId);
 
     deleteSharingConfig(configId);
-    log.info("start:: The Sharing {}s for {} ID '{}' and '{}' unique tenant(s) were successfully " +
+    log.info("delete:: The Sharing {}s for {} ID '{}' and '{}' unique tenant(s) were successfully " +
       "deleted from the database", configName, configName, configId, publicationDeleteRequest.getTenants().size());
 
-    // create PC request with POST and PUT Http method to create configs as a consortia-system-user
+    // create PC request with DELETE Http method to create configs, using 'consortia-system-user'
     return systemUserScopedExecutionService.executeSystemUserScoped(folioExecutionContext.getTenantId(), () -> {
       var pcId = publishRequest(consortiumId, publicationDeleteRequest);
       var sharingConfigDeleteResponse = createSharingConfigResponse(pcId);
@@ -128,20 +125,6 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
       return sharingConfigDeleteResponse;
     });
   }
-
-  protected abstract UUID getConfigId(TRequest sharingConfigRequest);
-  protected abstract Object getPayload(TRequest sharingConfigRequest);
-
-  protected abstract void validateSharingConfigRequestOrThrow(UUID configId, TRequest sharingConfigRequest);
-
-  protected abstract Set<String> findTenantsByConfigId(UUID configId);
-  protected abstract void saveSharingConfig(List<TEntity> sharingConfigEntityList);
-  protected abstract void deleteSharingConfig(UUID configId);
-
-  protected abstract PublicationRequest createPublicationRequest(TRequest sharingConfigRequest, String httpMethod);
-  protected abstract TEntity createSharingConfigEntityFromRequest(TRequest sharingConfigRequest, String tenantId);
-  protected abstract TResponse createSharingConfigResponse(UUID createConfigsPcId, UUID updateConfigsPcId);
-  protected abstract TDeleteResponse createSharingConfigResponse(UUID publishRequestId);
 
   private String getClassName(TRequest sharingConfigRequest) {
     return sharingConfigRequest.getClass().getName();
@@ -182,11 +165,11 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     for (Tenant tenant : allTenants.getTenants()) {
       if (sharingConfigTenants.contains(tenant.getId())) {
         publicationPutRequest.getTenants().add(tenant.getId());
-        log.info("start:: tenant={} added to publication update request for {}={}",
+        log.info("linkTenantsToPublicationPutPostRequestAndEntity:: tenant={} added to publication update request for {}={}",
           tenant.getId(), getClassName(sharingConfigRequest), getConfigId(sharingConfigRequest));
       } else {
         publicationPostRequest.getTenants().add(tenant.getId());
-        log.info("start:: tenant={} added to publication create request for {}={}",
+        log.info("linkTenantsToPublicationPutPostRequestAndEntity:: tenant={} added to publication create request for {}={}",
           tenant.getId(), getClassName(sharingConfigRequest), getConfigId(sharingConfigRequest));
         sharingConfigEntityList.add(createSharingConfigEntityFromRequest(sharingConfigRequest, tenant.getId()));
       }
@@ -196,7 +179,8 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
 
   /**
    * Method traverse through all tenants in db.
-   * It will add a tenant to delete a request publication tenant list if it exists in config tenant associations
+   * It will add a tenant to delete a request publication tenant list
+   * if it exists in config tenant associations
    *
    * @param allTenants               all existing tenants in db
    * @param sharingConfigRequest     sharing config request
@@ -211,7 +195,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     for (Tenant tenant : allTenants.getTenants()) {
       if (sharingConfigTenants.contains(tenant.getId())) {
         publicationDeleteRequest.getTenants().add(tenant.getId());
-        log.info("start:: tenant={} added to publication delete request for {}={}",
+        log.info("linkTenantsToPublicationDeleteRequest:: tenant={} added to publication delete request for {}={}",
           tenant.getId(), getClassName(sharingConfigRequest), getConfigId(sharingConfigRequest));
       }
     }
@@ -230,6 +214,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
    * The method execute <code>updateConfigsForFailedTenants</code> method with retry.
    * Retry based on <code>maxTries</code>
    * Fixed backoff period based on <code>interval</code>
+   *
    * @param consortiumId id of consortium
    * @param publicationId id of publication
    * @param sharingConfigRequest sharing config request
@@ -238,11 +223,9 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
                                                       TRequest sharingConfigRequest) {
     RetryTemplate retryTemplate = new RetryTemplate();
 
-    // Set the retry policy
     SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(maxTries);
     retryTemplate.setRetryPolicy(retryPolicy);
 
-    // Set the backoff policy
     FixedBackOffPolicy backOffPolicy = new FixedBackOffPolicy();
     backOffPolicy.setBackOffPeriod(interval); // in milliseconds
     retryTemplate.setBackOffPolicy(backOffPolicy);
@@ -265,7 +248,6 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
         updateFailedConfigsToLocalSource(consortiumId, sharingConfigRequest, failedTenantList);
       }
       return true;
-
     } else {
       String errMsg = String.format("updateConfigsForFailedTenants:: Publication status is not ready or doesn't exist for " +
         "consortiumId=%s, publicationId=%s and sharingConfigRequestId=%s", consortiumId, publicationId, getConfigId(sharingConfigRequest));
@@ -296,14 +278,27 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
       failedTenantList.size(), getClassName(sharingConfigRequest));
     ObjectNode updatedPayload = updatePayload(sharingConfigRequest, SourceValues.USER.getValue());
 
-    PublicationRequest publicationPutRequest =
-      createPublicationRequest(sharingConfigRequest, HttpMethod.PUT.toString());
+    PublicationRequest publicationPutRequest = createPublicationRequest(sharingConfigRequest, HttpMethod.PUT.toString());
     publicationPutRequest.setPayload(updatedPayload);
     publicationPutRequest.setTenants(failedTenantList);
 
-    log.info("send PUT request to publication with new source in payload={} by system user of {}",
-      SourceValues.USER.getValue(), folioExecutionContext.getTenantId());
+    log.info("updateFailedConfigsToLocalSource:: send PUT request to publication with new source in " +
+        "payload={} by system user of {}", SourceValues.USER.getValue(), folioExecutionContext.getTenantId());
     publishRequest(consortiumId, publicationPutRequest);
   }
+
+  protected abstract UUID getConfigId(TRequest sharingConfigRequest);
+  protected abstract Object getPayload(TRequest sharingConfigRequest);
+
+  protected abstract void validateSharingConfigRequestOrThrow(UUID configId, TRequest sharingConfigRequest);
+
+  protected abstract Set<String> findTenantsByConfigId(UUID configId);
+  protected abstract void saveSharingConfig(List<TEntity> sharingConfigEntityList);
+  protected abstract void deleteSharingConfig(UUID configId);
+
+  protected abstract PublicationRequest createPublicationRequest(TRequest sharingConfigRequest, String httpMethod);
+  protected abstract TEntity createSharingConfigEntityFromRequest(TRequest sharingConfigRequest, String tenantId);
+  protected abstract TResponse createSharingConfigResponse(UUID createConfigsPcId, UUID updateConfigsPcId);
+  protected abstract TDeleteResponse createSharingConfigResponse(UUID publishRequestId);
 
 }
