@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: Sharing instance and setting integration API
-  description: "Sharing instance and setting integration API"
+  title: Sharing instance integration API
+  description: "Sharing instance integration API"
   version: 0.0.1
 servers:
   - url: /consortia/{consortiumId}/sharing

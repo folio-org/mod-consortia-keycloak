@@ -15,6 +15,7 @@ import org.folio.consortia.client.InventoryClient;
 import org.folio.consortia.config.kafka.KafkaService;
 import org.folio.consortia.domain.dto.SharingInstance;
 import org.folio.consortia.domain.dto.SharingInstanceCollection;
+import org.folio.consortia.domain.dto.SourceValues;
 import org.folio.consortia.domain.dto.Status;
 import org.folio.consortia.domain.entity.SharingInstanceEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
@@ -24,7 +25,6 @@ import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.InventoryService;
 import org.folio.consortia.service.SharingInstanceService;
 import org.folio.consortia.service.TenantService;
-import org.folio.consortia.utils.HelperUtils;
 import org.folio.consortia.utils.TenantContextUtils;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
@@ -84,8 +84,8 @@ public class SharingInstanceServiceImpl implements SharingInstanceService {
       try (var ignored = new FolioExecutionContextSetter(
         TenantContextUtils.prepareContextForTenant(targetTenantId, folioModuleMetadata, folioExecutionContext))) {
         String source = switch (inventoryInstance.get("source").asText().toLowerCase()) {
-          case "folio" -> HelperUtils.CONSORTIUM_FOLIO_INSTANCE_SOURCE;
-          case "marc" -> HelperUtils.CONSORTIUM_MARC_INSTANCE_SOURCE;
+          case "folio" -> SourceValues.CONSORTIUM_FOLIO_INSTANCE.getValue();
+          case "marc" -> SourceValues.CONSORTIUM_MARC_INSTANCE.getValue();
           default -> throw new IllegalStateException("source is not recognized");
         };
         var updatedInventoryInstance = ((ObjectNode) inventoryInstance).set("source", new TextNode(source));

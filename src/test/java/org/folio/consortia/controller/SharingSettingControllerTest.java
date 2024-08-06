@@ -7,12 +7,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.folio.consortia.service.SharingSettingService;
 import java.util.UUID;
 
 import org.folio.consortia.domain.dto.SharingSettingDeleteResponse;
 import org.folio.consortia.domain.dto.SharingSettingResponse;
 import org.folio.consortia.base.BaseIT;
+import org.folio.consortia.service.impl.SharingSettingService;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -24,7 +24,7 @@ class SharingSettingControllerTest extends BaseIT {
 
   @ParameterizedTest
   @ValueSource(strings = {"{\"settingId\":\"1844767a-8367-4926-9999-514c35840399\",\"url\":\"/organizations-storage/organizations\",\"payload\":{\"name\":\"ORG-NAME\",\"source\":\"local\"}}" })
-  void shouldStartSharingSetting3(String body) throws Exception {
+  void shouldStartSharingSetting(String body) throws Exception {
     var headers = defaultHeaders();
     UUID createSettingsPcId = UUID.randomUUID();
     UUID updateSettingsPcId = UUID.randomUUID();
