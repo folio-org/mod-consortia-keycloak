@@ -89,10 +89,10 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
     publicationRequest.setMethod(httpMethod);
     String url = sharingSettingRequest.getUrl();
     if (httpMethod.equals(HttpMethod.PUT.toString()) || httpMethod.equals(HttpMethod.DELETE.toString())) {
-      url += "/" + sharingSettingRequest.getSettingId();
+      url += "/" + getConfigId(sharingSettingRequest);
     }
     publicationRequest.setUrl(url);
-    publicationRequest.setPayload(sharingSettingRequest.getPayload());
+    publicationRequest.setPayload(getPayload(sharingSettingRequest));
     publicationRequest.setTenants(new HashSet<>());
     return publicationRequest;
   }

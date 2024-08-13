@@ -82,10 +82,10 @@ public class SharingPolicyService extends BaseSharingService<SharingPolicyReques
     publicationRequest.setMethod(httpMethod);
     String url = sharingPolicyRequest.getUrl();
     if (httpMethod.equals(HttpMethod.PUT.toString()) || httpMethod.equals(HttpMethod.DELETE.toString())) {
-      url += "/" + sharingPolicyRequest.getPolicyId();
+      url += "/" + getConfigId(sharingPolicyRequest);
     }
     publicationRequest.setUrl(url);
-    publicationRequest.setPayload(sharingPolicyRequest.getPayload());
+    publicationRequest.setPayload(getPayload(sharingPolicyRequest));
     publicationRequest.setTenants(new HashSet<>());
     return publicationRequest;
   }

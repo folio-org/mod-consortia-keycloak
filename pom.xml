@@ -55,6 +55,8 @@
     <sharing_instances.yaml.file>${project.basedir}/src/main/resources/swagger.api/sharing_instances.yaml</sharing_instances.yaml.file>
     <sharing_settings.yaml.file>${project.basedir}/src/main/resources/swagger.api/sharing_settings.yaml</sharing_settings.yaml.file>
     <sharing_policies.yaml.file>${project.basedir}/src/main/resources/swagger.api/sharing_policies.yaml</sharing_policies.yaml.file>
+    <sharing_roles.yaml.file>${project.basedir}/src/main/resources/swagger.api/sharing_roles.yaml</sharing_roles.yaml.file>
+
 
     <!-- runtime dependencies -->
     <folio-spring-base.version>8.1.2</folio-spring-base.version>
@@ -540,6 +542,32 @@
             </goals>
             <configuration>
               <inputSpec>${sharing_policies.yaml.file}</inputSpec>
+              <output>${project.build.directory}/generated-sources</output>
+              <generatorName>spring</generatorName>
+              <modelPackage>${project.groupId}.consortia.domain.dto</modelPackage>
+              <apiPackage>${project.groupId}.consortia.rest.resource</apiPackage>
+              <generateApis>true</generateApis>
+              <generateApiTests>true</generateApiTests>
+              <generateApiDocumentation>true</generateApiDocumentation>
+              <generateModels>true</generateModels>
+              <generateModelTests>false</generateModelTests>
+              <generateSupportingFiles>true</generateSupportingFiles>
+              <supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>
+              <generateModelDocumentation>true</generateModelDocumentation>
+              <configOptions>
+                <dateLibrary>java</dateLibrary>
+                <interfaceOnly>true</interfaceOnly>
+                <useSpringBoot3>true</useSpringBoot3>
+              </configOptions>
+            </configuration>
+          </execution>
+          <execution>
+            <id>sharing roles</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <inputSpec>${sharing_roles.yaml.file}</inputSpec>
               <output>${project.build.directory}/generated-sources</output>
               <generatorName>spring</generatorName>
               <modelPackage>${project.groupId}.consortia.domain.dto</modelPackage>

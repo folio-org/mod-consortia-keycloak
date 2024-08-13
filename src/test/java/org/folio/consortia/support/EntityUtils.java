@@ -26,6 +26,9 @@ import org.folio.consortia.domain.dto.SharingInstance;
 import org.folio.consortia.domain.dto.SharingPolicyDeleteResponse;
 import org.folio.consortia.domain.dto.SharingPolicyRequest;
 import org.folio.consortia.domain.dto.SharingPolicyResponse;
+import org.folio.consortia.domain.dto.SharingRoleDeleteResponse;
+import org.folio.consortia.domain.dto.SharingRoleRequest;
+import org.folio.consortia.domain.dto.SharingRoleResponse;
 import org.folio.consortia.domain.dto.SharingSettingDeleteResponse;
 import org.folio.consortia.domain.dto.SharingSettingRequest;
 import org.folio.consortia.domain.dto.SharingSettingResponse;
@@ -268,9 +271,20 @@ public class EntityUtils {
     return new SharingPolicyResponse().createPoliciesPCId(createPolicyPcId).updatePoliciesPCId(updatePolicyPcId);
   }
 
+
   public static SharingPolicyDeleteResponse createSharingPolicyResponseForDelete(UUID pcId) {
     return new SharingPolicyDeleteResponse().pcId(pcId);
   }
+
+  public static SharingRoleResponse createSharingRoleResponse(UUID createRolePcId, UUID updateRolePcId) {
+    return new SharingRoleResponse().createRolesPCId(createRolePcId).updateRolesPCId(updateRolePcId);
+  }
+
+
+  public static SharingRoleDeleteResponse createSharingRoleResponseForDelete(UUID pcId) {
+    return new SharingRoleDeleteResponse().pcId(pcId);
+  }
+
 
   public static TenantCollection createTenantCollection(List<Tenant> tenants) {
     TenantCollection tenantCollection = new TenantCollection();
@@ -305,6 +319,19 @@ public class EntityUtils {
     return publicationRequest;
   }
 
+  public static PublicationRequest createPublicationRequest(SharingRoleRequest sharingRoleRequest, String method){
+    PublicationRequest publicationRequest = new PublicationRequest();
+    publicationRequest.setUrl(sharingRoleRequest.getUrl());
+    publicationRequest.setMethod(method);
+    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectNode root = mapper.createObjectNode();
+    root.set("id", mapper.convertValue("3844767a-8367-4926-9999-514c35840399", JsonNode.class));
+    root.set("name", mapper.convertValue("Role for policy: 104d7a66-c51d-402a-9c9f-3bdcdbbcdbe7", JsonNode.class));
+    root.set("source", mapper.convertValue("consortium", JsonNode.class));
+    publicationRequest.setPayload(root);
+    return publicationRequest;
+  }
+
   public static PublicationResultCollection createPublicationResultCollection(String tenantId1, String tenantId2) {
     var pbr1 = new PublicationResult();
     pbr1.setTenantId(tenantId1);
@@ -333,10 +360,20 @@ public class EntityUtils {
     return mapper.readTree(json);
   }
 
-  public static JsonNode createJsonNodeForRolePayload() throws JsonProcessingException {
+  public static JsonNode createJsonNodeForPolicyPayload() throws JsonProcessingException {
     Map<String, String> payload = new HashMap<>();
     payload.put("id", "2844767a-8367-4926-9999-514c35840399");
     payload.put("name", "Policy for role: 004d7a66-c51d-402a-9c9f-3bdcdbbcdbe7");
+    payload.put("source", "local");
+    ObjectMapper mapper = new ObjectMapper();
+    String json = mapper.writeValueAsString(payload);
+    return mapper.readTree(json);
+  }
+
+  public static JsonNode createJsonNodeForRolePayload() throws JsonProcessingException {
+    Map<String, String> payload = new HashMap<>();
+    payload.put("id", "3844767a-8367-4926-9999-514c35840399");
+    payload.put("name", "Role for policy: 104d7a66-c51d-402a-9c9f-3bdcdbbcdbe7");
     payload.put("source", "local");
     ObjectMapper mapper = new ObjectMapper();
     String json = mapper.writeValueAsString(payload);

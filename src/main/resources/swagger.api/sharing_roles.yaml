@@ -1,22 +1,22 @@
 openapi: 3.0.0
 info:
-  title: Sharing policy integration API
-  description: "Sharing policy integration API"
+  title: Sharing role integration API
+  description: "Sharing role integration API"
   version: 0.0.1
 servers:
   - url: /consortia/{consortiumId}/sharing
 paths:
-  /policies:
+  /roles:
     post:
-      summary: start sharing policy
-      operationId: startSharingPolicy
+      summary: start sharing role
+      operationId: startSharingRole
       parameters:
         - $ref: "#/components/parameters/consortiumId"
       requestBody:
-        $ref: "#/components/requestBodies/SharingPolicyBody"
+        $ref: "#/components/requestBodies/SharingRoleBody"
       responses:
         "201":
-          $ref: "#/components/responses/SharingPolicyResponse"
+          $ref: "#/components/responses/SharingRoleResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
@@ -27,18 +27,18 @@ paths:
           $ref: "#/components/responses/Conflict"
         "500":
           $ref: "#/components/responses/InternalServerError"
-  /policies/{policyId}:
+  /roles/{roleId}:
     delete:
-      summary: delete sharing policy
-      operationId: deleteSharingPolicy
+      summary: delete sharing role
+      operationId: deleteSharingRole
       parameters:
         - $ref: "#/components/parameters/consortiumId"
-        - $ref: "#/components/parameters/policyId"
+        - $ref: "#/components/parameters/roleId"
       requestBody:
-        $ref: "#/components/requestBodies/SharingPolicyBody"
+        $ref: "#/components/requestBodies/SharingRoleBody"
       responses:
         "200":
-          $ref: "#/components/responses/SharingPolicyDeleteResponse"
+          $ref: "#/components/responses/SharingRoleDeleteResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
@@ -51,26 +51,26 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 components:
   requestBodies:
-    SharingPolicyBody:
-      description: Sharing policies object
+    SharingRoleBody:
+      description: Sharing roles object
       required: true
       content:
         application/json:
           schema:
-            $ref: "schemas/sharingPolicy.yaml#/SharingPolicyRequest"
+            $ref: "schemas/sharingRole.yaml#/SharingRoleRequest"
   responses:
-    SharingPolicyResponse:
-      description: Returns a sharing policy object response for post operation
+    SharingRoleResponse:
+      description: Returns a sharing role object response for post operation
       content:
         application/json:
           schema:
-            $ref: "schemas/sharingPolicy.yaml#/SharingPolicyResponse"
-    SharingPolicyDeleteResponse:
-      description: Returns a sharing policy response for delete operation
+            $ref: "schemas/sharingRole.yaml#/SharingRoleResponse"
+    SharingRoleDeleteResponse:
+      description: Returns a sharing role response for delete operation
       content:
         application/json:
           schema:
-            $ref: "schemas/sharingPolicy.yaml#/SharingPolicyDeleteResponse"
+            $ref: "schemas/sharingRole.yaml#/SharingRoleDeleteResponse"
     NoContent:
       description: No content
     Conflict:
@@ -116,10 +116,10 @@ components:
         $ref: "schemas/common.yaml#/uuid"
       required: true
       description: The ID of consortium
-    policyId:
+    roleId:
       in: path
-      name: policyId
+      name: roleId
       schema:
         $ref: "schemas/common.yaml#/uuid"
       required: true
-      description: The ID of policy
+      description: The ID of role

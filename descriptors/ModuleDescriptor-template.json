@@ -21,6 +21,14 @@
     {
       "id": "inventory",
       "version": "13.0"
+    },
+    {
+      "id": "roles",
+      "version": "1.1"
+    },
+    {
+      "id": "policies",
+      "version": "1.1"
     }
   ],
   "optional": [
@@ -360,6 +368,26 @@
             "consortia.sharing-policies.item.delete"
           ],
           "modulePermissions": []
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/consortia/{consortiumId}/sharing/roles",
+          "permissionsRequired": [
+            "consortia.sharing-roles.item.post"
+          ],
+          "modulePermissions": []
+        },
+        {
+          "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/consortia/{consortiumId}/sharing/roles/{rolesId}",
+          "permissionsRequired": [
+            "consortia.sharing-roles.item.delete"
+          ],
+          "modulePermissions": []
         }
       ]
     },
@@ -433,7 +461,9 @@
         "consortia.sharing-settings.item.post",
         "consortia.sharing-settings.item.delete",
         "consortia.sharing-policies.item.post",
-        "consortia.sharing-policies.item.delete"
+        "consortia.sharing-policies.item.delete",
+        "consortia.sharing-roles.item.post",
+        "consortia.sharing-roles.item.delete"
       ]
     },
     {
@@ -572,6 +602,16 @@
       "permissionName": "consortia.sharing-policies.item.delete",
       "displayName": "delete sharing policy",
       "description": "Delete sharing policy"
+    },
+    {
+      "permissionName": "consortia.sharing-roles.item.post",
+      "displayName": "post sharing role",
+      "description": "Create sharing roles"
+    },
+    {
+      "permissionName": "consortia.sharing-roles.item.delete",
+      "displayName": "delete sharing role",
+      "description": "Delete sharing role"
     }
   ],
   "metadata": {
@@ -667,7 +707,13 @@
         "user-settings.custom-fields.item.post",
         "user-settings.custom-fields.collection.get",
         "ui-users.editperms",
-        "capabilities.collection.get"
+        "capabilities.collection.get",
+        "roles.item.post",
+        "roles.item.put",
+        "roles.item.delete",
+        "policies.item.post",
+        "policies.item.put",
+        "policies.item.delete"
       ]
     }
   },
