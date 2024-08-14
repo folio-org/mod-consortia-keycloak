@@ -25,24 +25,32 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import lombok.extern.log4j.Log4j2;
 
 @Service
 @Log4j2
 public class SharingSettingService extends BaseSharingService<SharingSettingRequest, SharingSettingResponse, SharingSettingDeleteResponse, SharingSettingEntity> {
+
+  private static final String SOURCE = "source";
+
   private final SharingSettingRepository sharingSettingRepository;
+  private final ObjectMapper objectMapper;
 
   public SharingSettingService(TenantService tenantService,
                                ConsortiumService consortiumService,
                                SystemUserScopedExecutionService systemUserScopedExecutionService,
                                PublicationService publicationService, FolioExecutionContext folioExecutionContext,
                                ObjectMapper objectMapper, TaskExecutor asyncTaskExecutor,
-                               SharingSettingRepository sharingSettingRepository) {
+                               SharingSettingRepository sharingSettingRepository, ObjectMapper objectMapper1) {
     super(tenantService, consortiumService, systemUserScopedExecutionService,
       publicationService, folioExecutionContext, objectMapper, asyncTaskExecutor);
     this.sharingSettingRepository = sharingSettingRepository;
+    this.objectMapper = objectMapper1;
   }
 
   @Override
@@ -117,6 +125,12 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   protected SharingSettingDeleteResponse createSharingConfigResponse(UUID publishRequestId) {
     return new SharingSettingDeleteResponse()
       .pcId(publishRequestId);
+  }
+
+  @Override
+  protected ObjectNode updatePayload(SharingSettingRequest sharingConfigRequest, String sourceValue) {
+    JsonNode payload = objectMapper.convertValue(getPayload(sharingConfigRequest), JsonNode.class);
+    return ((ObjectNode) payload).set(SOURCE, new TextNode(sourceValue));
   }
 
 }

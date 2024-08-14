@@ -327,7 +327,7 @@ public class EntityUtils {
     final ObjectNode root = mapper.createObjectNode();
     root.set("id", mapper.convertValue("3844767a-8367-4926-9999-514c35840399", JsonNode.class));
     root.set("name", mapper.convertValue("Role for policy: 104d7a66-c51d-402a-9c9f-3bdcdbbcdbe7", JsonNode.class));
-    root.set("source", mapper.convertValue("consortium", JsonNode.class));
+    root.set("type", mapper.convertValue("consortium", JsonNode.class));
     publicationRequest.setPayload(root);
     return publicationRequest;
   }
@@ -374,7 +374,7 @@ public class EntityUtils {
     Map<String, String> payload = new HashMap<>();
     payload.put("id", "3844767a-8367-4926-9999-514c35840399");
     payload.put("name", "Role for policy: 104d7a66-c51d-402a-9c9f-3bdcdbbcdbe7");
-    payload.put("source", "local");
+    payload.put("type", "local");
     ObjectMapper mapper = new ObjectMapper();
     String json = mapper.writeValueAsString(payload);
     return mapper.readTree(json);

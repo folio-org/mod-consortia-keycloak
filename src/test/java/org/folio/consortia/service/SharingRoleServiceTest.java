@@ -103,7 +103,7 @@ class SharingRoleServiceTest {
     Map<String, String> payload = new LinkedHashMap<>();
     payload.put("id", "3844767a-8367-4926-9999-514c35840399");
     payload.put("name", "Role for policy: 104d7a66-c51d-402a-9c9f-3bdcdbbcdbe7");
-    payload.put("source", "local");
+    payload.put("type", "local");
 
     // "tenant1" exists in tenant role association so that tenant1 is in PUT request publication,
     // "tenant2" is in POST method publication
@@ -154,7 +154,7 @@ class SharingRoleServiceTest {
     Map<String, String> map = new LinkedHashMap<>();
     map.put("id", "3844767a-8367-4926-9999-514c35840399");
     map.put("name", "Role for policy: 104d7a66-c51d-402a-9c9f-3bdcdbbcdbe7");
-    map.put("source", "local");
+    map.put("type", "local");
     expectedPublicationRequestDelete.setPayload(map);
 
     var publicationResponse = new PublicationResponse().id(pcId);
@@ -275,7 +275,7 @@ class SharingRoleServiceTest {
     final ObjectMapper mapper = new ObjectMapper();
     final ObjectNode root = mapper.createObjectNode();
     root.set("group", mapper.convertValue("space", JsonNode.class));
-    root.set("source", mapper.convertValue("user", JsonNode.class));
+    root.set("type", mapper.convertValue("user", JsonNode.class));
     expectedPublicationRequest.setPayload(root);
     return expectedPublicationRequest;
   }

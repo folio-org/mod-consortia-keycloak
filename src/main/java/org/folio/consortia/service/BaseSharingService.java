@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -40,7 +39,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Log4j2
 @RequiredArgsConstructor
 public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, TEntity> {
-  private static final String SOURCE = "source";
 
   @Value("${folio.sharing.config.interval:200}")
   private int interval;
@@ -81,7 +79,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     publicationPostRequest.setPayload(updatedPayload);
     publicationPutRequest.setPayload(updatedPayload);
     log.info("start:: set source as '{}' in payload of {}: {}",
-      updatedPayload.get(SOURCE), configName, configId);
+      updatedPayload.get(SourceValues.CONSORTIUM.getValue()), configName, configId);
 
     // create PC request with POST and PUT Http method to create configs, using 'consortia-system-user'
     return systemUserScopedExecutionService.executeSystemUserScoped(folioExecutionContext.getTenantId(), () -> {
@@ -128,11 +126,6 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
 
   private String getClassName(TRequest sharingConfigRequest) {
     return sharingConfigRequest.getClass().getName();
-  }
-
-  private ObjectNode updatePayload(TRequest sharingConfigRequest, String sourceValue) {
-    JsonNode payload = objectMapper.convertValue(getPayload(sharingConfigRequest), JsonNode.class);
-    return ((ObjectNode) payload).set(SOURCE, new TextNode(sourceValue));
   }
 
   private void checkEqualsOfPayloadIdWithConfigId(TRequest sharingConfigRequest) {
@@ -300,5 +293,6 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
   protected abstract TEntity createSharingConfigEntityFromRequest(TRequest sharingConfigRequest, String tenantId);
   protected abstract TResponse createSharingConfigResponse(UUID createConfigsPcId, UUID updateConfigsPcId);
   protected abstract TDeleteResponse createSharingConfigResponse(UUID publishRequestId);
+  protected abstract ObjectNode updatePayload(TRequest sharingConfigRequest, String sourceValue);
 
 }

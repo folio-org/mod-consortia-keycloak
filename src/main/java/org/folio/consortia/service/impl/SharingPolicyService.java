@@ -1,6 +1,9 @@
 package org.folio.consortia.service.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import java.util.HashSet;
 import java.util.List;
@@ -31,11 +34,15 @@ import org.springframework.stereotype.Service;
 @Log4j2
 public class SharingPolicyService extends BaseSharingService<SharingPolicyRequest, SharingPolicyResponse, SharingPolicyDeleteResponse, SharingPolicyEntity> {
 
-  private final SharingPolicyRepository sharingPolicyRepository;
+  private static final String SOURCE = "source";
 
-  public SharingPolicyService(TenantService tenantService, ConsortiumService consortiumService, SystemUserScopedExecutionService systemUserScopedExecutionService, PublicationService publicationService, FolioExecutionContext folioExecutionContext, ObjectMapper objectMapper, TaskExecutor asyncTaskExecutor, SharingPolicyRepository sharingPolicyRepository) {
+  private final SharingPolicyRepository sharingPolicyRepository;
+  private final ObjectMapper objectMapper;
+
+  public SharingPolicyService(TenantService tenantService, ConsortiumService consortiumService, SystemUserScopedExecutionService systemUserScopedExecutionService, PublicationService publicationService, FolioExecutionContext folioExecutionContext, ObjectMapper objectMapper, TaskExecutor asyncTaskExecutor, SharingPolicyRepository sharingPolicyRepository, ObjectMapper objectMapper1) {
     super(tenantService, consortiumService, systemUserScopedExecutionService, publicationService, folioExecutionContext, objectMapper, asyncTaskExecutor);
     this.sharingPolicyRepository = sharingPolicyRepository;
+    this.objectMapper = objectMapper1;
   }
 
   @Override
@@ -113,4 +120,9 @@ public class SharingPolicyService extends BaseSharingService<SharingPolicyReques
       .pcId(publishRequestId);
   }
 
+  @Override
+  protected ObjectNode updatePayload(SharingPolicyRequest sharingConfigRequest, String sourceValue) {
+    JsonNode payload = objectMapper.convertValue(getPayload(sharingConfigRequest), JsonNode.class);
+    return ((ObjectNode) payload).set(SOURCE, new TextNode(sourceValue));
+  }
 }
