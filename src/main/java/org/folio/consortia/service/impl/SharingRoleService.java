@@ -39,15 +39,14 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   private final SharingRoleRepository sharingRoleRepository;
   private final ObjectMapper objectMapper;
 
-  public SharingRoleService(TenantService tenantService,
-                            ConsortiumService consortiumService,
+  public SharingRoleService(TenantService tenantService, ConsortiumService consortiumService,
                             SystemUserScopedExecutionService systemUserScopedExecutionService,
                             PublicationService publicationService, FolioExecutionContext folioExecutionContext,
-                            ObjectMapper objectMapper, TaskExecutor asyncTaskExecutor, ObjectMapper objectMapper1,
-                            SharingRoleRepository sharingRoleRepository) {
-    super(tenantService, consortiumService, systemUserScopedExecutionService, publicationService, folioExecutionContext, objectMapper, asyncTaskExecutor);
-    this.objectMapper = objectMapper1;
+                            ObjectMapper parentObjectMapper, TaskExecutor asyncTaskExecutor, SharingRoleRepository sharingRoleRepository, ObjectMapper objectMapper) {
+    super(tenantService, consortiumService, systemUserScopedExecutionService, publicationService,
+      folioExecutionContext, parentObjectMapper, asyncTaskExecutor);
     this.sharingRoleRepository = sharingRoleRepository;
+    this.objectMapper = objectMapper;
   }
 
   @Override
