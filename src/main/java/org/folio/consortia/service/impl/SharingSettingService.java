@@ -25,23 +25,27 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import lombok.extern.log4j.Log4j2;
 
 @Service
 @Log4j2
 public class SharingSettingService extends BaseSharingService<SharingSettingRequest, SharingSettingResponse, SharingSettingDeleteResponse, SharingSettingEntity> {
+
+  private static final String SOURCE = "source";
+
   private final SharingSettingRepository sharingSettingRepository;
 
-  public SharingSettingService(TenantService tenantService,
-                               ConsortiumService consortiumService,
+  public SharingSettingService(TenantService tenantService, ConsortiumService consortiumService,
                                SystemUserScopedExecutionService systemUserScopedExecutionService,
                                PublicationService publicationService, FolioExecutionContext folioExecutionContext,
-                               ObjectMapper objectMapper, TaskExecutor asyncTaskExecutor,
-                               SharingSettingRepository sharingSettingRepository) {
-    super(tenantService, consortiumService, systemUserScopedExecutionService,
-      publicationService, folioExecutionContext, objectMapper, asyncTaskExecutor);
+                               ObjectMapper parentObjectMapper, TaskExecutor asyncTaskExecutor, SharingSettingRepository sharingSettingRepository) {
+    super(tenantService, consortiumService, systemUserScopedExecutionService, publicationService,
+      folioExecutionContext, parentObjectMapper, asyncTaskExecutor);
     this.sharingSettingRepository = sharingSettingRepository;
   }
 
@@ -89,10 +93,10 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
     publicationRequest.setMethod(httpMethod);
     String url = sharingSettingRequest.getUrl();
     if (httpMethod.equals(HttpMethod.PUT.toString()) || httpMethod.equals(HttpMethod.DELETE.toString())) {
-      url += "/" + sharingSettingRequest.getSettingId();
+      url += "/" + getConfigId(sharingSettingRequest);
     }
     publicationRequest.setUrl(url);
-    publicationRequest.setPayload(sharingSettingRequest.getPayload());
+    publicationRequest.setPayload(getPayload(sharingSettingRequest));
     publicationRequest.setTenants(new HashSet<>());
     return publicationRequest;
   }
@@ -117,6 +121,12 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   protected SharingSettingDeleteResponse createSharingConfigResponse(UUID publishRequestId) {
     return new SharingSettingDeleteResponse()
       .pcId(publishRequestId);
+  }
+
+  @Override
+  protected ObjectNode updatePayload(SharingSettingRequest sharingConfigRequest, String sourceValue) {
+    JsonNode payload = objectMapper.convertValue(getPayload(sharingConfigRequest), JsonNode.class);
+    return ((ObjectNode) payload).set(SOURCE, new TextNode(sourceValue));
   }
 
 }

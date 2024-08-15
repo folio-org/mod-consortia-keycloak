@@ -1,6 +1,9 @@
 package org.folio.consortia.service.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import java.util.HashSet;
 import java.util.List;
@@ -31,10 +34,16 @@ import org.springframework.stereotype.Service;
 @Log4j2
 public class SharingPolicyService extends BaseSharingService<SharingPolicyRequest, SharingPolicyResponse, SharingPolicyDeleteResponse, SharingPolicyEntity> {
 
+  private static final String SOURCE = "source";
+
   private final SharingPolicyRepository sharingPolicyRepository;
 
-  public SharingPolicyService(TenantService tenantService, ConsortiumService consortiumService, SystemUserScopedExecutionService systemUserScopedExecutionService, PublicationService publicationService, FolioExecutionContext folioExecutionContext, ObjectMapper objectMapper, TaskExecutor asyncTaskExecutor, SharingPolicyRepository sharingPolicyRepository) {
-    super(tenantService, consortiumService, systemUserScopedExecutionService, publicationService, folioExecutionContext, objectMapper, asyncTaskExecutor);
+  public SharingPolicyService(TenantService tenantService, ConsortiumService consortiumService,
+                              SystemUserScopedExecutionService systemUserScopedExecutionService,
+                              PublicationService publicationService, FolioExecutionContext folioExecutionContext,
+                              ObjectMapper parentObjectMapper, TaskExecutor asyncTaskExecutor, SharingPolicyRepository sharingPolicyRepository) {
+    super(tenantService, consortiumService, systemUserScopedExecutionService, publicationService,
+      folioExecutionContext, parentObjectMapper, asyncTaskExecutor);
     this.sharingPolicyRepository = sharingPolicyRepository;
   }
 
@@ -82,10 +91,10 @@ public class SharingPolicyService extends BaseSharingService<SharingPolicyReques
     publicationRequest.setMethod(httpMethod);
     String url = sharingPolicyRequest.getUrl();
     if (httpMethod.equals(HttpMethod.PUT.toString()) || httpMethod.equals(HttpMethod.DELETE.toString())) {
-      url += "/" + sharingPolicyRequest.getPolicyId();
+      url += "/" + getConfigId(sharingPolicyRequest);
     }
     publicationRequest.setUrl(url);
-    publicationRequest.setPayload(sharingPolicyRequest.getPayload());
+    publicationRequest.setPayload(getPayload(sharingPolicyRequest));
     publicationRequest.setTenants(new HashSet<>());
     return publicationRequest;
   }
@@ -113,4 +122,9 @@ public class SharingPolicyService extends BaseSharingService<SharingPolicyReques
       .pcId(publishRequestId);
   }
 
+  @Override
+  protected ObjectNode updatePayload(SharingPolicyRequest sharingConfigRequest, String sourceValue) {
+    JsonNode payload = objectMapper.convertValue(getPayload(sharingConfigRequest), JsonNode.class);
+    return ((ObjectNode) payload).set(SOURCE, new TextNode(sourceValue));
+  }
 }
