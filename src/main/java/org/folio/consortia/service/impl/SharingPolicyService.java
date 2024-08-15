@@ -37,16 +37,14 @@ public class SharingPolicyService extends BaseSharingService<SharingPolicyReques
   private static final String SOURCE = "source";
 
   private final SharingPolicyRepository sharingPolicyRepository;
-  private final ObjectMapper objectMapper;
 
   public SharingPolicyService(TenantService tenantService, ConsortiumService consortiumService,
                               SystemUserScopedExecutionService systemUserScopedExecutionService,
                               PublicationService publicationService, FolioExecutionContext folioExecutionContext,
-                              ObjectMapper parentObjectMapper, TaskExecutor asyncTaskExecutor, SharingPolicyRepository sharingPolicyRepository, ObjectMapper objectMapper) {
+                              ObjectMapper parentObjectMapper, TaskExecutor asyncTaskExecutor, SharingPolicyRepository sharingPolicyRepository) {
     super(tenantService, consortiumService, systemUserScopedExecutionService, publicationService,
       folioExecutionContext, parentObjectMapper, asyncTaskExecutor);
     this.sharingPolicyRepository = sharingPolicyRepository;
-    this.objectMapper = objectMapper;
   }
 
   @Override

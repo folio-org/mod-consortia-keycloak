@@ -39,16 +39,14 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   private static final String SOURCE = "source";
 
   private final SharingSettingRepository sharingSettingRepository;
-  private final ObjectMapper objectMapper;
 
   public SharingSettingService(TenantService tenantService, ConsortiumService consortiumService,
                                SystemUserScopedExecutionService systemUserScopedExecutionService,
                                PublicationService publicationService, FolioExecutionContext folioExecutionContext,
-                               ObjectMapper parentObjectMapper, TaskExecutor asyncTaskExecutor, SharingSettingRepository sharingSettingRepository, ObjectMapper objectMapper) {
+                               ObjectMapper parentObjectMapper, TaskExecutor asyncTaskExecutor, SharingSettingRepository sharingSettingRepository) {
     super(tenantService, consortiumService, systemUserScopedExecutionService, publicationService,
       folioExecutionContext, parentObjectMapper, asyncTaskExecutor);
     this.sharingSettingRepository = sharingSettingRepository;
-    this.objectMapper = objectMapper;
   }
 
   @Override

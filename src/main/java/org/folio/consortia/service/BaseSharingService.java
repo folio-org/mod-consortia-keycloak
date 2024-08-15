@@ -50,7 +50,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
   private final SystemUserScopedExecutionService systemUserScopedExecutionService;
   private final PublicationService publicationService;
   private final FolioExecutionContext folioExecutionContext;
-  private final ObjectMapper parentObjectMapper;
+  protected final ObjectMapper objectMapper;
   private final TaskExecutor asyncTaskExecutor;
 
   @Transactional
@@ -130,7 +130,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
 
   private void checkEqualsOfPayloadIdWithConfigId(TRequest sharingConfigRequest) {
     String sharingConfigId = String.valueOf(getConfigId(sharingConfigRequest));
-    JsonNode payloadNode = parentObjectMapper.convertValue(getPayload(sharingConfigRequest), JsonNode.class);
+    JsonNode payloadNode = objectMapper.convertValue(getPayload(sharingConfigRequest), JsonNode.class);
     String payloadId = payloadNode.get("id").asText();
     if (ObjectUtils.notEqual(sharingConfigId, payloadId)) {
       throw new IllegalArgumentException("Mismatch ID in payload with ID");

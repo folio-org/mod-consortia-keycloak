@@ -37,16 +37,14 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   private static final String TYPE = "type";
 
   private final SharingRoleRepository sharingRoleRepository;
-  private final ObjectMapper objectMapper;
 
   public SharingRoleService(TenantService tenantService, ConsortiumService consortiumService,
                             SystemUserScopedExecutionService systemUserScopedExecutionService,
                             PublicationService publicationService, FolioExecutionContext folioExecutionContext,
-                            ObjectMapper parentObjectMapper, TaskExecutor asyncTaskExecutor, SharingRoleRepository sharingRoleRepository, ObjectMapper objectMapper) {
+                            ObjectMapper parentObjectMapper, TaskExecutor asyncTaskExecutor, SharingRoleRepository sharingRoleRepository) {
     super(tenantService, consortiumService, systemUserScopedExecutionService, publicationService,
       folioExecutionContext, parentObjectMapper, asyncTaskExecutor);
     this.sharingRoleRepository = sharingRoleRepository;
-    this.objectMapper = objectMapper;
   }
 
   @Override
