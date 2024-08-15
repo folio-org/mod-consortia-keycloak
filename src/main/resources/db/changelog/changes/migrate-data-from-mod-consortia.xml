@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
+
+  <changeSet id="EUREKA-65@@migrate-data-from-mod_consortia.consortia_configuration" author="yaroslavkiriak">
+    <sql>
+      DO
+      '
+      DECLARE
+      BEGIN
+        IF (EXISTS (SELECT 1 FROM information_schema.tables
+          WHERE table_schema = ''${tenantname}_mod_consortia'' AND table_name = ''consortia_configuration''))
+        THEN
+          INSERT INTO ${tenantname}_mod_consortia_keycloak.consortia_configuration (
+            id, central_tenant_id, created_by, created_date, updated_by, updated_date
+          ) SELECT
+            id, central_tenant_id, created_by, created_date, updated_by,
+            (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date
+          FROM ${tenantname}_mod_consortia.consortia_configuration;
+        END IF;
+      END;
+      '  LANGUAGE plpgsql;
+    </sql>
+  </changeSet>
+
+  <changeSet id="EUREKA-65@@migrate-data-from-mod_consortia.consortium" author="yaroslavkiriak">
+    <sql>
+      DO
+      '
+      DECLARE
+      BEGIN
+        IF (EXISTS (SELECT 1 FROM information_schema.tables
+          WHERE table_schema = ''${tenantname}_mod_consortia'' AND table_name = ''consortium''))
+        THEN
+          INSERT INTO ${tenantname}_mod_consortia_keycloak.consortium (
+            id, name, created_by, created_date, updated_by, updated_date
+          ) SELECT
+            id, name, created_by, created_date, updated_by,
+            (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date
+          FROM ${tenantname}_mod_consortia.consortium;
+        END IF;
+      END;
+      '  LANGUAGE plpgsql;
+    </sql>
+  </changeSet>
+
+  <changeSet id="EUREKA-65@@migrate-data-from-mod_consortia.pc_state" author="yaroslavkiriak">
+    <sql>
+      DO
+      '
+      DECLARE
+      BEGIN
+        IF (EXISTS (SELECT 1 FROM information_schema.tables
+          WHERE table_schema = ''${tenantname}_mod_consortia'' AND table_name = ''pc_state''))
+        THEN
+          INSERT INTO ${tenantname}_mod_consortia_keycloak.pc_state (
+            id, status, total_records, created_by, created_date, updated_by, updated_date
+          ) SELECT
+            id, status, total_records, created_by, created_date, updated_by,
+            (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date
+          FROM ${tenantname}_mod_consortia.pc_state;
+        END IF;
+      END;
+      '  LANGUAGE plpgsql;
+    </sql>
+  </changeSet>
+
+  <changeSet id="EUREKA-65@@migrate-data-from-mod_consortia.pc_tenant_request" author="yaroslavkiriak">
+    <sql>
+      DO
+      '
+      DECLARE
+      BEGIN
+        IF (EXISTS (SELECT 1 FROM information_schema.tables
+          WHERE table_schema = ''${tenantname}_mod_consortia'' AND table_name = ''pc_tenant_request''))
+        THEN
+          INSERT INTO ${tenantname}_mod_consortia_keycloak.pc_tenant_request (
+            id, pc_id, tenant_id, status, request_url, request_payload, response, response_status_code,
+            completed_date, created_by, created_date, updated_by, updated_date
+          ) SELECT
+            id, pc_id, tenant_id, status, request_url, request_payload, response, response_status_code,
+            completed_date, created_by, created_date, updated_by,
+            (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date
+          FROM ${tenantname}_mod_consortia.pc_tenant_request;
+        END IF;
+      END;
+      '  LANGUAGE plpgsql;
+    </sql>
+  </changeSet>
+
+  <changeSet id="EUREKA-65@@migrate-data-from-mod_consortia.sharing_instance" author="yaroslavkiriak">
+    <sql>
+      DO
+      '
+      DECLARE
+      BEGIN
+        IF (EXISTS (SELECT 1 FROM information_schema.tables
+          WHERE table_schema = ''${tenantname}_mod_consortia'' AND table_name = ''sharing_instance''))
+        THEN
+          INSERT INTO ${tenantname}_mod_consortia_keycloak.sharing_instance (
+            id, instance_id, source_tenant_id, target_tenant_id, status, error, created_by, created_date, updated_by, updated_date
+          ) SELECT
+            id, instance_id, source_tenant_id, target_tenant_id, status, error, created_by, created_date, updated_by,
+            (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date
+          FROM ${tenantname}_mod_consortia.sharing_instance;
+        END IF;
+      END;
+      '  LANGUAGE plpgsql;
+    </sql>
+  </changeSet>
+
+  <changeSet id="EUREKA-65@@migrate-data-from-mod_consortia.sharing_setting" author="yaroslavkiriak">
+    <sql>
+      DO
+      '
+      DECLARE
+      BEGIN
+        IF (EXISTS (SELECT 1 FROM information_schema.tables
+          WHERE table_schema = ''${tenantname}_mod_consortia'' AND table_name = ''sharing_setting''))
+        THEN
+          INSERT INTO ${tenantname}_mod_consortia_keycloak.sharing_setting (
+            id, setting_id, tenant_id, created_by, created_date, updated_by, updated_date
+          ) SELECT
+            id, setting_id, tenant_id, created_by, created_date, updated_by,
+            (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date
+          FROM ${tenantname}_mod_consortia.sharing_setting;
+        END IF;
+      END;
+      '  LANGUAGE plpgsql;
+    </sql>
+  </changeSet>
+
+  <changeSet id="EUREKA-65@@migrate-data-from-mod_consortia.tenant" author="yaroslavkiriak">
+    <sql>
+      DO
+      '
+      DECLARE
+      BEGIN
+        IF (EXISTS (SELECT 1 FROM information_schema.tables
+          WHERE table_schema = ''${tenantname}_mod_consortia'' AND table_name = ''tenant''))
+        THEN
+          INSERT INTO ${tenantname}_mod_consortia_keycloak.tenant (
+            id, name, consortium_id, code, is_central, created_by, created_date, updated_by, updated_date, setup_status, is_deleted
+          ) SELECT
+            id, name, consortium_id, code, is_central, created_by, created_date, updated_by,
+            (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date, setup_status, is_deleted
+          FROM ${tenantname}_mod_consortia.tenant;
+        END IF;
+      END;
+      '  LANGUAGE plpgsql;
+    </sql>
+  </changeSet>
+
+  <changeSet id="EUREKA-65@@migrate-data-from-mod_consortia.user_tenant" author="yaroslavkiriak">
+    <sql>
+      DO
+      '
+      DECLARE
+      BEGIN
+        IF (EXISTS (SELECT 1 FROM information_schema.tables
+          WHERE table_schema = ''${tenantname}_mod_consortia'' AND table_name = ''user_tenant''))
+        THEN
+          INSERT INTO ${tenantname}_mod_consortia_keycloak.user_tenant (
+            id, user_id, username, tenant_id, is_primary, created_by, created_date, updated_by, updated_date
+          ) SELECT
+            id, user_id, username, tenant_id, is_primary, created_by, created_date, updated_by,
+            (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date
+          FROM ${tenantname}_mod_consortia.user_tenant;
+        END IF;
+      END;
+      '  LANGUAGE plpgsql;
+    </sql>
+  </changeSet>
+
+</databaseChangeLog>

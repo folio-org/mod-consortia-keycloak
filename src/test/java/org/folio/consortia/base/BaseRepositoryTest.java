@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 
 @Log4j2
-@DataJpaTest
+@DataJpaTest(properties = "spring.liquibase.parameters.tenantname=consortium")
 @EnablePostgresExtension
 @DirtiesContext(classMode = AFTER_CLASS)
 @Import({FolioAuditorAware.class})
