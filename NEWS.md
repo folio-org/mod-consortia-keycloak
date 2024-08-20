@@ -1,3 +1,7 @@
+## Version `v1.4.3` (20.08.2024)
+### Changes:
+* Add script to migrate data from mod-consortia (EUREKA-65)
+
 ## Version `v1.4.2` (14.08.2024)
 ### Changes:
 * Upgrade application-poc-tools to v1.5.5.
