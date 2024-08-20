@@ -1,3 +1,9 @@
+## Version `v1.4.2` (14.08.2024)
+### Changes:
+* Upgrade application-poc-tools to v1.5.5.
+* Implement sharing of authorization policies (MODCONSKC-18)
+* Change system user type (EUREKA-225)
+
 ## Version `v1.4.1` (10.07.2024)
 ### Changes:
 * Upgrade application-poc-tools to v1.5.4.
