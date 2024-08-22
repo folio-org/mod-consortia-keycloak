@@ -1,11 +1,17 @@
 SharingRoleCapabilitySetRequest:
-  description: "A JSON schema for the Sharing policies object"
+  description: "A JSON schema for the Sharing Role Capability Sets object"
   type: object
   properties:
     roleId:
       description: id of sharing role record
       type: string
       format: uuid
+    capabilitySetIds:
+      description: ids of sharing role capability set records
+      type: array
+      items:
+        type: string
+        format: uuid
     url:
       description: URL for publishing requests for consortia tenants
       type: string
@@ -14,26 +20,27 @@ SharingRoleCapabilitySetRequest:
       type: object
   additionalProperties: false
   required:
-    - policyId
+    - roleId
+    - capabilitySetId
     - url
 
-SharingCapabilitySetResponse:
-  description: "A JSON schema for the Sharing policies object response for post request"
+SharingRoleCapabilitySetResponse:
+  description: "A JSON schema for the Sharing Role Capability Sets object response for post request"
   type: object
   properties:
-    createPoliciesPCId:
+    createRoleCapabilitySetsPCId:
       type: string
       format: uuid
-    updatePoliciesPCId:
+    updateRoleCapabilitySetsPCId:
       type: string
       format: uuid
   additionalProperties: false
   required:
-    - createPoliciesPCId
-    - updatePoliciesPCId
+    - createRoleCapabilitySetsPCId
+    - updateRoleCapabilitySetsPCId
 
-SharingPolicyDeleteResponse:
-  description: "A JSON schema for the Sharing policies object response for delete request"
+SharingRoleCapabilitySetDeleteResponse:
+  description: "A JSON schema for the Sharing Role Capability Sets object response for delete request"
   type: object
   properties:
     pcId:

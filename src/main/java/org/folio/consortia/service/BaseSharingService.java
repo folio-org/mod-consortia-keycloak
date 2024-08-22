@@ -49,7 +49,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
   private final ConsortiumService consortiumService;
   private final SystemUserScopedExecutionService systemUserScopedExecutionService;
   private final PublicationService publicationService;
-  private final FolioExecutionContext folioExecutionContext;
+  protected final FolioExecutionContext folioExecutionContext;
   protected final ObjectMapper objectMapper;
   private final TaskExecutor asyncTaskExecutor;
 
@@ -149,11 +149,11 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
    * @param publicationPostRequest publication post request
    * @return List of SharingConfigEntity objects
    */
-  private List<TEntity> linkTenantsToPublicationPutPostRequestAndEntity(TenantCollection allTenants,
-                                                                        TRequest sharingConfigRequest,
-                                                                        Set<String> sharingConfigTenants,
-                                                                        PublicationRequest publicationPutRequest,
-                                                                        PublicationRequest publicationPostRequest) {
+  protected List<TEntity> linkTenantsToPublicationPutPostRequestAndEntity(TenantCollection allTenants,
+                                                                          TRequest sharingConfigRequest,
+                                                                          Set<String> sharingConfigTenants,
+                                                                          PublicationRequest publicationPutRequest,
+                                                                          PublicationRequest publicationPostRequest) {
     List<TEntity> sharingConfigEntityList = new ArrayList<>();
     for (Tenant tenant : allTenants.getTenants()) {
       if (sharingConfigTenants.contains(tenant.getId())) {
@@ -180,7 +180,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
    * @param sharingConfigTenants     existing tenants in configs
    * @param publicationDeleteRequest publication delete request
    */
-  private void linkTenantsToPublicationDeleteRequest(TenantCollection allTenants,
+  protected void linkTenantsToPublicationDeleteRequest(TenantCollection allTenants,
                                                      TRequest sharingConfigRequest,
                                                      Set<String> sharingConfigTenants,
                                                      PublicationRequest publicationDeleteRequest) {
@@ -195,7 +195,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
   }
 
 
-  private UUID publishRequest(UUID consortiumId, PublicationRequest publicationRequest) {
+  protected UUID publishRequest(UUID consortiumId, PublicationRequest publicationRequest) {
     if (CollectionUtils.isNotEmpty(publicationRequest.getTenants())) {
       return publicationService.publishRequest(consortiumId, publicationRequest).getId();
     }

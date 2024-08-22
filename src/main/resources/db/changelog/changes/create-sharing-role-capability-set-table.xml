@@ -13,7 +13,7 @@
       <column name="role_id" type="uuid">
         <constraints nullable="false"/>
       </column>
-      <column name="capability_set_ids" type="uuid[]">
+      <column name="capability_set_id" type="uuid">
         <constraints nullable="false"/>
       </column>
       <column name="tenant_id" type="text">
