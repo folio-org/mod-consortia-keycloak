@@ -86,6 +86,7 @@ public class SharingInstanceServiceImpl implements SharingInstanceService {
         String source = switch (inventoryInstance.get("source").asText().toLowerCase()) {
           case "folio" -> SourceValues.CONSORTIUM_FOLIO_INSTANCE.getValue();
           case "marc" -> SourceValues.CONSORTIUM_MARC_INSTANCE.getValue();
+          case "linked_data" -> SourceValues.CONSORTIUM_LINKED_DATA_INSTANCE.getValue();
           default -> throw new IllegalStateException("source is not recognized");
         };
         var updatedInventoryInstance = ((ObjectNode) inventoryInstance).set("source", new TextNode(source));

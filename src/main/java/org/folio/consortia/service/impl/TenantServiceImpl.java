@@ -56,8 +56,7 @@ public class TenantServiceImpl implements TenantService {
   private static final String TENANTS_IDS_NOT_MATCHED_ERROR_MSG = "Request body tenantId and path param tenantId should be identical";
 
   private static final String DUMMY_USERNAME = "dummy_user";
-  @Value("${folio.system-user.username}")
-  private String systemUserUsername;
+  private static final String SYSTEM_USERNAME = "mod-consortia-keycloak";
 
   private final TenantRepository tenantRepository;
   private final TenantDetailsRepository tenantDetailsRepository;
@@ -168,8 +167,8 @@ public class TenantServiceImpl implements TenantService {
       shadowAdminUser = userService.prepareShadowUser(adminUserId, folioExecutionContext.getTenantId());
       userTenantRepository.save(createUserTenantEntity(consortiumId, shadowAdminUser, tenantDto));
       // creating shadow user of consortia system user of central tenant with same permissions.
-      var centralSystemUser = userService.getByUsername(systemUserUsername)
-        .orElseThrow(() -> new ResourceNotFoundException("systemUserUsername", systemUserUsername));
+      var centralSystemUser = userService.getByUsername(SYSTEM_USERNAME)
+        .orElseThrow(() -> new ResourceNotFoundException("systemUserUsername", SYSTEM_USERNAME));
       shadowSystemUser = userService.prepareShadowUser(UUID.fromString(centralSystemUser.getId()), folioExecutionContext.getTenantId());
       userTenantRepository.save(createUserTenantEntity(consortiumId, shadowSystemUser, tenantDto));
     }
