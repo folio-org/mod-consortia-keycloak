@@ -178,7 +178,7 @@ class TenantServiceTest {
     PermissionUserCollection permissionUserCollection = new PermissionUserCollection();
     permissionUserCollection.setPermissionUsers(List.of());
     User adminUser = createUser("diku_admin");
-    User systemUser = createUser("consortia-system-user");
+    User systemUser = createUser(TenantServiceImpl.SYSTEM_USERNAME);
 
     when(consortiumRepository.existsById(consortiumId)).thenReturn(true);
     when(userService.getByUsername(any())).thenReturn(Optional.of(systemUser));

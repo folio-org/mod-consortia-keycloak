@@ -65,12 +65,12 @@ import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
 import org.folio.consortia.service.UserTenantService;
 import org.folio.consortia.service.impl.ConsortiaConfigurationServiceImpl;
+import org.folio.consortia.service.impl.TenantServiceImpl;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.context.ExecutionContextBuilder;
 import org.folio.spring.data.OffsetRequest;
 import org.folio.spring.integration.XOkapiHeaders;
-import org.folio.spring.service.PrepareSystemUserService;
 import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -113,8 +113,6 @@ class TenantControllerTest extends BaseIT {
   UserTenantService userTenantService;
   @MockBean
   UserService userService;
-  @MockBean
-  PrepareSystemUserService prepareSystemUserService;
   @MockBean
   SystemUserScopedExecutionService systemUserScopedExecutionService;
   @Mock
@@ -169,7 +167,7 @@ class TenantControllerTest extends BaseIT {
     PermissionUserCollection permissionUserCollection = new PermissionUserCollection();
     permissionUserCollection.setPermissionUsers(List.of(permissionUser));
     User adminUser = createUser("diku_admin");
-    User systemUser = createUser("consortia-system-user");
+    User systemUser = createUser(TenantServiceImpl.SYSTEM_USERNAME);
 
     var tenantDetailsEntity = new TenantDetailsEntity();
     tenantDetailsEntity.setConsortiumId(centralTenant.getConsortiumId());
@@ -182,7 +180,7 @@ class TenantControllerTest extends BaseIT {
           .withHeader(XOkapiHeaders.TOKEN, TOKEN)));
 
     doNothing().when(userTenantsClient).postUserTenant(any());
-    when(userService.getByUsername("consortia-system-user")).thenReturn(Optional.of(systemUser));
+    when(userService.getByUsername(TenantServiceImpl.SYSTEM_USERNAME)).thenReturn(Optional.of(systemUser));
     when(userService.prepareShadowUser(UUID.fromString(adminUser.getId()), TENANT)).thenReturn(adminUser);
     when(userService.prepareShadowUser(UUID.fromString(systemUser.getId()), TENANT)).thenReturn(systemUser);
     when(userService.getById(any())).thenReturn(adminUser);

@@ -56,7 +56,7 @@ public class TenantServiceImpl implements TenantService {
   private static final String TENANTS_IDS_NOT_MATCHED_ERROR_MSG = "Request body tenantId and path param tenantId should be identical";
 
   private static final String DUMMY_USERNAME = "dummy_user";
-  private static final String SYSTEM_USERNAME = "mod-consortia-keycloak";
+  public static final String SYSTEM_USERNAME = "mod-consortia-keycloak";
 
   private final TenantRepository tenantRepository;
   private final TenantDetailsRepository tenantDetailsRepository;
