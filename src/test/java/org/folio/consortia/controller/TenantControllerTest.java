@@ -8,6 +8,7 @@ import static org.folio.consortia.support.EntityUtils.createTenantDetailsEntity;
 import static org.folio.consortia.support.EntityUtils.createTenantEntity;
 import static org.folio.consortia.support.EntityUtils.createUser;
 import static org.folio.consortia.support.EntityUtils.createUserTenantEntity;
+import static org.folio.consortia.utils.Constants.SYSTEM_USER_NAME;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -65,7 +66,6 @@ import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
 import org.folio.consortia.service.UserTenantService;
 import org.folio.consortia.service.impl.ConsortiaConfigurationServiceImpl;
-import org.folio.consortia.service.impl.TenantServiceImpl;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.context.ExecutionContextBuilder;
@@ -167,7 +167,7 @@ class TenantControllerTest extends BaseIT {
     PermissionUserCollection permissionUserCollection = new PermissionUserCollection();
     permissionUserCollection.setPermissionUsers(List.of(permissionUser));
     User adminUser = createUser("diku_admin");
-    User systemUser = createUser(TenantServiceImpl.SYSTEM_USERNAME);
+    User systemUser = createUser(SYSTEM_USER_NAME);
 
     var tenantDetailsEntity = new TenantDetailsEntity();
     tenantDetailsEntity.setConsortiumId(centralTenant.getConsortiumId());
@@ -180,7 +180,7 @@ class TenantControllerTest extends BaseIT {
           .withHeader(XOkapiHeaders.TOKEN, TOKEN)));
 
     doNothing().when(userTenantsClient).postUserTenant(any());
-    when(userService.getByUsername(TenantServiceImpl.SYSTEM_USERNAME)).thenReturn(Optional.of(systemUser));
+    when(userService.getByUsername(SYSTEM_USER_NAME)).thenReturn(Optional.of(systemUser));
     when(userService.prepareShadowUser(UUID.fromString(adminUser.getId()), TENANT)).thenReturn(adminUser);
     when(userService.prepareShadowUser(UUID.fromString(systemUser.getId()), TENANT)).thenReturn(systemUser);
     when(userService.getById(any())).thenReturn(adminUser);

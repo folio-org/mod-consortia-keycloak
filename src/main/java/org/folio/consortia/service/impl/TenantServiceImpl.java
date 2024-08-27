@@ -1,5 +1,6 @@
 package org.folio.consortia.service.impl;
 
+import static org.folio.consortia.utils.Constants.SYSTEM_USER_NAME;
 import static org.folio.consortia.utils.HelperUtils.checkIdenticalOrThrow;
 
 import java.util.List;
@@ -39,7 +40,6 @@ import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.context.ExecutionContextBuilder;
 import org.folio.spring.data.OffsetRequest;
 import org.folio.spring.scope.FolioExecutionContextSetter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -56,7 +56,6 @@ public class TenantServiceImpl implements TenantService {
   private static final String TENANTS_IDS_NOT_MATCHED_ERROR_MSG = "Request body tenantId and path param tenantId should be identical";
 
   private static final String DUMMY_USERNAME = "dummy_user";
-  public static final String SYSTEM_USERNAME = "mod-consortia-keycloak";
 
   private final TenantRepository tenantRepository;
   private final TenantDetailsRepository tenantDetailsRepository;
@@ -167,8 +166,8 @@ public class TenantServiceImpl implements TenantService {
       shadowAdminUser = userService.prepareShadowUser(adminUserId, folioExecutionContext.getTenantId());
       userTenantRepository.save(createUserTenantEntity(consortiumId, shadowAdminUser, tenantDto));
       // creating shadow user of consortia system user of central tenant with same permissions.
-      var centralSystemUser = userService.getByUsername(SYSTEM_USERNAME)
-        .orElseThrow(() -> new ResourceNotFoundException("systemUserUsername", SYSTEM_USERNAME));
+      var centralSystemUser = userService.getByUsername(SYSTEM_USER_NAME)
+        .orElseThrow(() -> new ResourceNotFoundException("systemUserUsername", SYSTEM_USER_NAME));
       shadowSystemUser = userService.prepareShadowUser(UUID.fromString(centralSystemUser.getId()), folioExecutionContext.getTenantId());
       userTenantRepository.save(createUserTenantEntity(consortiumId, shadowSystemUser, tenantDto));
     }
