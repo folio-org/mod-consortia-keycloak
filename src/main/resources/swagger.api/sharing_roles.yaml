@@ -10,6 +10,8 @@ paths:
     post:
       summary: start sharing role
       operationId: startSharingRole
+      tags:
+        - roles
       parameters:
         - $ref: "#/components/parameters/consortiumId"
       requestBody:
@@ -32,6 +34,8 @@ paths:
     delete:
       summary: delete sharing role
       operationId: deleteSharingRole
+      tags:
+        - roles
       parameters:
         - $ref: "#/components/parameters/consortiumId"
         - $ref: "#/components/parameters/roleId"
@@ -55,6 +59,8 @@ paths:
     post:
       summary: start sharing role
       operationId: startSharingRoleCapabilitySet
+      tags:
+        - role-capability-set
       parameters:
         - $ref: "#/components/parameters/consortiumId"
       requestBody:
@@ -77,6 +83,8 @@ paths:
     delete:
       summary: delete sharing role capability set
       operationId: deleteSharingRoleCapabilitySet
+      tags:
+        - role-capability-set
       parameters:
         - $ref: "#/components/parameters/consortiumId"
         - $ref: "#/components/parameters/roleId"

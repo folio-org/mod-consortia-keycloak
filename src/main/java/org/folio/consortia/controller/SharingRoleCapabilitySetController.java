@@ -4,12 +4,11 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 import java.util.UUID;
-
 import lombok.RequiredArgsConstructor;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetDeleteResponse;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetRequest;
+import org.folio.consortia.rest.resource.RoleCapabilitySetApi;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetResponse;
-import org.folio.consortia.rest.resource.RolesApi;
 import org.folio.consortia.service.impl.SharingRoleCapabilitySetService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/consortia/{consortiumId}/sharing")
 @RequiredArgsConstructor
-public class SharingRoleCapabilitySetController implements RolesApi {
+public class SharingRoleCapabilitySetController implements RoleCapabilitySetApi {
 
   private final SharingRoleCapabilitySetService sharingRoleCapabilitySetService;
 
