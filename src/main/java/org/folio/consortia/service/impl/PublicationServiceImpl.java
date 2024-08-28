@@ -1,5 +1,6 @@
 package org.folio.consortia.service.impl;
 
+import static org.folio.consortia.utils.Constants.SYSTEM_USER_NAME;
 import static org.folio.spring.scope.FolioExecutionScopeExecutionContextManager.getRunnableWithCurrentFolioContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -57,7 +58,6 @@ import org.springframework.web.client.HttpClientErrorException;
 @RequiredArgsConstructor
 public class PublicationServiceImpl implements PublicationService {
   private static final String PUBLICATION_ID_FIELD = "publicationId";
-  private static final String SYSTEM_USER_NAME = "mod-consortia-keycloak";
 
   private final TenantService tenantService;
   private final UserTenantService userTenantService;

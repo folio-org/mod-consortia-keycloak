@@ -14,7 +14,6 @@ import org.folio.consortia.domain.dto.CustomFieldType;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.exception.TenantUpgradeException;
 import org.folio.spring.liquibase.FolioSpringLiquibase;
-import org.folio.spring.service.PrepareSystemUserService;
 import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.folio.spring.service.TenantService;
 import org.folio.tenant.domain.dto.TenantAttributes;
@@ -36,7 +35,6 @@ public class FolioTenantService extends TenantService {
   private final KafkaService kafkaService;
   private final CustomFieldService customFieldService;
   private final FolioExecutionContext folioExecutionContext;
-  private final PrepareSystemUserService prepareSystemUserService;
   private final SystemUserScopedExecutionService systemUserScopedExecutionService;
   private final CustomFieldsRetryProperties customFieldsRetryProperties;
 
@@ -56,14 +54,12 @@ public class FolioTenantService extends TenantService {
                             FolioSpringLiquibase folioSpringLiquibase,
                             CustomFieldService customFieldService,
                             FolioExecutionContext folioExecutionContext,
-                            PrepareSystemUserService prepareSystemUserService,
                             SystemUserScopedExecutionService systemUserScopedExecutionService,
                             CustomFieldsRetryProperties customFieldsRetryProperties) {
     super(jdbcTemplate, context, folioSpringLiquibase);
     this.kafkaService = kafkaService;
     this.customFieldService = customFieldService;
     this.folioExecutionContext = folioExecutionContext;
-    this.prepareSystemUserService = prepareSystemUserService;
     this.systemUserScopedExecutionService = systemUserScopedExecutionService;
     this.customFieldsRetryProperties = customFieldsRetryProperties;
   }
@@ -96,7 +92,6 @@ public class FolioTenantService extends TenantService {
   @Override
   protected void afterTenantUpdate(TenantAttributes tenantAttributes) {
     try {
-      prepareSystemUserService.setupSystemUser();
       kafkaService.createKafkaTopics();
       createOriginalTenantIdCustomField();
     } catch (Exception e) {
