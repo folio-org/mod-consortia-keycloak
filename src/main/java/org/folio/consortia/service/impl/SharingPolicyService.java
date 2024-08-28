@@ -56,6 +56,11 @@ public class SharingPolicyService extends BaseSharingService<SharingPolicyReques
   }
 
   @Override
+  protected String getPayloadId(JsonNode payload) {
+    return payload.get("id").asText();
+  }
+
+  @Override
   protected void validateSharingConfigRequestOrThrow(UUID policyId, SharingPolicyRequest sharingPolicyRequest) {
     if (ObjectUtils.notEqual(getConfigId(sharingPolicyRequest), policyId)) {
       throw new IllegalArgumentException("Mismatch id in path to policyId in request body");

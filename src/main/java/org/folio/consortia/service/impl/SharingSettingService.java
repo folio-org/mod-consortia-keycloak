@@ -58,6 +58,11 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   }
 
   @Override
+  protected String getPayloadId(JsonNode payload) {
+    return payload.get("id").asText();
+  }
+
+  @Override
   protected void validateSharingConfigRequestOrThrow(UUID settingId, SharingSettingRequest sharingSettingRequest) {
     if (ObjectUtils.notEqual(getConfigId(sharingSettingRequest), settingId)) {
       throw new IllegalArgumentException("Mismatch id in path to settingId in request body");

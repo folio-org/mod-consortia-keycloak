@@ -134,7 +134,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
   private void checkEqualsOfPayloadIdWithConfigId(TRequest sharingConfigRequest) {
     String sharingConfigId = String.valueOf(getConfigId(sharingConfigRequest));
     JsonNode payloadNode = objectMapper.convertValue(getPayload(sharingConfigRequest), JsonNode.class);
-    String payloadId = payloadNode.get("id").asText();
+    String payloadId = getPayloadId(payloadNode);
     if (ObjectUtils.notEqual(sharingConfigId, payloadId)) {
       throw new IllegalArgumentException("Mismatch ID in payload with ID");
     }
@@ -285,7 +285,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
 
   protected abstract UUID getConfigId(TRequest sharingConfigRequest);
   protected abstract Object getPayload(TRequest sharingConfigRequest);
-
+  protected abstract String getPayloadId(JsonNode payload);
   protected abstract void validateSharingConfigRequestOrThrow(UUID configId, TRequest sharingConfigRequest);
 
   protected abstract Set<String> findTenantsForConfig(TRequest request);

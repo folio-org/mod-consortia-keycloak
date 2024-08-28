@@ -56,6 +56,11 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   }
 
   @Override
+  protected String getPayloadId(JsonNode payload) {
+    return payload.get("id").asText();
+  }
+
+  @Override
   protected void validateSharingConfigRequestOrThrow(UUID roleId, SharingRoleRequest sharingRoleRequest) {
     if (ObjectUtils.notEqual(getConfigId(sharingRoleRequest), roleId)) {
       throw new IllegalArgumentException("Mismatch id in path to roleId in request body");

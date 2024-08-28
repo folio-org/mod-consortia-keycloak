@@ -3,13 +3,9 @@ package org.folio.consortia.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.PublicationResponse;
 import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetRequest;
-import org.folio.consortia.domain.dto.Tenant;
-import org.folio.consortia.domain.dto.TenantCollection;
 import org.folio.consortia.domain.entity.SharingRoleEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.ConsortiumRepository;
@@ -35,7 +31,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,12 +39,17 @@ import java.util.concurrent.Callable;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.folio.consortia.support.EntityUtils.SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE;
+import static org.folio.consortia.support.EntityUtils.SHARING_ROLE_CAPABILITY_SETS_WITHOUT_PAYLOAD_REQUEST_SAMPLE;
+import static org.folio.consortia.support.EntityUtils.TENANT_ID_1;
+import static org.folio.consortia.support.EntityUtils.TENANT_ID_2;
+import static org.folio.consortia.support.EntityUtils.createExceptedPublicationRequest;
 import static org.folio.consortia.support.EntityUtils.createJsonNodeForGroupPayload;
-import static org.folio.consortia.support.EntityUtils.createJsonNodeForRolePayload;
+import static org.folio.consortia.support.EntityUtils.createJsonNodeForRoleCapabilitySetsPayload;
 import static org.folio.consortia.support.EntityUtils.createPublicationDetails;
 import static org.folio.consortia.support.EntityUtils.createPublicationRequest;
 import static org.folio.consortia.support.EntityUtils.createPublicationResultCollection;
 import static org.folio.consortia.support.EntityUtils.createSharingRoleCapabilitySetResponse;
+import static org.folio.consortia.support.EntityUtils.createSharingRoleEntity;
 import static org.folio.consortia.support.EntityUtils.createSharingRoleResponseForDelete;
 import static org.folio.consortia.support.EntityUtils.createTenant;
 import static org.folio.consortia.support.EntityUtils.createTenantCollection;
@@ -91,46 +91,47 @@ class SharingRoleCapabilitySetServiceTest {
 
   @Test
   void shouldStartSharingRole() throws JsonProcessingException {
-    UUID createRoleCapabilitySetsPcId = UUID.randomUUID();
-    UUID updateRoleCapabilitySetsPcId = UUID.randomUUID();
-    Tenant tenant1 = createTenant("tenant1", "tenant1");
-    Tenant tenant2 = createTenant("tenant2", "tenant2");
-    Set<String> tenantAssociationsWithRole = Set.of("tenant1");
-    TenantCollection tenantCollection = createTenantCollection(List.of(tenant1, tenant2));
-    var sharingRoleCapabilitySetRequest =
-      getMockDataObject(SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE, SharingRoleCapabilitySetRequest.class);
-    Map<String, String> payload = new LinkedHashMap<>();
-    payload.put("roleId", "4844767a-8367-4926-9999-514c35840399");
-    payload.put("capabilitySetNames", "[\"account_item.view\", \"account_item.create\"]");
-    payload.put("source", "local");
+    var createPcId = UUID.randomUUID();
+    var updatePcId = UUID.randomUUID();
+    var tenant1 = createTenant(TENANT_ID_1);
+    var tenant2 = createTenant(TENANT_ID_2);
+    var tenantAssociationsWithRole = Set.of(TENANT_ID_1);
+    var tenantCollection = createTenantCollection(List.of(tenant1, tenant2));
+    var request = getMockDataObject(SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE, SharingRoleCapabilitySetRequest.class);
+    var sharingRoleEntity = createSharingRoleEntity(request.getRoleId(), TENANT_ID_2);
+    var expectedSharingRoleEntity = createSharingRoleEntity(request.getRoleId(), TENANT_ID_2);
+    expectedSharingRoleEntity.setIsCapabilitySetsShared(true);
 
     // "tenant1" exists in tenant role association so that tenant1 is in PUT request publication,
     // "tenant2" is in POST method publication
-    var publicationRequestPut = createPublicationRequest(sharingRoleCapabilitySetRequest, HttpMethod.PUT.toString());
-    publicationRequestPut.setMethod("PUT");
-    publicationRequestPut.setTenants(Set.of("tenant1"));
-    publicationRequestPut.setUrl("/role/3844767a-8367-4926-9999-514c35840399/capability-sets");
-    var publicationRequestPost = createPublicationRequest(sharingRoleCapabilitySetRequest, HttpMethod.POST.toString());
-    publicationRequestPost.setMethod("POST");
-    publicationRequestPost.setTenants(Set.of("tenant2"));
+    var publicationRequestPut = createPublicationRequest(request, HttpMethod.PUT.toString())
+      .tenants(Set.of(TENANT_ID_1))
+      .url("/role/4844767a-8367-4926-9999-514c35840399/capability-sets");
+    var publicationRequestPost = createPublicationRequest(request, HttpMethod.POST.toString())
+      .tenants(Set.of(TENANT_ID_2));
 
-    var publicationResponsePost = new PublicationResponse().id(createRoleCapabilitySetsPcId);
-    var publicationResponsePut = new PublicationResponse().id(updateRoleCapabilitySetsPcId);
+    var publicationResponsePost = new PublicationResponse().id(createPcId);
+    var publicationResponsePut = new PublicationResponse().id(updatePcId);
 
     when(consortiumRepository.existsById(CONSORTIUM_ID)).thenReturn(true);
-    when(publicationService.publishRequest(CONSORTIUM_ID, publicationRequestPost)).thenReturn(publicationResponsePost);
-    when(publicationService.publishRequest(CONSORTIUM_ID, publicationRequestPut)).thenReturn(publicationResponsePut);
+    when(publicationService.publishRequest(CONSORTIUM_ID, publicationRequestPost))
+      .thenReturn(publicationResponsePost);
+    when(publicationService.publishRequest(CONSORTIUM_ID, publicationRequestPut))
+      .thenReturn(publicationResponsePut);
     when(tenantService.getAll(CONSORTIUM_ID)).thenReturn(tenantCollection);
-    when(sharingRoleRepository.findTenantsByRoleId(sharingRoleCapabilitySetRequest.getRoleId()))
+    when(sharingRoleRepository.findTenantsByRoleIdAndSharedCapabilitySets(request.getRoleId()))
       .thenReturn(tenantAssociationsWithRole);
-    when(sharingRoleRepository.save(any())).thenReturn(new SharingRoleEntity());
+    when(sharingRoleRepository.findByRoleIdAndTenantId(request.getRoleId(), TENANT_ID_2))
+      .thenReturn(sharingRoleEntity);
+    when(sharingRoleRepository.save(expectedSharingRoleEntity)).thenReturn(new SharingRoleEntity());
     when(folioExecutionContext.getTenantId()).thenReturn("mobius");
     when(systemUserScopedExecutionService.executeSystemUserScoped(eq("mobius"), any()))
       .then(SharingRoleCapabilitySetServiceTest::callSecondArgument);
-    when(objectMapper.convertValue(payload, JsonNode.class)).thenReturn(createJsonNodeForRolePayload());
+    when(objectMapper.convertValue(request.getPayload(), JsonNode.class))
+      .thenReturn(createJsonNodeForRoleCapabilitySetsPayload());
 
-    var expectedResponse = createSharingRoleCapabilitySetResponse(createRoleCapabilitySetsPcId, updateRoleCapabilitySetsPcId);
-    var actualResponse = sharingRoleCapabilitySetService.start(CONSORTIUM_ID, sharingRoleCapabilitySetRequest);
+    var expectedResponse = createSharingRoleCapabilitySetResponse(createPcId, updatePcId);
+    var actualResponse = sharingRoleCapabilitySetService.start(CONSORTIUM_ID, request);
 
     assertThat(actualResponse.getCreateRoleCapabilitySetsPCId())
       .isEqualTo(expectedResponse.getCreateRoleCapabilitySetsPCId());
@@ -142,25 +143,19 @@ class SharingRoleCapabilitySetServiceTest {
 
   @Test
   void shouldDeleteSharingRole() {
-    UUID pcId = UUID.randomUUID();
-    UUID roleId = UUID.fromString("3844767a-8367-4926-9999-514c35840399");
-    Tenant tenant1 = createTenant("tenant1", "tenant1");
-    Tenant tenant2 = createTenant("tenant2", "tenant2");
-    Set<String> tenantAssociationsWithRole = Set.of("tenant1");
-    TenantCollection tenantCollection = createTenantCollection(List.of(tenant1, tenant2));
-    var request =
-      getMockDataObject(SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE, SharingRoleCapabilitySetRequest.class);
+    var pcId = UUID.randomUUID();
+    var roleId = UUID.fromString("4844767a-8367-4926-9999-514c35840399");
+    var tenant1 = createTenant(TENANT_ID_1);
+    var tenant2 = createTenant(TENANT_ID_2);
+    var tenantAssociationsWithRole = Set.of(TENANT_ID_1);
+    var tenantCollection = createTenantCollection(List.of(tenant1, tenant2));
+    var request = getMockDataObject(SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE, SharingRoleCapabilitySetRequest.class);
 
     // "tenant1" exists in the tenant role association so that tenant1 is in DELETE request publication,
-    var expectedPublicationRequestDelete =
-      createPublicationRequest(request, HttpMethod.DELETE.toString());
-    expectedPublicationRequestDelete.setTenants(Set.of("tenant1"));
-    expectedPublicationRequestDelete.setUrl("/role/3844767a-8367-4926-9999-514c35840399/capability-sets");
-    Map<String, String> map = new LinkedHashMap<>();
-    map.put("roleId", "3844767a-8367-4926-9999-514c35840399");
-    map.put("capabilitySetNames", "[\"account_item.view\", \"account_item.create\"]");
-    map.put("type", "local");
-    expectedPublicationRequestDelete.setPayload(map);
+    var expectedPublicationRequestDelete = createPublicationRequest(request, HttpMethod.DELETE.toString())
+      .tenants(Set.of(TENANT_ID_1))
+      .url("/role/4844767a-8367-4926-9999-514c35840399/capability-sets")
+      .payload(request.getPayload());
 
     var publicationResponse = new PublicationResponse().id(pcId);
 
@@ -186,17 +181,18 @@ class SharingRoleCapabilitySetServiceTest {
   @Test
   void shouldUpdateFailedTenantPolicies() throws NoSuchMethodException, InvocationTargetException,
     IllegalAccessException, JsonProcessingException {
-    UUID publicationId = UUID.randomUUID();
-    UUID pcId = UUID.randomUUID();
+    var publicationId = UUID.randomUUID();
+    var pcId = UUID.randomUUID();
     var publicationResponse = new PublicationResponse().id(pcId);
     var request = getMockDataObject(SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE, SharingRoleCapabilitySetRequest.class);
-    String centralTenant = "mobius";
-    String localTenant = "school";
+    var centralTenant = "mobius";
+    var localTenant = "school";
     var publicationResultCollection = createPublicationResultCollection(centralTenant, localTenant);
     var publicationDetails = createPublicationDetails(PublicationStatus.ERROR);
-    JsonNode node = createJsonNodeForGroupPayload();
+    var node = createJsonNodeForGroupPayload();
+
     // expected data for publish request
-    Set<String> expectedFailedTenantList = new HashSet<>(List.of(centralTenant, localTenant));
+    var expectedFailedTenantList = new HashSet<>(List.of(centralTenant, localTenant));
     var expectedPublicationRequest = createExceptedPublicationRequest(request, expectedFailedTenantList, HttpMethod.PUT);
 
     // set time interval and maxTries for Thread sleep cycle
@@ -230,7 +226,7 @@ class SharingRoleCapabilitySetServiceTest {
   void shouldThrowErrorForNotEqualRoleIdWithPayloadId() throws JsonProcessingException {
     var request = getMockDataObject(SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE, SharingRoleCapabilitySetRequest.class);
     request.setRoleId(UUID.randomUUID());
-    JsonNode node = createJsonNodeForRolePayload();
+    var node = createJsonNodeForRoleCapabilitySetsPayload();
 
     when(consortiumRepository.existsById(CONSORTIUM_ID)).thenReturn(true);
     when(objectMapper.convertValue(any(), eq(JsonNode.class))).thenReturn(node);
@@ -254,7 +250,8 @@ class SharingRoleCapabilitySetServiceTest {
 
   @Test
   void shouldThrowErrorForNotHavingPayloadOfRole() {
-    var request = getMockDataObject(SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE, SharingRoleCapabilitySetRequest.class);
+    var request = getMockDataObject(SHARING_ROLE_CAPABILITY_SETS_WITHOUT_PAYLOAD_REQUEST_SAMPLE,
+      SharingRoleCapabilitySetRequest.class);
 
     when(consortiumRepository.existsById(CONSORTIUM_ID)).thenReturn(true);
 
@@ -265,7 +262,7 @@ class SharingRoleCapabilitySetServiceTest {
 
   @Test
   void shouldThrowErrorForNotFound() {
-    UUID roleId = UUID.fromString("3844767a-8367-4926-9999-514c35840399");
+    UUID roleId = UUID.fromString("4844767a-8367-4926-9999-514c35840399");
 
     var request = getMockDataObject(SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE, SharingRoleCapabilitySetRequest.class);
 
@@ -275,22 +272,6 @@ class SharingRoleCapabilitySetServiceTest {
     assertThrows(ResourceNotFoundException.class,
       () -> sharingRoleCapabilitySetService.delete(CONSORTIUM_ID, roleId, request));
     verify(publicationService, times(0)).publishRequest(any(), any());
-  }
-
-  public static PublicationRequest createExceptedPublicationRequest(SharingRoleCapabilitySetRequest request,
-                                                                    Set<String> tenantList, HttpMethod method) {
-    var expectedPublicationRequest = new PublicationRequest();
-    expectedPublicationRequest.setTenants(tenantList);
-    expectedPublicationRequest.setMethod(method.toString());
-    var url = request.getUrl()
-      .replace("capability-sets", request.getRoleId() + "/capability-sets");
-    expectedPublicationRequest.setUrl(url);
-    final ObjectMapper mapper = new ObjectMapper();
-    final ObjectNode root = mapper.createObjectNode();
-    root.set("group", mapper.convertValue("space", JsonNode.class));
-    root.set("type", mapper.convertValue("user", JsonNode.class));
-    expectedPublicationRequest.setPayload(root);
-    return expectedPublicationRequest;
   }
 
   private static <T> T callSecondArgument(InvocationOnMock invocation) throws Exception {

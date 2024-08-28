@@ -58,6 +58,11 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
   }
 
   @Override
+  protected String getPayloadId(JsonNode payload) {
+    return payload.get("roleId").asText();
+  }
+
+  @Override
   protected void validateSharingConfigRequestOrThrow(UUID roleId,
                                                      SharingRoleCapabilitySetRequest sharingRoleCapabilitySetRequest) {
     if (ObjectUtils.notEqual(getConfigId(sharingRoleCapabilitySetRequest), roleId)) {

@@ -6,6 +6,7 @@
     "capabilitySetNames": [
       "account_item.view",
       "account_item.create"
-    ]
+    ],
+    "source": "local"
   }
 }
