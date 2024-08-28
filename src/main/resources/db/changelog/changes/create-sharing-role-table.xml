@@ -13,6 +13,12 @@
       <column name="role_id" type="uuid">
         <constraints nullable="false"/>
       </column>
+      <column name="is_capability_sets_shared" type="boolean" defaultValueBoolean="false">
+        <constraints unique="false" nullable="false"/>
+      </column>
+      <column name="is_capabilities_shared" type="boolean" defaultValueBoolean="false">
+        <constraints unique="false" nullable="false"/>
+      </column>
       <column name="tenant_id" type="text">
         <constraints nullable="false"/>
       </column>

@@ -36,8 +36,6 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class SharingSettingService extends BaseSharingService<SharingSettingRequest, SharingSettingResponse, SharingSettingDeleteResponse, SharingSettingEntity> {
 
-  private static final String SOURCE = "source";
-
   private final SharingSettingRepository sharingSettingRepository;
 
   public SharingSettingService(TenantService tenantService, ConsortiumService consortiumService,
@@ -73,8 +71,8 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   }
 
   @Override
-  protected Set<String> findTenantsByConfigId(UUID settingId) {
-    return sharingSettingRepository.findTenantsBySettingId(settingId);
+  protected Set<String> findTenantsForConfig(SharingSettingRequest request) {
+    return sharingSettingRepository.findTenantsBySettingId(request.getSettingId());
   }
 
   @Override

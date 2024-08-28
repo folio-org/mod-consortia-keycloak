@@ -40,6 +40,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, TEntity> {
 
+  protected static final String SOURCE = "source";
+  protected static final String TYPE = "type";
+
   @Value("${folio.sharing.config.interval:200}")
   private int interval;
   @Value("${folio.sharing.config.max-tries:20}")
@@ -49,7 +52,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
   private final ConsortiumService consortiumService;
   private final SystemUserScopedExecutionService systemUserScopedExecutionService;
   private final PublicationService publicationService;
-  protected final FolioExecutionContext folioExecutionContext;
+  private final FolioExecutionContext folioExecutionContext;
   protected final ObjectMapper objectMapper;
   private final TaskExecutor asyncTaskExecutor;
 
@@ -63,7 +66,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
     checkEqualsOfPayloadIdWithConfigId(sharingConfigRequest);
 
-    Set<String> sharingConfigTenants = findTenantsByConfigId(configId);
+    Set<String> sharingConfigTenants = findTenantsForConfig(sharingConfigRequest);
     TenantCollection allTenants = tenantService.getAll(consortiumId);
 
     var publicationPostRequest = createPublicationRequest(sharingConfigRequest, HttpMethod.POST.toString());
@@ -100,7 +103,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     validateSharingConfigRequestOrThrow(configId, sharingConfigRequest);
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
 
-    Set<String> sharingConfigTenants = findTenantsByConfigId(configId);
+    Set<String> sharingConfigTenants = findTenantsForConfig(sharingConfigRequest);
     TenantCollection allTenants = tenantService.getAll(consortiumId);
     var publicationDeleteRequest = createPublicationRequest(sharingConfigRequest, HttpMethod.DELETE.toString());
     linkTenantsToPublicationDeleteRequest(allTenants, sharingConfigRequest, sharingConfigTenants, publicationDeleteRequest);
@@ -149,11 +152,11 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
    * @param publicationPostRequest publication post request
    * @return List of SharingConfigEntity objects
    */
-  protected List<TEntity> linkTenantsToPublicationPutPostRequestAndEntity(TenantCollection allTenants,
-                                                                          TRequest sharingConfigRequest,
-                                                                          Set<String> sharingConfigTenants,
-                                                                          PublicationRequest publicationPutRequest,
-                                                                          PublicationRequest publicationPostRequest) {
+  private List<TEntity> linkTenantsToPublicationPutPostRequestAndEntity(TenantCollection allTenants,
+                                                                        TRequest sharingConfigRequest,
+                                                                        Set<String> sharingConfigTenants,
+                                                                        PublicationRequest publicationPutRequest,
+                                                                        PublicationRequest publicationPostRequest) {
     List<TEntity> sharingConfigEntityList = new ArrayList<>();
     for (Tenant tenant : allTenants.getTenants()) {
       if (sharingConfigTenants.contains(tenant.getId())) {
@@ -180,7 +183,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
    * @param sharingConfigTenants     existing tenants in configs
    * @param publicationDeleteRequest publication delete request
    */
-  protected void linkTenantsToPublicationDeleteRequest(TenantCollection allTenants,
+  private void linkTenantsToPublicationDeleteRequest(TenantCollection allTenants,
                                                      TRequest sharingConfigRequest,
                                                      Set<String> sharingConfigTenants,
                                                      PublicationRequest publicationDeleteRequest) {
@@ -195,7 +198,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
   }
 
 
-  protected UUID publishRequest(UUID consortiumId, PublicationRequest publicationRequest) {
+  private UUID publishRequest(UUID consortiumId, PublicationRequest publicationRequest) {
     if (CollectionUtils.isNotEmpty(publicationRequest.getTenants())) {
       return publicationService.publishRequest(consortiumId, publicationRequest).getId();
     }
@@ -285,7 +288,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
 
   protected abstract void validateSharingConfigRequestOrThrow(UUID configId, TRequest sharingConfigRequest);
 
-  protected abstract Set<String> findTenantsByConfigId(UUID configId);
+  protected abstract Set<String> findTenantsForConfig(TRequest request);
   protected abstract void saveSharingConfig(List<TEntity> sharingConfigEntityList);
   protected abstract void deleteSharingConfig(UUID configId);
 

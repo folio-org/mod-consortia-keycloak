@@ -34,8 +34,6 @@ import org.springframework.stereotype.Service;
 @Log4j2
 public class SharingPolicyService extends BaseSharingService<SharingPolicyRequest, SharingPolicyResponse, SharingPolicyDeleteResponse, SharingPolicyEntity> {
 
-  private static final String SOURCE = "source";
-
   private final SharingPolicyRepository sharingPolicyRepository;
 
   public SharingPolicyService(TenantService tenantService, ConsortiumService consortiumService,
@@ -71,8 +69,8 @@ public class SharingPolicyService extends BaseSharingService<SharingPolicyReques
   }
 
   @Override
-  protected Set<String> findTenantsByConfigId(UUID policyId) {
-    return sharingPolicyRepository.findTenantsByPolicyId(policyId);
+  protected Set<String> findTenantsForConfig(SharingPolicyRequest request) {
+    return sharingPolicyRepository.findTenantsByPolicyId(request.getPolicyId());
   }
 
   @Override

@@ -26,6 +26,8 @@ import org.folio.consortia.domain.dto.SharingInstance;
 import org.folio.consortia.domain.dto.SharingPolicyDeleteResponse;
 import org.folio.consortia.domain.dto.SharingPolicyRequest;
 import org.folio.consortia.domain.dto.SharingPolicyResponse;
+import org.folio.consortia.domain.dto.SharingRoleCapabilitySetRequest;
+import org.folio.consortia.domain.dto.SharingRoleCapabilitySetResponse;
 import org.folio.consortia.domain.dto.SharingRoleDeleteResponse;
 import org.folio.consortia.domain.dto.SharingRoleRequest;
 import org.folio.consortia.domain.dto.SharingRoleResponse;
@@ -53,6 +55,11 @@ import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 public class EntityUtils {
   public static final String CENTRAL_TENANT_ID = "consortium";
   public  static final String TENANT_ID = "diku";
+
+  public static final String SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE =
+    "mockdata/sharing_roles_capability_sets/sharing_role_capability_sets_request.json";
+  public static final String SHARING_ROLE_CAPABILITY_SETs_WITHOUT_PAYLOAD_REQUEST_SAMPLE =
+    "mockdata/sharing_roles_capability_sets/sharing_role_capability_sets_without_payload_request.json";
 
   public static ConsortiumEntity createConsortiumEntity(String id, String name) {
     ConsortiumEntity consortiumEntity = new ConsortiumEntity();
@@ -280,6 +287,13 @@ public class EntityUtils {
     return new SharingRoleResponse().createRolesPCId(createRolePcId).updateRolesPCId(updateRolePcId);
   }
 
+  public static SharingRoleCapabilitySetResponse createSharingRoleCapabilitySetResponse(UUID createRoleCapabilitySetsPcId,
+                                                                           UUID updateRoleCapabilitySetsPcId) {
+    return new SharingRoleCapabilitySetResponse()
+      .createRoleCapabilitySetsPCId(createRoleCapabilitySetsPcId)
+      .updateRoleCapabilitySetsPCId(updateRoleCapabilitySetsPcId);
+  }
+
 
   public static SharingRoleDeleteResponse createSharingRoleResponseForDelete(UUID pcId) {
     return new SharingRoleDeleteResponse().pcId(pcId);
@@ -328,6 +342,19 @@ public class EntityUtils {
     root.set("id", mapper.convertValue("3844767a-8367-4926-9999-514c35840399", JsonNode.class));
     root.set("name", mapper.convertValue("Role for policy: 104d7a66-c51d-402a-9c9f-3bdcdbbcdbe7", JsonNode.class));
     root.set("type", mapper.convertValue("consortium", JsonNode.class));
+    publicationRequest.setPayload(root);
+    return publicationRequest;
+  }
+
+  public static PublicationRequest createPublicationRequest(SharingRoleCapabilitySetRequest request, String method){
+    PublicationRequest publicationRequest = new PublicationRequest();
+    publicationRequest.setUrl(request.getUrl());
+    publicationRequest.setMethod(method);
+    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectNode root = mapper.createObjectNode();
+    root.set("roleId", mapper.convertValue("4844767a-8367-4926-9999-514c35840399", JsonNode.class));
+    root.set("capabilitySetNames", mapper.convertValue("[\"account_item.view\", \"account_item.create\"]", JsonNode.class));
+    root.set("source", mapper.convertValue("consortium", JsonNode.class));
     publicationRequest.setPayload(root);
     return publicationRequest;
   }

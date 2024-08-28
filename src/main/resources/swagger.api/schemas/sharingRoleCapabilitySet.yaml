@@ -6,12 +6,11 @@ SharingRoleCapabilitySetRequest:
       description: id of sharing role record
       type: string
       format: uuid
-    capabilitySetIds:
-      description: ids of sharing role capability set records
+    capabilitySetNames:
+      description: Names of sharing role capability set records
       type: array
       items:
         type: string
-        format: uuid
     url:
       description: URL for publishing requests for consortia tenants
       type: string
@@ -21,7 +20,7 @@ SharingRoleCapabilitySetRequest:
   additionalProperties: false
   required:
     - roleId
-    - capabilitySetId
+    - capabilityNames
     - url
 
 SharingRoleCapabilitySetResponse:

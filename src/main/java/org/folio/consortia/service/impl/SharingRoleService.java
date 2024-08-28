@@ -34,8 +34,6 @@ import org.springframework.stereotype.Service;
 @Log4j2
 public class SharingRoleService extends BaseSharingService<SharingRoleRequest, SharingRoleResponse, SharingRoleDeleteResponse, SharingRoleEntity> {
 
-  private static final String TYPE = "type";
-
   private final SharingRoleRepository sharingRoleRepository;
 
   public SharingRoleService(TenantService tenantService, ConsortiumService consortiumService,
@@ -71,8 +69,8 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   }
 
   @Override
-  protected Set<String> findTenantsByConfigId(UUID roleId) {
-    return sharingRoleRepository.findTenantsByRoleId(roleId);
+  protected Set<String> findTenantsForConfig(SharingRoleRequest request) {
+    return sharingRoleRepository.findTenantsByRoleId(request.getRoleId());
   }
 
   @Override
