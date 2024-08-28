@@ -469,6 +469,7 @@
         "consortia.user-tenants.item.delete",
         "consortia.consortia-configuration.item.post",
         "consortia.inventory.share.local.instance",
+        "consortia.inventory.update.ownership",
         "consortia.sync-primary-affiliations.item.post",
         "consortia.create-primary-affiliations.item.post",
         "consortia.sharing-instances.item.post",
@@ -589,6 +590,12 @@
       "visible": true
     },
     {
+      "permissionName": "consortia.inventory.update.ownership",
+      "displayName": "Inventory: Update ownership",
+      "description": "Inventory: Update ownership",
+      "visible": true
+    },
+    {
       "permissionName": "consortia.sharing-instances.item.post",
       "displayName": "create sharing instance",
       "description": "Create sharing instance"
@@ -656,6 +663,7 @@
         "perms.users.assign.mutable",
         "perms.users.get",
         "user-tenants.item.post",
+        "user-tenants.item.delete",
         "consortia.sync-primary-affiliations.item.post",
         "consortia.create-primary-affiliations.item.post",
         "departments.item.post",
@@ -679,6 +687,9 @@
         "inventory-storage.classification-types.item.post",
         "inventory-storage.classification-types.item.put",
         "inventory-storage.classification-types.item.delete",
+        "inventory-storage.contributor-name-types.item.post",
+        "inventory-storage.contributor-name-types.item.put",
+        "inventory-storage.contributor-name-types.item.delete",
         "inventory-storage.electronic-access-relationships.item.post",
         "inventory-storage.electronic-access-relationships.item.put",
         "inventory-storage.electronic-access-relationships.item.delete",
@@ -688,6 +699,9 @@
         "inventory-storage.holdings-types.item.post",
         "inventory-storage.holdings-types.item.put",
         "inventory-storage.holdings-types.item.delete",
+        "inventory-storage.holdings-sources.item.post",
+        "inventory-storage.holdings-sources.item.put",
+        "inventory-storage.holdings-sources.item.delete",
         "inventory-storage.statistical-codes.item.post",
         "inventory-storage.statistical-codes.item.put",
         "inventory-storage.statistical-codes.item.delete",

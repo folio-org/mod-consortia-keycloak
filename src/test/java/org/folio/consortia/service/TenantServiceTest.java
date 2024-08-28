@@ -7,6 +7,7 @@ import static org.folio.consortia.support.EntityUtils.createTenant;
 import static org.folio.consortia.support.EntityUtils.createTenantDetailsEntity;
 import static org.folio.consortia.support.EntityUtils.createTenantEntity;
 import static org.folio.consortia.support.EntityUtils.createUser;
+import static org.folio.consortia.utils.Constants.SYSTEM_USER_NAME;
 import static org.folio.consortia.utils.InputOutputTestUtils.getMockDataAsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -178,7 +179,7 @@ class TenantServiceTest {
     PermissionUserCollection permissionUserCollection = new PermissionUserCollection();
     permissionUserCollection.setPermissionUsers(List.of());
     User adminUser = createUser("diku_admin");
-    User systemUser = createUser("consortia-system-user");
+    User systemUser = createUser(SYSTEM_USER_NAME);
 
     when(consortiumRepository.existsById(consortiumId)).thenReturn(true);
     when(userService.getByUsername(any())).thenReturn(Optional.of(systemUser));

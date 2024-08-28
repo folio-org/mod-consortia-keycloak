@@ -3,7 +3,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "/users?query=username%3D%3Dconsortia-system-user"
+        "url": "/users?query=username%3D%3Dmod-consortia-keycloak"
       },
       "response": {
         "status": 200,

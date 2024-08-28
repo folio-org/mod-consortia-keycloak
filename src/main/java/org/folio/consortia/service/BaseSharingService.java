@@ -84,7 +84,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     log.info("start:: set source as '{}' in payload of {}: {}",
       updatedPayload.get(SourceValues.CONSORTIUM.getValue()), configName, configId);
 
-    // create PC request with POST and PUT Http method to create configs, using 'consortia-system-user'
+    // create PC request with POST and PUT Http method to create configs, using 'mod-consortia-keycloak' system user
     return systemUserScopedExecutionService.executeSystemUserScoped(folioExecutionContext.getTenantId(), () -> {
       UUID createConfigsPcId = publishRequest(consortiumId, publicationPostRequest);
       UUID updateConfigsPcId = publishRequest(consortiumId, publicationPutRequest);
@@ -114,7 +114,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     log.info("delete:: The Sharing {}s for {} ID '{}' and '{}' unique tenant(s) were successfully " +
       "deleted from the database", configName, configName, configId, publicationDeleteRequest.getTenants().size());
 
-    // create PC request with DELETE Http method to create configs, using 'consortia-system-user'
+    // create PC request with DELETE Http method to create configs, using 'mod-consortia-keycloak' system user
     return systemUserScopedExecutionService.executeSystemUserScoped(folioExecutionContext.getTenantId(), () -> {
       var pcId = publishRequest(consortiumId, publicationDeleteRequest);
       var sharingConfigDeleteResponse = createSharingConfigResponse(pcId);
