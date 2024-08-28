@@ -1,25 +1,22 @@
 package org.folio.consortia.controller;
 
-import org.apache.kafka.server.util.json.JsonObject;
-import org.folio.consortia.base.BaseIT;
-import org.folio.consortia.domain.dto.SharingRoleCapabilitySetDeleteResponse;
-import org.folio.consortia.domain.dto.SharingRoleCapabilitySetRequest;
-import org.folio.consortia.domain.dto.SharingRoleCapabilitySetResponse;
-import org.folio.consortia.service.impl.SharingRoleCapabilitySetService;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-
-import java.util.UUID;
-
 import static org.folio.consortia.support.EntityUtils.SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE;
-import static org.folio.consortia.utils.InputOutputTestUtils.getMockDataObject;
+import static org.folio.consortia.utils.InputOutputTestUtils.getMockDataAsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.UUID;
+import org.folio.consortia.base.BaseIT;
+import org.folio.consortia.domain.dto.SharingRoleCapabilitySetDeleteResponse;
+import org.folio.consortia.domain.dto.SharingRoleCapabilitySetResponse;
+import org.folio.consortia.service.impl.SharingRoleCapabilitySetService;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 
 class SharingRoleCapabilitySetControllerTest extends BaseIT {
 
@@ -29,7 +26,7 @@ class SharingRoleCapabilitySetControllerTest extends BaseIT {
   @Test
   void shouldStartSharingRole() throws Exception {
     var headers = defaultHeaders();
-    var request = getMockDataObject(SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE, String.class);
+    String request = getMockDataAsString(SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE);
     UUID createRoleCapabilitySetsPCId = UUID.randomUUID();
     UUID updateRoleCapabilitySetsPCId = UUID.randomUUID();
     var response = new SharingRoleCapabilitySetResponse()
@@ -51,8 +48,7 @@ class SharingRoleCapabilitySetControllerTest extends BaseIT {
   @Test
   void shouldDeleteSharingRole() throws Exception {
     var headers = defaultHeaders();
-    var request = getMockDataObject(SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE,  SharingRoleCapabilitySetRequest.class)
-      .toString();
+    String request = getMockDataAsString(SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE);
     UUID pcId = UUID.randomUUID();
     var response = new SharingRoleCapabilitySetDeleteResponse()
       .pcId(pcId);
