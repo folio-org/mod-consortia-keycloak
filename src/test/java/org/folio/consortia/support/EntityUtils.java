@@ -57,9 +57,9 @@ public class EntityUtils {
   public  static final String TENANT_ID = "diku";
 
   public static final String SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE =
-    "mockdata/sharing_roles_capability_sets/sharing_role_capability_sets_request.json";
+    "mockdata/sharing_role_capability_sets/sharing_role_capability_sets_request.json";
   public static final String SHARING_ROLE_CAPABILITY_SETs_WITHOUT_PAYLOAD_REQUEST_SAMPLE =
-    "mockdata/sharing_roles_capability_sets/sharing_role_capability_sets_without_payload_request.json";
+    "mockdata/sharing_role_capability_sets/sharing_role_capability_sets_without_payload_request.json";
 
   public static ConsortiumEntity createConsortiumEntity(String id, String name) {
     ConsortiumEntity consortiumEntity = new ConsortiumEntity();

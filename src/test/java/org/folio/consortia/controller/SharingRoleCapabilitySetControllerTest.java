@@ -1,7 +1,9 @@
 package org.folio.consortia.controller;
 
+import org.apache.kafka.server.util.json.JsonObject;
 import org.folio.consortia.base.BaseIT;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetDeleteResponse;
+import org.folio.consortia.domain.dto.SharingRoleCapabilitySetRequest;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetResponse;
 import org.folio.consortia.service.impl.SharingRoleCapabilitySetService;
 import org.junit.jupiter.api.Test;
@@ -49,7 +51,8 @@ class SharingRoleCapabilitySetControllerTest extends BaseIT {
   @Test
   void shouldDeleteSharingRole() throws Exception {
     var headers = defaultHeaders();
-    var request = getMockDataObject(SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE, String.class);
+    var request = getMockDataObject(SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE,  SharingRoleCapabilitySetRequest.class)
+      .toString();
     UUID pcId = UUID.randomUUID();
     var response = new SharingRoleCapabilitySetDeleteResponse()
       .pcId(pcId);
