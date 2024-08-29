@@ -42,7 +42,6 @@ import static org.folio.consortia.support.EntityUtils.SHARING_ROLE_CAPABILITY_SE
 import static org.folio.consortia.support.EntityUtils.TENANT_ID_1;
 import static org.folio.consortia.support.EntityUtils.TENANT_ID_2;
 import static org.folio.consortia.support.EntityUtils.createExceptedPublicationRequest;
-import static org.folio.consortia.support.EntityUtils.createJsonNodeForGroupPayload;
 import static org.folio.consortia.support.EntityUtils.createJsonNodeForRoleCapabilitySetsPayload;
 import static org.folio.consortia.support.EntityUtils.createPublicationDetails;
 import static org.folio.consortia.support.EntityUtils.createPublicationRequest;
@@ -187,11 +186,12 @@ class SharingRoleCapabilitySetServiceTest {
     var localTenant = "school";
     var publicationResultCollection = createPublicationResultCollection(centralTenant, localTenant);
     var publicationDetails = createPublicationDetails(PublicationStatus.ERROR);
-    var node = createJsonNodeForGroupPayload();
+    var node = createJsonNodeForRoleCapabilitySetsPayload();
 
     // expected data for publish request
     var expectedFailedTenantList = new HashSet<>(List.of(centralTenant, localTenant));
     var expectedPublicationRequest = createExceptedPublicationRequest(request, expectedFailedTenantList, HttpMethod.PUT);
+    expectedPublicationRequest.setPayload(node);
 
     // set time interval and maxTries for Thread sleep cycle
     ReflectionTestUtils.setField(sharingRoleCapabilitySetService, "maxTries", 60);
@@ -205,7 +205,8 @@ class SharingRoleCapabilitySetServiceTest {
     when(publicationService.getPublicationResults(CONSORTIUM_ID, publicationId)).thenReturn(publicationResultCollection);
     when(objectMapper.convertValue(any(), eq(ObjectNode.class))).thenReturn(node);
     when(folioExecutionContext.getTenantId()).thenReturn("mobius");
-    when(systemUserScopedExecutionService.executeSystemUserScoped(eq("mobius"), any())).then(SharingRoleCapabilitySetServiceTest::callSecondArgument);
+    when(systemUserScopedExecutionService.executeSystemUserScoped(eq("mobius"), any()))
+      .then(SharingRoleCapabilitySetServiceTest::callSecondArgument);
     when(publicationService.publishRequest(CONSORTIUM_ID, expectedPublicationRequest)).thenReturn(publicationResponse);
 
     // Use reflection to access the protected method in BaseSharingService

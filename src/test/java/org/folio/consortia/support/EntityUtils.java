@@ -381,7 +381,7 @@ public class EntityUtils {
     capabilitySetNames.add("account_item.create");
     root.set("roleId", mapper.convertValue("4844767a-8367-4926-9999-514c35840399", JsonNode.class));
     root.set("capabilitySetNames", capabilitySetNames);
-    root.set("source", mapper.convertValue("consortium", JsonNode.class));
+    root.set("type", mapper.convertValue("consortium", JsonNode.class));
     publicationRequest.setPayload(root);
     return publicationRequest;
   }
@@ -451,7 +451,7 @@ public class EntityUtils {
     Map<String, Object> payload = new HashMap<>();
     payload.put("roleId", "4844767a-8367-4926-9999-514c35840399");
     payload.put("capabilitySetNames", List.of("account_item.view", "account_item.create"));
-    payload.put("source", "local");
+    payload.put("type", "local");
     ObjectMapper mapper = new ObjectMapper();
     return mapper.convertValue(payload, ObjectNode.class);
   }
