@@ -11,10 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface SharingRoleRepository extends JpaRepository<SharingRoleEntity, UUID> {
 
-  @Query("SELECT sr FROM SharingRoleEntity sr WHERE sr.roleId = ?1")
   List<SharingRoleEntity> findByRoleId(UUID roleId);
 
-  @Query("SELECT sr FROM SharingRoleEntity sr WHERE sr.roleId = ?1 and sr.tenantId = ?2")
   SharingRoleEntity findByRoleIdAndTenantId(UUID roleId, String tenantId);
 
   @Query("SELECT sr.tenantId FROM SharingRoleEntity sr WHERE sr.roleId = ?1")
