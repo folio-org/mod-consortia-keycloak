@@ -1,6 +1,5 @@
 package org.folio.consortia.service.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
@@ -34,8 +33,6 @@ import org.springframework.stereotype.Service;
 @Log4j2
 public class SharingPolicyService extends BaseSharingService<SharingPolicyRequest, SharingPolicyResponse, SharingPolicyDeleteResponse, SharingPolicyEntity> {
 
-  private static final String SOURCE = "source";
-
   private final SharingPolicyRepository sharingPolicyRepository;
 
   public SharingPolicyService(TenantService tenantService, ConsortiumService consortiumService,
@@ -58,6 +55,11 @@ public class SharingPolicyService extends BaseSharingService<SharingPolicyReques
   }
 
   @Override
+  protected String getPayloadId(ObjectNode payload) {
+    return payload.get("id").asText();
+  }
+
+  @Override
   protected void validateSharingConfigRequestOrThrow(UUID policyId, SharingPolicyRequest sharingPolicyRequest) {
     if (ObjectUtils.notEqual(getConfigId(sharingPolicyRequest), policyId)) {
       throw new IllegalArgumentException("Mismatch id in path to policyId in request body");
@@ -71,8 +73,8 @@ public class SharingPolicyService extends BaseSharingService<SharingPolicyReques
   }
 
   @Override
-  protected Set<String> findTenantsByConfigId(UUID policyId) {
-    return sharingPolicyRepository.findTenantsByPolicyId(policyId);
+  protected Set<String> findTenantsForConfig(SharingPolicyRequest request) {
+    return sharingPolicyRepository.findTenantsByPolicyId(request.getPolicyId());
   }
 
   @Override
@@ -124,7 +126,7 @@ public class SharingPolicyService extends BaseSharingService<SharingPolicyReques
 
   @Override
   protected ObjectNode updatePayload(SharingPolicyRequest sharingConfigRequest, String sourceValue) {
-    JsonNode payload = objectMapper.convertValue(getPayload(sharingConfigRequest), JsonNode.class);
-    return ((ObjectNode) payload).set(SOURCE, new TextNode(sourceValue));
+    var payload = objectMapper.convertValue(getPayload(sharingConfigRequest), ObjectNode.class);
+    return payload.set(SOURCE, new TextNode(sourceValue));
   }
 }

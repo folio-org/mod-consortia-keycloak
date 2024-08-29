@@ -388,6 +388,26 @@
             "consortia.sharing-roles.item.delete"
           ],
           "modulePermissions": []
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/consortia/{consortiumId}/sharing/roles/capability-sets",
+          "permissionsRequired": [
+            "consortia.sharing-roles-capability-sets.item.post"
+          ],
+          "modulePermissions": []
+        },
+        {
+          "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/consortia/{consortiumId}/sharing/roles/{roleId}/capability-sets",
+          "permissionsRequired": [
+            "consortia.sharing-roles-capability-sets.item.delete"
+          ],
+          "modulePermissions": []
         }
       ]
     },
@@ -464,7 +484,9 @@
         "consortia.sharing-policies.item.post",
         "consortia.sharing-policies.item.delete",
         "consortia.sharing-roles.item.post",
-        "consortia.sharing-roles.item.delete"
+        "consortia.sharing-roles.item.delete",
+        "consortia.sharing-roles-capability-sets.item.post",
+        "consortia.sharing-roles-capability-sets.item.delete"
       ]
     },
     {
@@ -619,6 +641,16 @@
       "permissionName": "consortia.sharing-roles.item.delete",
       "displayName": "delete sharing role",
       "description": "Delete sharing role"
+    },
+    {
+      "permissionName": "consortia.sharing-roles-capability-sets.item.post",
+      "displayName": "post sharing role capability sets",
+      "description": "Create sharing role capability sets"
+    },
+    {
+      "permissionName": "consortia.sharing-roles-capability-sets.item.delete",
+      "displayName": "delete sharing role capability sets",
+      "description": "Delete sharing role capability sets"
     }
   ],
   "metadata": {
@@ -727,7 +759,10 @@
         "roles.item.delete",
         "policies.item.post",
         "policies.item.put",
-        "policies.item.delete"
+        "policies.item.delete",
+        "role-capabilities.collection.post",
+        "role-capabilities.collection.put",
+        "role-capabilities.collection.delete"
       ]
     }
   },

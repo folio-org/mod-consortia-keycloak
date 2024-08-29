@@ -1,6 +1,8 @@
 package org.folio.consortia.service;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.folio.consortia.support.EntityUtils.TENANT_ID_1;
+import static org.folio.consortia.support.EntityUtils.TENANT_ID_2;
 import static org.folio.consortia.support.EntityUtils.createJsonNodeForGroupPayload;
 import static org.folio.consortia.support.EntityUtils.createJsonNodeForPolicyPayload;
 import static org.folio.consortia.support.EntityUtils.createPublicationDetails;
@@ -31,7 +33,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -92,28 +93,22 @@ class SharingPolicyServiceTest {
   private ObjectMapper objectMapper;
 
   @Test
-  void shouldStartSharingPolicy() throws JsonProcessingException {
+  void shouldStartSharingPolicy() {
     UUID createPoliciesPcId = UUID.randomUUID();
     UUID updatePoliciesPcId = UUID.randomUUID();
-    Tenant tenant1 = createTenant("tenant1", "tenant1");
-    Tenant tenant2 = createTenant("tenant2", "tenant2");
-    Set<String> tenantAssociationsWithPolicy = Set.of("tenant1");
+    Tenant tenant1 = createTenant(TENANT_ID_1);
+    Tenant tenant2 = createTenant(TENANT_ID_2);
+    Set<String> tenantAssociationsWithPolicy = Set.of(TENANT_ID_1);
     TenantCollection tenantCollection = createTenantCollection(List.of(tenant1, tenant2));
-    var sharingPolicyRequest = getMockDataObject(SHARING_POLICY_REQUEST_SAMPLE_FOR_ROLES, SharingPolicyRequest.class);
-    Map<String, String> payload = new LinkedHashMap<>();
-    payload.put("id", "2844767a-8367-4926-9999-514c35840399");
-    payload.put("name", "Policy for role: 004d7a66-c51d-402a-9c9f-3bdcdbbcdbe7");
-    payload.put("source", "local");
+    var request = getMockDataObject(SHARING_POLICY_REQUEST_SAMPLE_FOR_ROLES, SharingPolicyRequest.class);
 
     // "tenant1" exists in tenant policy association so that tenant1 is in PUT request publication,
     // "tenant2" is in POST method publication
-    var publicationRequestPut = createPublicationRequest(sharingPolicyRequest, HttpMethod.PUT.toString());
-    publicationRequestPut.setMethod("PUT");
-    publicationRequestPut.setTenants(Set.of("tenant1"));
-    publicationRequestPut.setUrl("/policy/2844767a-8367-4926-9999-514c35840399");
-    var publicationRequestPost = createPublicationRequest(sharingPolicyRequest, HttpMethod.POST.toString());
-    publicationRequestPost.setMethod("POST");
-    publicationRequestPost.setTenants(Set.of("tenant2"));
+    var publicationRequestPut = createPublicationRequest(request, HttpMethod.PUT.toString())
+      .tenants(Set.of(TENANT_ID_1))
+      .url("/policy/2844767a-8367-4926-9999-514c35840399");
+    var publicationRequestPost = createPublicationRequest(request, HttpMethod.POST.toString())
+      .tenants(Set.of(TENANT_ID_2));
 
     var publicationResponsePost = new PublicationResponse().id(createPoliciesPcId);
     var publicationResponsePut = new PublicationResponse().id(updatePoliciesPcId);
@@ -122,14 +117,15 @@ class SharingPolicyServiceTest {
     when(publicationService.publishRequest(CONSORTIUM_ID, publicationRequestPost)).thenReturn(publicationResponsePost);
     when(publicationService.publishRequest(CONSORTIUM_ID, publicationRequestPut)).thenReturn(publicationResponsePut);
     when(tenantService.getAll(CONSORTIUM_ID)).thenReturn(tenantCollection);
-    when(sharingPolicyRepository.findTenantsByPolicyId(sharingPolicyRequest.getPolicyId())).thenReturn(tenantAssociationsWithPolicy);
+    when(sharingPolicyRepository.findTenantsByPolicyId(request.getPolicyId())).thenReturn(tenantAssociationsWithPolicy);
     when(sharingPolicyRepository.save(any())).thenReturn(new SharingPolicyEntity());
     when(folioExecutionContext.getTenantId()).thenReturn("mobius");
-    when(systemUserScopedExecutionService.executeSystemUserScoped(eq("mobius"), any())).then(SharingPolicyServiceTest::callSecondArgument);
-    when(objectMapper.convertValue(payload, JsonNode.class)).thenReturn(createJsonNodeForPolicyPayload());
+    when(systemUserScopedExecutionService.executeSystemUserScoped(eq("mobius"), any()))
+      .then(SharingPolicyServiceTest::callSecondArgument);
+    when(objectMapper.convertValue(request.getPayload(), ObjectNode.class)).thenReturn(createJsonNodeForPolicyPayload());
 
     var expectedResponse = createSharingPolicyResponse(createPoliciesPcId, updatePoliciesPcId);
-    var actualResponse = sharingPolicyService.start(CONSORTIUM_ID, sharingPolicyRequest);
+    var actualResponse = sharingPolicyService.start(CONSORTIUM_ID, request);
 
     assertThat(actualResponse.getCreatePoliciesPCId()).isEqualTo(expectedResponse.getCreatePoliciesPCId());
     assertThat(actualResponse.getUpdatePoliciesPCId()).isEqualTo(expectedResponse.getUpdatePoliciesPCId());
@@ -176,7 +172,7 @@ class SharingPolicyServiceTest {
   }
 
   @Test
-  void shouldUpdateFailedTenantPolicies() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, JsonProcessingException {
+  void shouldUpdateFailedTenantPolicies() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     UUID publicationId = UUID.randomUUID();
     UUID pcId = UUID.randomUUID();
     var publicationResponse = new PublicationResponse().id(pcId);
@@ -185,7 +181,7 @@ class SharingPolicyServiceTest {
     String localTenant = "school";
     var publicationResultCollection = createPublicationResultCollection(centralTenant, localTenant);
     var publicationDetails = createPublicationDetails(PublicationStatus.ERROR);
-    JsonNode node = createJsonNodeForGroupPayload();
+    var node = createJsonNodeForGroupPayload();
     // expected data for publish request
     Set<String> expectedFailedTenantList = new HashSet<>(List.of(centralTenant, localTenant));
     var expectedPublicationRequest = createExceptedPublicationRequest(sharingPolicyRequest, expectedFailedTenantList, HttpMethod.PUT);
@@ -200,7 +196,7 @@ class SharingPolicyServiceTest {
       .thenReturn(true);
     when(publicationService.getPublicationDetails(CONSORTIUM_ID, publicationId)).thenReturn(publicationDetails);
     when(publicationService.getPublicationResults(CONSORTIUM_ID, publicationId)).thenReturn(publicationResultCollection);
-    when(objectMapper.convertValue(any(), eq(JsonNode.class))).thenReturn(node);
+    when(objectMapper.convertValue(any(), eq(ObjectNode.class))).thenReturn(node);
     when(folioExecutionContext.getTenantId()).thenReturn("mobius");
     when(systemUserScopedExecutionService.executeSystemUserScoped(eq("mobius"), any())).then(SharingPolicyServiceTest::callSecondArgument);
     when(publicationService.publishRequest(CONSORTIUM_ID, expectedPublicationRequest)).thenReturn(publicationResponse);
@@ -217,13 +213,13 @@ class SharingPolicyServiceTest {
 
   // Negative cases
   @Test
-  void shouldThrowErrorForNotEqualPolicyIdWithPayloadId() throws JsonProcessingException {
+  void shouldThrowErrorForNotEqualPolicyIdWithPayloadId() {
     var sharingPolicyRequest = getMockDataObject(SHARING_POLICY_REQUEST_SAMPLE_FOR_ROLES, SharingPolicyRequest.class);
     sharingPolicyRequest.setPolicyId(UUID.randomUUID());
-    JsonNode node = createJsonNodeForPolicyPayload();
+    var node = createJsonNodeForPolicyPayload();
 
     when(consortiumRepository.existsById(CONSORTIUM_ID)).thenReturn(true);
-    when(objectMapper.convertValue(any(), eq(JsonNode.class))).thenReturn(node);
+    when(objectMapper.convertValue(any(), eq(ObjectNode.class))).thenReturn(node);
 
     assertThrows(java.lang.IllegalArgumentException.class, () -> sharingPolicyService.start(CONSORTIUM_ID, sharingPolicyRequest));
     verify(publicationService, times(0)).publishRequest(any(), any());

@@ -25,7 +25,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
@@ -35,8 +34,6 @@ import lombok.extern.log4j.Log4j2;
 @Service
 @Log4j2
 public class SharingSettingService extends BaseSharingService<SharingSettingRequest, SharingSettingResponse, SharingSettingDeleteResponse, SharingSettingEntity> {
-
-  private static final String SOURCE = "source";
 
   private final SharingSettingRepository sharingSettingRepository;
 
@@ -60,6 +57,11 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   }
 
   @Override
+  protected String getPayloadId(ObjectNode payload) {
+    return payload.get("id").asText();
+  }
+
+  @Override
   protected void validateSharingConfigRequestOrThrow(UUID settingId, SharingSettingRequest sharingSettingRequest) {
     if (ObjectUtils.notEqual(getConfigId(sharingSettingRequest), settingId)) {
       throw new IllegalArgumentException("Mismatch id in path to settingId in request body");
@@ -73,8 +75,8 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   }
 
   @Override
-  protected Set<String> findTenantsByConfigId(UUID settingId) {
-    return sharingSettingRepository.findTenantsBySettingId(settingId);
+  protected Set<String> findTenantsForConfig(SharingSettingRequest request) {
+    return sharingSettingRepository.findTenantsBySettingId(request.getSettingId());
   }
 
   @Override
@@ -125,8 +127,8 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
 
   @Override
   protected ObjectNode updatePayload(SharingSettingRequest sharingConfigRequest, String sourceValue) {
-    JsonNode payload = objectMapper.convertValue(getPayload(sharingConfigRequest), JsonNode.class);
-    return ((ObjectNode) payload).set(SOURCE, new TextNode(sourceValue));
+    var payload = objectMapper.convertValue(getPayload(sharingConfigRequest), ObjectNode.class);
+    return payload.set(SOURCE, new TextNode(sourceValue));
   }
 
 }

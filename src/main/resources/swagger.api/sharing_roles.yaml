@@ -10,6 +10,8 @@ paths:
     post:
       summary: start sharing role
       operationId: startSharingRole
+      tags:
+        - roles
       parameters:
         - $ref: "#/components/parameters/consortiumId"
       requestBody:
@@ -27,10 +29,13 @@ paths:
           $ref: "#/components/responses/Conflict"
         "500":
           $ref: "#/components/responses/InternalServerError"
+
   /roles/{roleId}:
     delete:
       summary: delete sharing role
       operationId: deleteSharingRole
+      tags:
+        - roles
       parameters:
         - $ref: "#/components/parameters/consortiumId"
         - $ref: "#/components/parameters/roleId"
@@ -49,6 +54,56 @@ paths:
           $ref: "#/components/responses/Conflict"
         "500":
           $ref: "#/components/responses/InternalServerError"
+
+  /roles/capability-sets:
+    post:
+      summary: start sharing role capability sets
+      operationId: startSharingRoleCapabilitySets
+      tags:
+        - role-capability-set
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+      requestBody:
+        $ref: "#/components/requestBodies/SharingRoleCapabilitySetBody"
+      responses:
+        "201":
+          $ref: "#/components/responses/SharingRoleCapabilitySetResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /roles/{roleId}/capability-sets:
+    delete:
+      summary: delete sharing role capability set
+      operationId: deleteSharingRoleCapabilitySets
+      tags:
+        - role-capability-set
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/roleId"
+      requestBody:
+        $ref: "#/components/requestBodies/SharingRoleCapabilitySetBody"
+      responses:
+        "200":
+          $ref: "#/components/responses/SharingRoleCapabilitySetDeleteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
 components:
   requestBodies:
     SharingRoleBody:
@@ -58,6 +113,13 @@ components:
         application/json:
           schema:
             $ref: "schemas/sharingRole.yaml#/SharingRoleRequest"
+    SharingRoleCapabilitySetBody:
+      description: Sharing role capability sets object
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/sharingRoleCapabilitySet.yaml#/SharingRoleCapabilitySetRequest"
   responses:
     SharingRoleResponse:
       description: Returns a sharing role object response for post operation
@@ -65,12 +127,24 @@ components:
         application/json:
           schema:
             $ref: "schemas/sharingRole.yaml#/SharingRoleResponse"
+    SharingRoleCapabilitySetResponse:
+      description: Returns a sharing role capability set object response for post operation
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/sharingRoleCapabilitySet.yaml#/SharingRoleCapabilitySetResponse"
     SharingRoleDeleteResponse:
       description: Returns a sharing role response for delete operation
       content:
         application/json:
           schema:
             $ref: "schemas/sharingRole.yaml#/SharingRoleDeleteResponse"
+    SharingRoleCapabilitySetDeleteResponse:
+      description: Returns a sharing role capability set response for delete operation
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/sharingRoleCapabilitySet.yaml#/SharingRoleCapabilitySetDeleteResponse"
     NoContent:
       description: No content
     Conflict:

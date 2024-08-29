@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -40,6 +39,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, TEntity> {
 
+  protected static final String SOURCE = "source";
+  protected static final String TYPE = "type";
+
   @Value("${folio.sharing.config.interval:200}")
   private int interval;
   @Value("${folio.sharing.config.max-tries:20}")
@@ -63,7 +65,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
     checkEqualsOfPayloadIdWithConfigId(sharingConfigRequest);
 
-    Set<String> sharingConfigTenants = findTenantsByConfigId(configId);
+    Set<String> sharingConfigTenants = findTenantsForConfig(sharingConfigRequest);
     TenantCollection allTenants = tenantService.getAll(consortiumId);
 
     var publicationPostRequest = createPublicationRequest(sharingConfigRequest, HttpMethod.POST.toString());
@@ -100,7 +102,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     validateSharingConfigRequestOrThrow(configId, sharingConfigRequest);
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
 
-    Set<String> sharingConfigTenants = findTenantsByConfigId(configId);
+    Set<String> sharingConfigTenants = findTenantsForConfig(sharingConfigRequest);
     TenantCollection allTenants = tenantService.getAll(consortiumId);
     var publicationDeleteRequest = createPublicationRequest(sharingConfigRequest, HttpMethod.DELETE.toString());
     linkTenantsToPublicationDeleteRequest(allTenants, sharingConfigRequest, sharingConfigTenants, publicationDeleteRequest);
@@ -130,8 +132,8 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
 
   private void checkEqualsOfPayloadIdWithConfigId(TRequest sharingConfigRequest) {
     String sharingConfigId = String.valueOf(getConfigId(sharingConfigRequest));
-    JsonNode payloadNode = objectMapper.convertValue(getPayload(sharingConfigRequest), JsonNode.class);
-    String payloadId = payloadNode.get("id").asText();
+    var payloadNode = objectMapper.convertValue(getPayload(sharingConfigRequest), ObjectNode.class);
+    String payloadId = getPayloadId(payloadNode);
     if (ObjectUtils.notEqual(sharingConfigId, payloadId)) {
       throw new IllegalArgumentException("Mismatch ID in payload with ID");
     }
@@ -282,10 +284,10 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
 
   protected abstract UUID getConfigId(TRequest sharingConfigRequest);
   protected abstract Object getPayload(TRequest sharingConfigRequest);
-
+  protected abstract String getPayloadId(ObjectNode payload);
   protected abstract void validateSharingConfigRequestOrThrow(UUID configId, TRequest sharingConfigRequest);
 
-  protected abstract Set<String> findTenantsByConfigId(UUID configId);
+  protected abstract Set<String> findTenantsForConfig(TRequest request);
   protected abstract void saveSharingConfig(List<TEntity> sharingConfigEntityList);
   protected abstract void deleteSharingConfig(UUID configId);
 

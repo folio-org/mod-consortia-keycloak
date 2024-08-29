@@ -583,6 +583,7 @@
               <configOptions>
                 <dateLibrary>java</dateLibrary>
                 <interfaceOnly>true</interfaceOnly>
+                <useTags>true</useTags>
                 <useSpringBoot3>true</useSpringBoot3>
               </configOptions>
             </configuration>
