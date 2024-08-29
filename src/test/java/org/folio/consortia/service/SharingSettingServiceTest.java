@@ -58,7 +58,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -93,7 +92,7 @@ class SharingSettingServiceTest {
   private ObjectMapper objectMapper;
 
   @Test
-  void shouldStartSharingSetting() throws JsonProcessingException {
+  void shouldStartSharingSetting() {
     UUID createSettingsPcId = UUID.randomUUID();
     UUID updateSettingsPcId = UUID.randomUUID();
     Tenant tenant1 = createTenant("tenant1", "tenant1");
@@ -177,7 +176,7 @@ class SharingSettingServiceTest {
   }
 
   @Test
-  void shouldUpdateFailedTenantSettings() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, JsonProcessingException {
+  void shouldUpdateFailedTenantSettings() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     UUID publicationId = UUID.randomUUID();
     UUID pcId = UUID.randomUUID();
     var publicationResponse = new PublicationResponse().id(pcId);
@@ -218,7 +217,7 @@ class SharingSettingServiceTest {
 
   // Negative cases
   @Test
-  void shouldThrowErrorForNotEqualSettingIdWithPayloadId() throws JsonProcessingException {
+  void shouldThrowErrorForNotEqualSettingIdWithPayloadId() {
     var sharingSettingRequest = getMockDataObject(SHARING_SETTING_REQUEST_SAMPLE_FOR_DEPARTMENT, SharingSettingRequest.class);
     sharingSettingRequest.setSettingId(UUID.randomUUID());
     var node = createJsonNodeForDepartmentPayload();

@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -92,7 +91,7 @@ class SharingRoleServiceTest {
   private ObjectMapper objectMapper;
 
   @Test
-  void shouldStartSharingRole() throws JsonProcessingException {
+  void shouldStartSharingRole() {
     UUID createRolesPcId = UUID.randomUUID();
     UUID updateRolesPcId = UUID.randomUUID();
     Tenant tenant1 = createTenant("tenant1", "tenant1");
@@ -176,7 +175,7 @@ class SharingRoleServiceTest {
   }
 
   @Test
-  void shouldUpdateFailedTenantPolicies() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, JsonProcessingException {
+  void shouldUpdateFailedTenantPolicies() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     UUID publicationId = UUID.randomUUID();
     UUID pcId = UUID.randomUUID();
     var publicationResponse = new PublicationResponse().id(pcId);
@@ -217,7 +216,7 @@ class SharingRoleServiceTest {
 
   // Negative cases
   @Test
-  void shouldThrowErrorForNotEqualRoleIdWithPayloadId() throws JsonProcessingException {
+  void shouldThrowErrorForNotEqualRoleIdWithPayloadId() {
     var sharingRoleRequest = getMockDataObject(SHARING_ROLE_REQUEST_SAMPLE, SharingRoleRequest.class);
     sharingRoleRequest.setRoleId(UUID.randomUUID());
     var node = createJsonNodeForRolePayload();

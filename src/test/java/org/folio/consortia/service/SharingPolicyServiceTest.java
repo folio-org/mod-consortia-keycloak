@@ -33,7 +33,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -94,7 +93,7 @@ class SharingPolicyServiceTest {
   private ObjectMapper objectMapper;
 
   @Test
-  void shouldStartSharingPolicy() throws JsonProcessingException {
+  void shouldStartSharingPolicy() {
     UUID createPoliciesPcId = UUID.randomUUID();
     UUID updatePoliciesPcId = UUID.randomUUID();
     Tenant tenant1 = createTenant(TENANT_ID_1);
@@ -173,7 +172,7 @@ class SharingPolicyServiceTest {
   }
 
   @Test
-  void shouldUpdateFailedTenantPolicies() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, JsonProcessingException {
+  void shouldUpdateFailedTenantPolicies() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     UUID publicationId = UUID.randomUUID();
     UUID pcId = UUID.randomUUID();
     var publicationResponse = new PublicationResponse().id(pcId);
@@ -214,7 +213,7 @@ class SharingPolicyServiceTest {
 
   // Negative cases
   @Test
-  void shouldThrowErrorForNotEqualPolicyIdWithPayloadId() throws JsonProcessingException {
+  void shouldThrowErrorForNotEqualPolicyIdWithPayloadId() {
     var sharingPolicyRequest = getMockDataObject(SHARING_POLICY_REQUEST_SAMPLE_FOR_ROLES, SharingPolicyRequest.class);
     sharingPolicyRequest.setPolicyId(UUID.randomUUID());
     var node = createJsonNodeForPolicyPayload();
