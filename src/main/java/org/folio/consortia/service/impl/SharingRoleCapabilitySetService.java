@@ -133,6 +133,6 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
   protected ObjectNode updatePayload(SharingRoleCapabilitySetRequest request,
                                      String sourceValue) {
     var payload = objectMapper.convertValue(getPayload(request), ObjectNode.class);
-    return payload.set(SOURCE, new TextNode(sourceValue));
+    return payload.set(TYPE, new TextNode(sourceValue));
   }
 }

@@ -13,4 +13,6 @@
   <include file="changes/create-sharing-setting-table.xml" relativeToChangelogFile="true"/>
   <include file="changes/adjust-update-fields-of-auditable-info.xml" relativeToChangelogFile="true"/>
   <include file="changes/migrate-data-from-mod-consortia.xml" relativeToChangelogFile="true"/>
+  <include file="changes/create-sharing-policy-table.xml" relativeToChangelogFile="true"/>
+  <include file="changes/create-sharing-role-table.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>
