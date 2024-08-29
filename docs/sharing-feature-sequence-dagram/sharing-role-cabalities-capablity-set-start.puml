@@ -1,0 +1,78 @@
+@startuml
+
+!pragma teoz true
+!theme cerulean
+
+autonumber
+
+actor "user" as user
+
+participant "mod-consortia-keycloak" as mck
+database "mod-consortia-keycloak DB" as mck_db
+participant "mod-consortia-publish-coordinator" as mc_pc
+participant "mod-login" as ml
+participant "mod-roles-keycloak" as mrk
+
+user -> mck: Initiate sharing role capability sets action
+note right
+POST /consortia/<consortiumId>/sharing/role-capability-sets
+{
+    "roleId": "<UUID>",
+    "url": "string",
+    "payload": {
+      "roleId": "<UUID>",
+      "capabilitySetNames": "["<string>", "<string>"]"
+    }
+}
+end note
+activate mck
+
+mck -> mck_db: Retrieve tenants associated with the roleId from role_capability_sets table using is_capability_sets_shared flag true
+note bottom
+| tenant_id | role_id | is_capability_sets_shared |
+| "tenant A" | <UUID1> | true |
+end note
+note right
+| tenant_id | role_id | is_capability_sets_shared |
+| "tenant A" | <UUID1> | true |
+| "tenant B" | <UUID2> | false |
+end note
+mck -> mck_db: Retrieve all tenants list
+
+loop tenants size count
+    alt #E8F3E1 tenant id does not exist in role_capability_sets table
+        mck -> mck: Add tenant to POST Role Capability Sets Publish Coordinator tenants list
+        mck -> mck_db: Set is_capability_sets_shared flag to true for new tenant
+    else #F3E1E2 tenant id exists
+        mck -> mck: Add tenant to PUT Role Capability Sets Publish Coordinator tenants list
+    end
+end
+
+mck -> mck: Set source as Consortium for all role capability sets (Create and Update)
+
+mck -> ml: Login via consortia-system-user
+ml --> mck: Return system user's token
+
+mck -> mc_pc: Initiate PC request with POST HTTP method to create role capability sets
+mc_pc -> mrk: Send HTTP POST request to create role capability sets
+mrk --> mc_pc: Return response
+mc_pc --> mck: Return Publish Coordinator id
+
+mck -> mc_pc: Initiate PC request with PUT HTTP method to update role capability sets
+mc_pc -> mrk: Send HTTP POST request to create role capability sets
+mrk --> mc_pc: Return response
+mc_pc --> mck: Return Publish Coordinator id
+
+mck --> user: Return response with both PC ids
+note right
+Response payload:
+{
+    "createRoleCapabilitySetsPCId": "<UUID>",
+    "updateRoleCapabilitySetsPCId": "<UUID>"
+}
+end note
+
+user -> mck: Check if POST PC completed: /consortia/<UUID>/publications/<UUID>
+user -> mck: Check if PUT PC completed: /consortia/<UUID>/publications/<UUID>
+
+@enduml
