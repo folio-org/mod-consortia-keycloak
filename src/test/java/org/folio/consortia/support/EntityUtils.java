@@ -3,7 +3,6 @@ package org.folio.consortia.support;
 import static org.folio.spring.integration.XOkapiHeaders.TENANT;
 import static org.folio.spring.integration.XOkapiHeaders.TOKEN;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -421,52 +420,47 @@ public class EntityUtils {
     return pbd;
   }
 
-  public static JsonNode createJsonNodeForDepartmentPayload() throws JsonProcessingException {
+  public static ObjectNode createJsonNodeForDepartmentPayload() {
     Map<String, String> payload = new HashMap<>();
     payload.put("id", "1844767a-8367-4926-9999-514c35840399");
     payload.put("name", "ORG-NAME");
     payload.put("source", "local");
     ObjectMapper mapper = new ObjectMapper();
-    String json = mapper.writeValueAsString(payload);
-    return mapper.readTree(json);
+    return mapper.convertValue(payload, ObjectNode.class);
   }
 
-  public static JsonNode createJsonNodeForPolicyPayload() throws JsonProcessingException {
+  public static ObjectNode createJsonNodeForPolicyPayload() {
     Map<String, String> payload = new HashMap<>();
     payload.put("id", "2844767a-8367-4926-9999-514c35840399");
     payload.put("name", "Policy for role: 004d7a66-c51d-402a-9c9f-3bdcdbbcdbe7");
     payload.put("source", "local");
     ObjectMapper mapper = new ObjectMapper();
-    String json = mapper.writeValueAsString(payload);
-    return mapper.readTree(json);
+    return mapper.convertValue(payload, ObjectNode.class);
   }
 
-  public static JsonNode createJsonNodeForRolePayload() throws JsonProcessingException {
+  public static ObjectNode createJsonNodeForRolePayload() {
     Map<String, String> payload = new HashMap<>();
     payload.put("id", "3844767a-8367-4926-9999-514c35840399");
     payload.put("name", "Role for policy: 104d7a66-c51d-402a-9c9f-3bdcdbbcdbe7");
     payload.put("type", "local");
     ObjectMapper mapper = new ObjectMapper();
-    String json = mapper.writeValueAsString(payload);
-    return mapper.readTree(json);
+    return mapper.convertValue(payload, ObjectNode.class);
   }
 
-  public static JsonNode createJsonNodeForRoleCapabilitySetsPayload() throws JsonProcessingException {
+  public static ObjectNode createJsonNodeForRoleCapabilitySetsPayload() {
     Map<String, Object> payload = new HashMap<>();
     payload.put("roleId", "4844767a-8367-4926-9999-514c35840399");
     payload.put("capabilitySetNames", List.of("account_item.view", "account_item.create"));
     payload.put("source", "local");
     ObjectMapper mapper = new ObjectMapper();
-    String json = mapper.writeValueAsString(payload);
-    return mapper.readTree(json);
+    return mapper.convertValue(payload, ObjectNode.class);
   }
 
-  public static JsonNode createJsonNodeForGroupPayload() throws JsonProcessingException {
+  public static ObjectNode createJsonNodeForGroupPayload() {
     Map<String, String> payload = new HashMap<>();
     payload.put("group", "space");
     ObjectMapper mapper = new ObjectMapper();
-    String json = mapper.writeValueAsString(payload);
-    return mapper.readTree(json);
+    return mapper.convertValue(payload, ObjectNode.class);
   }
 
   public static User createUser(String username) {

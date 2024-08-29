@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -133,7 +132,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
 
   private void checkEqualsOfPayloadIdWithConfigId(TRequest sharingConfigRequest) {
     String sharingConfigId = String.valueOf(getConfigId(sharingConfigRequest));
-    JsonNode payloadNode = objectMapper.convertValue(getPayload(sharingConfigRequest), JsonNode.class);
+    var payloadNode = objectMapper.convertValue(getPayload(sharingConfigRequest), ObjectNode.class);
     String payloadId = getPayloadId(payloadNode);
     if (ObjectUtils.notEqual(sharingConfigId, payloadId)) {
       throw new IllegalArgumentException("Mismatch ID in payload with ID");
@@ -285,7 +284,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
 
   protected abstract UUID getConfigId(TRequest sharingConfigRequest);
   protected abstract Object getPayload(TRequest sharingConfigRequest);
-  protected abstract String getPayloadId(JsonNode payload);
+  protected abstract String getPayloadId(ObjectNode payload);
   protected abstract void validateSharingConfigRequestOrThrow(UUID configId, TRequest sharingConfigRequest);
 
   protected abstract Set<String> findTenantsForConfig(TRequest request);

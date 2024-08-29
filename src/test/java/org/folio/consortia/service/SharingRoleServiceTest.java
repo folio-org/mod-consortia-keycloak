@@ -126,7 +126,7 @@ class SharingRoleServiceTest {
     when(sharingRoleRepository.save(any())).thenReturn(new SharingRoleEntity());
     when(folioExecutionContext.getTenantId()).thenReturn("mobius");
     when(systemUserScopedExecutionService.executeSystemUserScoped(eq("mobius"), any())).then(SharingRoleServiceTest::callSecondArgument);
-    when(objectMapper.convertValue(payload, JsonNode.class)).thenReturn(createJsonNodeForRolePayload());
+    when(objectMapper.convertValue(payload, ObjectNode.class)).thenReturn(createJsonNodeForRolePayload());
 
     var expectedResponse = createSharingRoleResponse(createRolesPcId, updateRolesPcId);
     var actualResponse = sharingRoleService.start(CONSORTIUM_ID, sharingRoleRequest);
@@ -185,7 +185,7 @@ class SharingRoleServiceTest {
     String localTenant = "school";
     var publicationResultCollection = createPublicationResultCollection(centralTenant, localTenant);
     var publicationDetails = createPublicationDetails(PublicationStatus.ERROR);
-    JsonNode node = createJsonNodeForGroupPayload();
+    var node = createJsonNodeForGroupPayload();
     // expected data for publish request
     Set<String> expectedFailedTenantList = new HashSet<>(List.of(centralTenant, localTenant));
     var expectedPublicationRequest = createExceptedPublicationRequest(sharingRoleRequest, expectedFailedTenantList, HttpMethod.PUT);
@@ -200,7 +200,7 @@ class SharingRoleServiceTest {
       .thenReturn(true);
     when(publicationService.getPublicationDetails(CONSORTIUM_ID, publicationId)).thenReturn(publicationDetails);
     when(publicationService.getPublicationResults(CONSORTIUM_ID, publicationId)).thenReturn(publicationResultCollection);
-    when(objectMapper.convertValue(any(), eq(JsonNode.class))).thenReturn(node);
+    when(objectMapper.convertValue(any(), eq(ObjectNode.class))).thenReturn(node);
     when(folioExecutionContext.getTenantId()).thenReturn("mobius");
     when(systemUserScopedExecutionService.executeSystemUserScoped(eq("mobius"), any())).then(SharingRoleServiceTest::callSecondArgument);
     when(publicationService.publishRequest(CONSORTIUM_ID, expectedPublicationRequest)).thenReturn(publicationResponse);
@@ -220,10 +220,10 @@ class SharingRoleServiceTest {
   void shouldThrowErrorForNotEqualRoleIdWithPayloadId() throws JsonProcessingException {
     var sharingRoleRequest = getMockDataObject(SHARING_ROLE_REQUEST_SAMPLE, SharingRoleRequest.class);
     sharingRoleRequest.setRoleId(UUID.randomUUID());
-    JsonNode node = createJsonNodeForRolePayload();
+    var node = createJsonNodeForRolePayload();
 
     when(consortiumRepository.existsById(CONSORTIUM_ID)).thenReturn(true);
-    when(objectMapper.convertValue(any(), eq(JsonNode.class))).thenReturn(node);
+    when(objectMapper.convertValue(any(), eq(ObjectNode.class))).thenReturn(node);
 
     assertThrows(IllegalArgumentException.class, () -> sharingRoleService.start(CONSORTIUM_ID, sharingRoleRequest));
     verify(publicationService, times(0)).publishRequest(any(), any());

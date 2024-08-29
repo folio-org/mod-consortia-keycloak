@@ -3,6 +3,7 @@ package org.folio.consortia.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.folio.consortia.domain.dto.PublicationResponse;
 import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetRequest;
@@ -205,7 +206,7 @@ class SharingRoleCapabilitySetServiceTest {
       .thenReturn(true);
     when(publicationService.getPublicationDetails(CONSORTIUM_ID, publicationId)).thenReturn(publicationDetails);
     when(publicationService.getPublicationResults(CONSORTIUM_ID, publicationId)).thenReturn(publicationResultCollection);
-    when(objectMapper.convertValue(any(), eq(JsonNode.class))).thenReturn(node);
+    when(objectMapper.convertValue(any(), eq(ObjectNode.class))).thenReturn(node);
     when(folioExecutionContext.getTenantId()).thenReturn("mobius");
     when(systemUserScopedExecutionService.executeSystemUserScoped(eq("mobius"), any())).then(SharingRoleCapabilitySetServiceTest::callSecondArgument);
     when(publicationService.publishRequest(CONSORTIUM_ID, expectedPublicationRequest)).thenReturn(publicationResponse);
@@ -229,7 +230,7 @@ class SharingRoleCapabilitySetServiceTest {
     var node = createJsonNodeForRoleCapabilitySetsPayload();
 
     when(consortiumRepository.existsById(CONSORTIUM_ID)).thenReturn(true);
-    when(objectMapper.convertValue(any(), eq(JsonNode.class))).thenReturn(node);
+    when(objectMapper.convertValue(any(), eq(ObjectNode.class))).thenReturn(node);
 
     assertThrows(IllegalArgumentException.class, () -> sharingRoleCapabilitySetService.start(CONSORTIUM_ID, request));
     verify(publicationService, times(0)).publishRequest(any(), any());

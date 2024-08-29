@@ -1,6 +1,5 @@
 package org.folio.consortia.service.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
@@ -56,7 +55,7 @@ public class SharingPolicyService extends BaseSharingService<SharingPolicyReques
   }
 
   @Override
-  protected String getPayloadId(JsonNode payload) {
+  protected String getPayloadId(ObjectNode payload) {
     return payload.get("id").asText();
   }
 
@@ -127,7 +126,7 @@ public class SharingPolicyService extends BaseSharingService<SharingPolicyReques
 
   @Override
   protected ObjectNode updatePayload(SharingPolicyRequest sharingConfigRequest, String sourceValue) {
-    JsonNode payload = objectMapper.convertValue(getPayload(sharingConfigRequest), JsonNode.class);
-    return ((ObjectNode) payload).set(SOURCE, new TextNode(sourceValue));
+    var payload = objectMapper.convertValue(getPayload(sharingConfigRequest), ObjectNode.class);
+    return payload.set(SOURCE, new TextNode(sourceValue));
   }
 }
