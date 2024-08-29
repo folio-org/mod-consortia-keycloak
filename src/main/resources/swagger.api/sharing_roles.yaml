@@ -57,8 +57,8 @@ paths:
 
   /roles/capability-sets:
     post:
-      summary: start sharing role
-      operationId: startSharingRoleCapabilitySet
+      summary: start sharing role capability sets
+      operationId: startSharingRoleCapabilitySets
       tags:
         - role-capability-set
       parameters:
@@ -82,7 +82,7 @@ paths:
   /roles/{roleId}/capability-sets:
     delete:
       summary: delete sharing role capability set
-      operationId: deleteSharingRoleCapabilitySet
+      operationId: deleteSharingRoleCapabilitySets
       tags:
         - role-capability-set
       parameters:

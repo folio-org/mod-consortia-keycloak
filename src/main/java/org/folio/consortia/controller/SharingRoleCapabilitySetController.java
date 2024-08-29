@@ -22,7 +22,7 @@ public class SharingRoleCapabilitySetController implements RoleCapabilitySetApi 
   private final SharingRoleCapabilitySetService sharingRoleCapabilitySetService;
 
   @Override
-  public ResponseEntity<SharingRoleCapabilitySetResponse> startSharingRoleCapabilitySet(UUID consortiumId,
+  public ResponseEntity<SharingRoleCapabilitySetResponse> startSharingRoleCapabilitySets(UUID consortiumId,
                                                                                         SharingRoleCapabilitySetRequest sharingRoleCapabilitySetRequest) {
     return ResponseEntity
       .status(CREATED)
@@ -30,7 +30,7 @@ public class SharingRoleCapabilitySetController implements RoleCapabilitySetApi 
   }
 
   @Override
-  public ResponseEntity<SharingRoleCapabilitySetDeleteResponse> deleteSharingRoleCapabilitySet(UUID consortiumId, UUID roleId,
+  public ResponseEntity<SharingRoleCapabilitySetDeleteResponse> deleteSharingRoleCapabilitySets(UUID consortiumId, UUID roleId,
                                                                                                SharingRoleCapabilitySetRequest sharingRoleCapabilitySetRequest) {
     return ResponseEntity
       .status(OK)

@@ -403,7 +403,7 @@
           "methods": [
             "DELETE"
           ],
-          "pathPattern": "/consortia/{consortiumId}/sharing/roles/capability-sets",
+          "pathPattern": "/consortia/{consortiumId}/sharing/roles/{roleId}/capability-sets",
           "permissionsRequired": [
             "consortia.sharing-roles-capability-sets.item.delete"
           ],
