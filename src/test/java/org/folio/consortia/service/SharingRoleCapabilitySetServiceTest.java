@@ -253,7 +253,7 @@ class SharingRoleCapabilitySetServiceTest {
 
     when(consortiumRepository.existsById(CONSORTIUM_ID)).thenReturn(true);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(java.lang.IllegalArgumentException.class,
       () -> sharingRoleCapabilitySetService.delete(CONSORTIUM_ID, request.getRoleId(), request));
     verify(publicationService, times(0)).publishRequest(any(), any());
   }
