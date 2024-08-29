@@ -10,7 +10,7 @@ actor "user" as user
 participant "mod-consortia-keycloak" as mck
 database "mod-consortia-keycloak DB" as mck_db
 participant "mod-consortia-publish-coordinator" as mc_pc
-participant "mod-login" as ml
+participant "mod-login-keycloak" as ml
 participant "mod-roles-keycloak" as mrk
 
 user -> mck: Initiate sharing role capability sets action
