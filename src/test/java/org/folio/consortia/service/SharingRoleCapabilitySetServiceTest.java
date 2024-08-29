@@ -1,7 +1,5 @@
 package org.folio.consortia.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.folio.consortia.domain.dto.PublicationResponse;
@@ -91,7 +89,7 @@ class SharingRoleCapabilitySetServiceTest {
   private ObjectMapper objectMapper;
 
   @Test
-  void shouldStartSharingRole() throws JsonProcessingException {
+  void shouldStartSharingRole() {
     var createPcId = UUID.randomUUID();
     var updatePcId = UUID.randomUUID();
     var tenant1 = createTenant(TENANT_ID_1);
@@ -128,7 +126,7 @@ class SharingRoleCapabilitySetServiceTest {
     when(folioExecutionContext.getTenantId()).thenReturn("mobius");
     when(systemUserScopedExecutionService.executeSystemUserScoped(eq("mobius"), any()))
       .then(SharingRoleCapabilitySetServiceTest::callSecondArgument);
-    when(objectMapper.convertValue(request.getPayload(), JsonNode.class))
+    when(objectMapper.convertValue(request.getPayload(), ObjectNode.class))
       .thenReturn(createJsonNodeForRoleCapabilitySetsPayload());
 
     var expectedResponse = createSharingRoleCapabilitySetResponse(createPcId, updatePcId);
@@ -180,8 +178,7 @@ class SharingRoleCapabilitySetServiceTest {
   }
 
   @Test
-  void shouldUpdateFailedTenantPolicies() throws NoSuchMethodException, InvocationTargetException,
-    IllegalAccessException, JsonProcessingException {
+  void shouldUpdateFailedTenantPolicies() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     var publicationId = UUID.randomUUID();
     var pcId = UUID.randomUUID();
     var publicationResponse = new PublicationResponse().id(pcId);
@@ -224,7 +221,7 @@ class SharingRoleCapabilitySetServiceTest {
 
   // Negative cases
   @Test
-  void shouldThrowErrorForNotEqualRoleIdWithPayloadId() throws JsonProcessingException {
+  void shouldThrowErrorForNotEqualRoleIdWithPayloadId() {
     var request = getMockDataObject(SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE, SharingRoleCapabilitySetRequest.class);
     request.setRoleId(UUID.randomUUID());
     var node = createJsonNodeForRoleCapabilitySetsPayload();
