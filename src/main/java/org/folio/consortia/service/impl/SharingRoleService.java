@@ -1,18 +1,10 @@
 package org.folio.consortia.service.impl;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
-import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.SharingRoleDeleteResponse;
 import org.folio.consortia.domain.dto.SharingRoleRequest;
 import org.folio.consortia.domain.dto.SharingRoleResponse;
@@ -28,6 +20,11 @@ import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @Log4j2
@@ -60,6 +57,15 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   }
 
   @Override
+  protected String getUrl(SharingRoleRequest request, HttpMethod httpMethod) {
+    String url = request.getUrl();
+    if (httpMethod.equals(HttpMethod.PUT) || httpMethod.equals(HttpMethod.DELETE)) {
+      url += "/" + getConfigId(request);
+    }
+    return url;
+  }
+
+  @Override
   protected void validateSharingConfigRequestOrThrow(UUID roleId, SharingRoleRequest sharingRoleRequest) {
     if (ObjectUtils.notEqual(getConfigId(sharingRoleRequest), roleId)) {
       throw new IllegalArgumentException("Mismatch id in path to roleId in request body");
@@ -85,20 +91,6 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   @Override
   protected void deleteSharingConfig(UUID roleId) {
     sharingRoleRepository.deleteByRoleId(roleId);
-  }
-
-  @Override
-  protected PublicationRequest createPublicationRequest(SharingRoleRequest sharingRoleRequest, String httpMethod) {
-    PublicationRequest publicationRequest = new PublicationRequest();
-    publicationRequest.setMethod(httpMethod);
-    String url = sharingRoleRequest.getUrl();
-    if (httpMethod.equals(HttpMethod.PUT.toString()) || httpMethod.equals(HttpMethod.DELETE.toString())) {
-      url += "/" + getConfigId(sharingRoleRequest);
-    }
-    publicationRequest.setUrl(url);
-    publicationRequest.setPayload(getPayload(sharingRoleRequest));
-    publicationRequest.setTenants(new HashSet<>());
-    return publicationRequest;
   }
 
   @Override

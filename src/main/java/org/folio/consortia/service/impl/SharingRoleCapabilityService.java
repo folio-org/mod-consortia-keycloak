@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
-import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.SharingRoleCapabilityDeleteResponse;
 import org.folio.consortia.domain.dto.SharingRoleCapabilityRequest;
 import org.folio.consortia.domain.dto.SharingRoleCapabilityResponse;
@@ -22,7 +21,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -64,6 +62,15 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
   }
 
   @Override
+  protected String getUrl(SharingRoleCapabilityRequest request, HttpMethod httpMethod) {
+    String url = request.getUrl();
+    if (httpMethod.equals(HttpMethod.PUT) || httpMethod.equals(HttpMethod.DELETE)) {
+      url = url.replace("capabilities", getConfigId(request) + "/capabilities");
+    }
+    return url;
+  }
+
+  @Override
   protected void validateSharingConfigRequestOrThrow(UUID roleId,
                                                      SharingRoleCapabilityRequest sharingRoleCapabilityRequest) {
     if (ObjectUtils.notEqual(getConfigId(sharingRoleCapabilityRequest), roleId)) {
@@ -93,22 +100,6 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
     var sharingRoleEntityList = sharingRoleRepository.findByRoleId(roleId);
     sharingRoleEntityList.forEach(sharingRoleEntity -> sharingRoleEntity.setIsCapabilitiesShared(false));
     sharingRoleRepository.saveAll(sharingRoleEntityList);
-  }
-
-  @Override
-  protected PublicationRequest createPublicationRequest(SharingRoleCapabilityRequest request,
-                                                        String httpMethod) {
-    PublicationRequest publicationRequest = new PublicationRequest();
-    publicationRequest.setMethod(httpMethod);
-    String url = request.getUrl();
-    UUID id = request.getRoleId();
-    if (httpMethod.equals(HttpMethod.PUT.toString()) || httpMethod.equals(HttpMethod.DELETE.toString())) {
-      url = url.replace("capabilities", id + "/capabilities");
-    }
-    publicationRequest.setUrl(url);
-    publicationRequest.setPayload(getPayload(request));
-    publicationRequest.setTenants(new HashSet<>());
-    return publicationRequest;
   }
 
   @Override
