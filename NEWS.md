@@ -1,3 +1,12 @@
+## Version `v1.4.4` (30.08.2024)
+### Changes:
+* Sync mod-consortia merged PRs with mod-consortia-keycloak (MODCONSKC-25)
+
+## Version `v1.4.3` (15.08.2024)
+### Changes:
+* Implement sharing of authorization roles (MODCONSKC-19)
+* Аdd script to migrate data from mod-consortia (EUREKA-65)
+
 ## Version `v1.4.2` (14.08.2024)
 ### Changes:
 * Upgrade application-poc-tools to v1.5.5.
