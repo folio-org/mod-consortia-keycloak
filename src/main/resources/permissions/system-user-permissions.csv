@@ -97,3 +97,5 @@ policies.item.delete
 role-capabilities.collection.post
 role-capabilities.collection.put
 role-capabilities.collection.delete
+role-capability-sets.collection.put
+role-capability-sets.collection.delete

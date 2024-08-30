@@ -29,6 +29,14 @@
     {
       "id": "policies",
       "version": "1.1"
+    },
+    {
+      "id": "role-capability-sets",
+      "version": "1.1"
+    },
+    {
+      "id": "role-capabilities",
+      "version": "1.1"
     }
   ],
   "optional": [
@@ -415,7 +423,7 @@
           ],
           "pathPattern": "/consortia/{consortiumId}/sharing/roles/capabilities",
           "permissionsRequired": [
-            "consortia.sharing-roles-capability-sets.item.post"
+            "consortia.sharing-roles-capabilities.item.post"
           ],
           "modulePermissions": []
         },
@@ -425,7 +433,7 @@
           ],
           "pathPattern": "/consortia/{consortiumId}/sharing/roles/{roleId}/capabilities",
           "permissionsRequired": [
-            "consortia.sharing-roles-capability-sets.item.delete"
+            "consortia.sharing-roles-capabilities.item.delete"
           ],
           "modulePermissions": []
         }
@@ -506,7 +514,9 @@
         "consortia.sharing-roles.item.post",
         "consortia.sharing-roles.item.delete",
         "consortia.sharing-roles-capability-sets.item.post",
-        "consortia.sharing-roles-capability-sets.item.delete"
+        "consortia.sharing-roles-capability-sets.item.delete",
+        "consortia.sharing-roles-capabilities.item.post",
+        "consortia.sharing-roles-capabilities.item.delete"
       ]
     },
     {
@@ -671,6 +681,16 @@
       "permissionName": "consortia.sharing-roles-capability-sets.item.delete",
       "displayName": "delete sharing role capability sets",
       "description": "Delete sharing role capability sets"
+    },
+    {
+      "permissionName": "consortia.sharing-roles-capabilities.item.post",
+      "displayName": "post sharing role capabilities",
+      "description": "Create sharing role capabilities"
+    },
+    {
+      "permissionName": "consortia.sharing-roles-capabilities.item.delete",
+      "displayName": "delete sharing role capabilities",
+      "description": "Delete sharing role capabilities"
     }
   ],
   "metadata": {
@@ -782,7 +802,10 @@
         "policies.item.delete",
         "role-capabilities.collection.post",
         "role-capabilities.collection.put",
-        "role-capabilities.collection.delete"
+        "role-capabilities.collection.delete",
+        "role-capability-sets.collection.post",
+        "role-capability-sets.collection.put",
+        "role-capability-sets.collection.delete"
       ]
     }
   },

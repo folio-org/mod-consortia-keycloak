@@ -10,7 +10,7 @@ SharingRoleCapabilitySetRequest:
       description: URL for publishing requests for consortia tenants
       type: string
     payload:
-      description: Http request body that contains roleId, capability names
+      description: Http request body that contains roleId, capability set names
       type: object
   additionalProperties: false
   required:
