@@ -15,7 +15,7 @@ participant "mod-roles-keycloak" as mrk
 
 user -> mck: Initiate deleting role capability sets action
 note right
-DELETE /consortia/<consortiumId>/sharing/role-capability-sets/<roleId>
+DELETE /consortia/<consortiumId>/sharing/roles/<roleId>/capability-sets
 {
     "roleId": "<UUID>",
     "url": "string"
@@ -23,7 +23,7 @@ DELETE /consortia/<consortiumId>/sharing/role-capability-sets/<roleId>
 end note
 activate mck
 
-mck -> mck_db: Retrieve tenants associated with the roleId from role_capability_sets table using is_capability_sets_shared flag true
+mck -> mck_db: Retrieve tenants associated with the roleId from sharing_role table using is_capability_sets_shared flag true
 note bottom
 | tenant_id | role_id | is_capability_sets_shared |
 | "tenant A" | <UUID1> | true |

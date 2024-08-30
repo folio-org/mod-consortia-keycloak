@@ -1,20 +1,16 @@
 package org.folio.consortia.service.impl;
 
-import org.folio.consortia.exception.ResourceNotFoundException;
-import org.folio.consortia.repository.SharingSettingRepository;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
-import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.SharingSettingDeleteResponse;
 import org.folio.consortia.domain.dto.SharingSettingRequest;
 import org.folio.consortia.domain.dto.SharingSettingResponse;
 import org.folio.consortia.domain.entity.SharingSettingEntity;
+import org.folio.consortia.exception.ResourceNotFoundException;
+import org.folio.consortia.repository.SharingSettingRepository;
 import org.folio.consortia.service.BaseSharingService;
 import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.PublicationService;
@@ -25,11 +21,10 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
-
-import lombok.extern.log4j.Log4j2;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @Log4j2
@@ -62,6 +57,15 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   }
 
   @Override
+  protected String getUrl(SharingSettingRequest request, HttpMethod httpMethod) {
+    String url = request.getUrl();
+    if (httpMethod.equals(HttpMethod.PUT) || httpMethod.equals(HttpMethod.DELETE)) {
+      url += "/" + getConfigId(request);
+    }
+    return url;
+  }
+
+  @Override
   protected void validateSharingConfigRequestOrThrow(UUID settingId, SharingSettingRequest sharingSettingRequest) {
     if (ObjectUtils.notEqual(getConfigId(sharingSettingRequest), settingId)) {
       throw new IllegalArgumentException("Mismatch id in path to settingId in request body");
@@ -87,20 +91,6 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   @Override
   protected void deleteSharingConfig(UUID settingId) {
     sharingSettingRepository.deleteBySettingId(settingId);
-  }
-
-  @Override
-  protected PublicationRequest createPublicationRequest(SharingSettingRequest sharingSettingRequest, String httpMethod) {
-    PublicationRequest publicationRequest = new PublicationRequest();
-    publicationRequest.setMethod(httpMethod);
-    String url = sharingSettingRequest.getUrl();
-    if (httpMethod.equals(HttpMethod.PUT.toString()) || httpMethod.equals(HttpMethod.DELETE.toString())) {
-      url += "/" + getConfigId(sharingSettingRequest);
-    }
-    publicationRequest.setUrl(url);
-    publicationRequest.setPayload(getPayload(sharingSettingRequest));
-    publicationRequest.setTenants(new HashSet<>());
-    return publicationRequest;
   }
 
   @Override

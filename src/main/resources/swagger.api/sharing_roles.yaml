@@ -104,6 +104,55 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /roles/capabilities:
+    post:
+      summary: start sharing role capabilities
+      operationId: startSharingRoleCapabilities
+      tags:
+        - role-capabilities
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+      requestBody:
+        $ref: "#/components/requestBodies/SharingRoleCapabilityBody"
+      responses:
+        "201":
+          $ref: "#/components/responses/SharingRoleCapabilityResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /roles/{roleId}/capabilities:
+    delete:
+      summary: delete sharing role capabilities
+      operationId: deleteSharingRoleCapabilities
+      tags:
+        - role-capabilities
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/roleId"
+      requestBody:
+        $ref: "#/components/requestBodies/SharingRoleCapabilityBody"
+      responses:
+        "200":
+          $ref: "#/components/responses/SharingRoleCapabilityDeleteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
 components:
   requestBodies:
     SharingRoleBody:
@@ -120,6 +169,13 @@ components:
         application/json:
           schema:
             $ref: "schemas/sharingRoleCapabilitySet.yaml#/SharingRoleCapabilitySetRequest"
+    SharingRoleCapabilityBody:
+      description: Sharing role capabilities object
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/sharingRoleCapability.yaml#/SharingRoleCapabilityRequest"
   responses:
     SharingRoleResponse:
       description: Returns a sharing role object response for post operation
@@ -133,6 +189,12 @@ components:
         application/json:
           schema:
             $ref: "schemas/sharingRoleCapabilitySet.yaml#/SharingRoleCapabilitySetResponse"
+    SharingRoleCapabilityResponse:
+      description: Returns a sharing role capability object response for post operation
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/sharingRoleCapability.yaml#/SharingRoleCapabilityResponse"
     SharingRoleDeleteResponse:
       description: Returns a sharing role response for delete operation
       content:
@@ -145,6 +207,12 @@ components:
         application/json:
           schema:
             $ref: "schemas/sharingRoleCapabilitySet.yaml#/SharingRoleCapabilitySetDeleteResponse"
+    SharingRoleCapabilityDeleteResponse:
+      description: Returns a sharing role capability response for delete operation
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/sharingRoleCapability.yaml#/SharingRoleCapabilityDeleteResponse"
     NoContent:
       description: No content
     Conflict:

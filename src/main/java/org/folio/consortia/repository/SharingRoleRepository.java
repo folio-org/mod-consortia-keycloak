@@ -18,13 +18,12 @@ public interface SharingRoleRepository extends JpaRepository<SharingRoleEntity, 
   @Query("SELECT sr.tenantId FROM SharingRoleEntity sr WHERE sr.roleId = ?1")
   Set<String> findTenantsByRoleId(UUID roleId);
 
-  @Query("SELECT sr.tenantId FROM SharingRoleEntity sr " +
-    "WHERE sr.roleId = ?1 AND sr.isCapabilitySetsShared = true")
-  Set<String> findTenantsByRoleIdAndSharedCapabilitySets(UUID roleId);
+  Set<String> findTenantsByRoleIdAndIsCapabilitySetsSharedTrue(UUID roleId);
+
+  Set<String> findTenantsByRoleIdAndIsCapabilitiesSharedTrue(UUID roleId);
 
   boolean existsByRoleId(UUID roleId);
 
   @Modifying
-  @Query("DELETE FROM SharingRoleEntity sr WHERE sr.roleId = ?1")
   void deleteByRoleId(UUID roleId);
 }

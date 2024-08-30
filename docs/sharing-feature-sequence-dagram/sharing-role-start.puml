@@ -1,0 +1,82 @@
+@startuml
+
+!pragma teoz true
+!theme cerulean
+
+autonumber
+
+actor "user" as user
+
+participant "mod-consortia-keycloak" as mck
+database "mod-consortia-keycloak DB" as mck_db
+participant "mod-consortia-publish-coordinator" as mc_pc
+participant "mod-login-keycloak" as ml
+participant "mod-roles-keycloak" as mrk
+
+user -> mck: Initiate sharing role action
+note right
+POST /consortia/<consortiumId>/sharing/roles
+{
+    "roleId": "<UUID>",
+    "url": "string",
+    "payload": {
+      "id": "<UUID>",
+      "name": "<String>",
+      "description": "<String>"
+    }
+}
+end note
+activate mck
+
+mck -> mck_db: Retrieve tenants associated with the roleId from sharing_role table
+note bottom
+| tenant_id | role_id |
+| "tenant A" | <UUID1> |
+end note
+note right
+| tenant_id | role_id |
+| "tenant A" | <UUID1> |
+end note
+mck -> mck_db: Retrieve all tenants list
+
+loop tenants size count
+    alt #E8F3E1 tenant id does not exist in role_capability_sets table
+        mck -> mck: Add tenant to POST Role Publish Coordinator tenants list
+        mck -> mck_db: Create new entity
+        note right
+        | tenant_id | role_id |
+        | "tenant B" | <UUID2> |
+        end note
+    else #F3E1E2 tenant id exists
+        mck -> mck: Add tenant to PUT Role Publish Coordinator tenants list
+    end
+end
+
+mck -> mck: Set source as Consortium for all role (Create and Update)
+
+mck -> ml: Login via consortia-system-user
+ml --> mck: Return system user's token
+
+mck -> mc_pc: Initiate PC request with POST HTTP method to create role
+mc_pc -> mrk: Send HTTP POST request to create role
+mrk --> mc_pc: Return response
+mc_pc --> mck: Return Publish Coordinator id
+
+mck -> mc_pc: Initiate PC request with PUT HTTP method to update role
+mc_pc -> mrk: Send HTTP POST request to create role
+mrk --> mc_pc: Return response
+mc_pc --> mck: Return Publish Coordinator id
+
+mck --> user: Return response with both PC ids
+note right
+Response payload:
+{
+    "createRolePCId": "<UUID>",
+    "updateRolePCId": "<UUID>"
+}
+end note
+
+user -> mck: Check if POST PC completed: /consortia/<UUID>/publications/<UUID>
+user -> mck: Check if PUT PC completed: /consortia/<UUID>/publications/<UUID>
+
+@enduml

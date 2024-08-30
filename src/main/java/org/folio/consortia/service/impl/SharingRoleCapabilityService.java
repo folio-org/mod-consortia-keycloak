@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
-import org.folio.consortia.domain.dto.SharingRoleCapabilitySetDeleteResponse;
-import org.folio.consortia.domain.dto.SharingRoleCapabilitySetRequest;
-import org.folio.consortia.domain.dto.SharingRoleCapabilitySetResponse;
+import org.folio.consortia.domain.dto.SharingRoleCapabilityDeleteResponse;
+import org.folio.consortia.domain.dto.SharingRoleCapabilityRequest;
+import org.folio.consortia.domain.dto.SharingRoleCapabilityResponse;
 import org.folio.consortia.domain.entity.SharingRoleEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.SharingRoleRepository;
@@ -28,32 +28,32 @@ import java.util.UUID;
 
 @Service
 @Log4j2
-public class SharingRoleCapabilitySetService extends BaseSharingService<SharingRoleCapabilitySetRequest,
-  SharingRoleCapabilitySetResponse, SharingRoleCapabilitySetDeleteResponse, SharingRoleEntity> {
+public class SharingRoleCapabilityService extends BaseSharingService<SharingRoleCapabilityRequest,
+  SharingRoleCapabilityResponse, SharingRoleCapabilityDeleteResponse, SharingRoleEntity> {
 
   private static final String ROLE_ID = "roleId";
 
   private final SharingRoleRepository sharingRoleRepository;
 
-  public SharingRoleCapabilitySetService(TenantService tenantService, ConsortiumService consortiumService,
-                                         SystemUserScopedExecutionService systemUserScopedExecutionService,
-                                         PublicationService publicationService,
-                                         FolioExecutionContext folioExecutionContext, ObjectMapper parentObjectMapper,
-                                         TaskExecutor asyncTaskExecutor,
-                                         SharingRoleRepository sharingRoleRepository) {
+  public SharingRoleCapabilityService(TenantService tenantService, ConsortiumService consortiumService,
+                                      SystemUserScopedExecutionService systemUserScopedExecutionService,
+                                      PublicationService publicationService,
+                                      FolioExecutionContext folioExecutionContext, ObjectMapper parentObjectMapper,
+                                      TaskExecutor asyncTaskExecutor,
+                                      SharingRoleRepository sharingRoleRepository) {
     super(tenantService, consortiumService, systemUserScopedExecutionService, publicationService,
       folioExecutionContext, parentObjectMapper, asyncTaskExecutor);
     this.sharingRoleRepository = sharingRoleRepository;
   }
 
   @Override
-  protected UUID getConfigId(SharingRoleCapabilitySetRequest sharingRoleCapabilitySetRequest) {
-    return sharingRoleCapabilitySetRequest.getRoleId();
+  protected UUID getConfigId(SharingRoleCapabilityRequest sharingRoleCapabilityRequest) {
+    return sharingRoleCapabilityRequest.getRoleId();
   }
 
   @Override
-  protected Object getPayload(SharingRoleCapabilitySetRequest sharingRoleCapabilitySetRequest) {
-    return sharingRoleCapabilitySetRequest.getPayload();
+  protected Object getPayload(SharingRoleCapabilityRequest sharingRoleCapabilityRequest) {
+    return sharingRoleCapabilityRequest.getPayload();
   }
 
   @Override
@@ -62,21 +62,21 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
   }
 
   @Override
-  protected String getUrl(SharingRoleCapabilitySetRequest request, HttpMethod httpMethod) {
+  protected String getUrl(SharingRoleCapabilityRequest request, HttpMethod httpMethod) {
     String url = request.getUrl();
     if (httpMethod.equals(HttpMethod.PUT) || httpMethod.equals(HttpMethod.DELETE)) {
-      url = url.replace("capability-sets", getConfigId(request) + "/capability-sets");
+      url = url.replace("capabilities", getConfigId(request) + "/capabilities");
     }
     return url;
   }
 
   @Override
   protected void validateSharingConfigRequestOrThrow(UUID roleId,
-                                                     SharingRoleCapabilitySetRequest sharingRoleCapabilitySetRequest) {
-    if (ObjectUtils.notEqual(getConfigId(sharingRoleCapabilitySetRequest), roleId)) {
+                                                     SharingRoleCapabilityRequest sharingRoleCapabilityRequest) {
+    if (ObjectUtils.notEqual(getConfigId(sharingRoleCapabilityRequest), roleId)) {
       throw new IllegalArgumentException("Mismatch id in path to roleId in request body");
     }
-    if (Objects.isNull(getPayload(sharingRoleCapabilitySetRequest))) {
+    if (Objects.isNull(getPayload(sharingRoleCapabilityRequest))) {
       throw new IllegalArgumentException("Payload must not be null");
     }
     if (!sharingRoleRepository.existsByRoleId(roleId)) {
@@ -85,45 +85,45 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
   }
 
   @Override
-  protected Set<String> findTenantsForConfig(SharingRoleCapabilitySetRequest request) {
-    return sharingRoleRepository.findTenantsByRoleIdAndIsCapabilitySetsSharedTrue(request.getRoleId());
+  protected Set<String> findTenantsForConfig(SharingRoleCapabilityRequest request) {
+    return sharingRoleRepository.findTenantsByRoleIdAndIsCapabilitiesSharedTrue(request.getRoleId());
   }
 
   @Override
   protected void saveSharingConfig(List<SharingRoleEntity> sharingRoleEntityList) {
-    sharingRoleEntityList.forEach(sharingRoleEntity -> sharingRoleEntity.setIsCapabilitySetsShared(true));
+    sharingRoleEntityList.forEach(sharingRoleEntity -> sharingRoleEntity.setIsCapabilitiesShared(true));
     sharingRoleRepository.saveAll(sharingRoleEntityList);
   }
 
   @Override
   protected void deleteSharingConfig(UUID roleId) {
     var sharingRoleEntityList = sharingRoleRepository.findByRoleId(roleId);
-    sharingRoleEntityList.forEach(sharingRoleEntity -> sharingRoleEntity.setIsCapabilitySetsShared(false));
+    sharingRoleEntityList.forEach(sharingRoleEntity -> sharingRoleEntity.setIsCapabilitiesShared(false));
     sharingRoleRepository.saveAll(sharingRoleEntityList);
   }
 
   @Override
-  protected SharingRoleEntity createSharingConfigEntityFromRequest(SharingRoleCapabilitySetRequest request,
+  protected SharingRoleEntity createSharingConfigEntityFromRequest(SharingRoleCapabilityRequest request,
                                                                    String tenantId) {
     return sharingRoleRepository.findByRoleIdAndTenantId(request.getRoleId(), tenantId);
   }
 
   @Override
-  protected SharingRoleCapabilitySetResponse createSharingConfigResponse(UUID createRoleCapabilitySetsPCId,
-                                                                         UUID updateRoleCapabilitySetsPCId) {
-    return new SharingRoleCapabilitySetResponse()
-      .createRoleCapabilitySetsPCId(createRoleCapabilitySetsPCId)
-      .updateRoleCapabilitySetsPCId(updateRoleCapabilitySetsPCId);
+  protected SharingRoleCapabilityResponse createSharingConfigResponse(UUID createRoleCapabilitiesPCId,
+                                                                         UUID updateRoleCapabilitiesPCId) {
+    return new SharingRoleCapabilityResponse()
+      .createRoleCapabilitiesPCId(createRoleCapabilitiesPCId)
+      .updateRoleCapabilitiesPCId(updateRoleCapabilitiesPCId);
   }
 
   @Override
-  protected SharingRoleCapabilitySetDeleteResponse createSharingConfigResponse(UUID publishRequestId) {
-    return new SharingRoleCapabilitySetDeleteResponse()
+  protected SharingRoleCapabilityDeleteResponse createSharingConfigResponse(UUID publishRequestId) {
+    return new SharingRoleCapabilityDeleteResponse()
       .pcId(publishRequestId);
   }
 
   @Override
-  protected ObjectNode updatePayload(SharingRoleCapabilitySetRequest request,
+  protected ObjectNode updatePayload(SharingRoleCapabilityRequest request,
                                      String sourceValue) {
     var payload = objectMapper.convertValue(getPayload(request), ObjectNode.class);
     return payload.set(TYPE, new TextNode(sourceValue));
