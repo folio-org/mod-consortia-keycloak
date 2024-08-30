@@ -70,7 +70,7 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
       .url("/roles/" + request.getRoleId() + "/capabilities");
 
     setupCommonMocksForStart(createPcId, updatePcId, expectedPubRequestPost, expectedPubRequestPut, payload);
-    when(sharingRoleRepository.findTenantsByRoleIdAndSharedCapabilities(request.getRoleId()))
+    when(sharingRoleRepository.findTenantsByRoleIdAndIsCapabilitiesSharedTrue(request.getRoleId()))
       .thenReturn(tenantSharedRoleAndCapabilities);
     when(sharingRoleRepository.findByRoleIdAndTenantId(request.getRoleId(), TENANT_ID_2)).thenReturn(sharingRoleEntity);
     when(sharingRoleRepository.save(expectedSharingRoleEntity)).thenReturn(new SharingRoleEntity());
@@ -98,7 +98,7 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
 
     setupCommonMocksForDelete(pcId, expectedPubRequestDelete);
     when(sharingRoleRepository.existsByRoleId(roleId)).thenReturn(true);
-    when(sharingRoleRepository.findTenantsByRoleIdAndSharedCapabilities(request.getRoleId()))
+    when(sharingRoleRepository.findTenantsByRoleIdAndIsCapabilitiesSharedTrue(request.getRoleId()))
       .thenReturn(tenantSharedRoleAndCapabilities);
 
     var expectedResponse = createSharingRoleResponseForDelete(pcId);

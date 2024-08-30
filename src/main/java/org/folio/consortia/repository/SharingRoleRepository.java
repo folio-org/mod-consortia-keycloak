@@ -8,6 +8,7 @@ import org.folio.consortia.domain.entity.SharingRoleEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface SharingRoleRepository extends JpaRepository<SharingRoleEntity, UUID> {
 
@@ -18,17 +19,13 @@ public interface SharingRoleRepository extends JpaRepository<SharingRoleEntity, 
   @Query("SELECT sr.tenantId FROM SharingRoleEntity sr WHERE sr.roleId = ?1")
   Set<String> findTenantsByRoleId(UUID roleId);
 
-  @Query("SELECT sr.tenantId FROM SharingRoleEntity sr " +
-    "WHERE sr.roleId = ?1 AND sr.isCapabilitySetsShared = true")
-  Set<String> findTenantsByRoleIdAndSharedCapabilitySets(UUID roleId);
+  Set<String> findTenantsByRoleIdAndIsCapabilitySetsSharedTrue(UUID roleId);
 
-  @Query("SELECT sr.tenantId FROM SharingRoleEntity sr " +
-    "WHERE sr.roleId = ?1 AND sr.isCapabilitiesShared = true")
-  Set<String> findTenantsByRoleIdAndSharedCapabilities(UUID roleId);
+  Set<String> findTenantsByRoleIdAndIsCapabilitiesSharedTrue(UUID roleId);
 
   boolean existsByRoleId(UUID roleId);
 
+  @Transactional
   @Modifying
-  @Query("DELETE FROM SharingRoleEntity sr WHERE sr.roleId = ?1")
   void deleteByRoleId(UUID roleId);
 }

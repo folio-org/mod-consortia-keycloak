@@ -79,7 +79,7 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
 
   @Override
   protected Set<String> findTenantsForConfig(SharingRoleCapabilitySetRequest request) {
-    return sharingRoleRepository.findTenantsByRoleIdAndSharedCapabilitySets(request.getRoleId());
+    return sharingRoleRepository.findTenantsByRoleIdAndIsCapabilitySetsSharedTrue(request.getRoleId());
   }
 
   @Override
