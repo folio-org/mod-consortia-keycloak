@@ -1,9 +1,9 @@
 package org.folio.consortia.controller;
 
 import org.folio.consortia.base.BaseIT;
-import org.folio.consortia.domain.dto.SharingRoleCapabilitySetDeleteResponse;
-import org.folio.consortia.domain.dto.SharingRoleCapabilitySetResponse;
-import org.folio.consortia.service.impl.SharingRoleCapabilitySetService;
+import org.folio.consortia.domain.dto.SharingRoleCapabilityDeleteResponse;
+import org.folio.consortia.domain.dto.SharingRoleCapabilityResponse;
+import org.folio.consortia.service.impl.SharingRoleCapabilityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -22,19 +22,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class SharingRoleCapabilityControllerTest extends BaseIT {
 
   @MockBean
-  SharingRoleCapabilitySetService sharingRoleCapabilitySetService;
+  SharingRoleCapabilityService sharingRoleCapabilityService;
 
   @Test
-  void shouldStartSharingRole() throws Exception {
+  void shouldStartSharingRoleCapabilities() throws Exception {
     var headers = defaultHeaders();
     var request = getMockDataAsString(SHARING_ROLE_CAPABILITIES_REQUEST_SAMPLE);
-    var createRoleCapabilitySetsPCId = UUID.randomUUID();
-    var updateRoleCapabilitySetsPCId = UUID.randomUUID();
-    var response = new SharingRoleCapabilitySetResponse()
-      .createRoleCapabilitySetsPCId(createRoleCapabilitySetsPCId)
-      .updateRoleCapabilitySetsPCId(updateRoleCapabilitySetsPCId);
+    var createPcId = UUID.randomUUID();
+    var updatePcId = UUID.randomUUID();
+    var response = new SharingRoleCapabilityResponse()
+      .createRoleCapabilitiesPCId(createPcId)
+      .updateRoleCapabilitiesPCId(updatePcId);
 
-    when(sharingRoleCapabilitySetService.start(any(), any())).thenReturn(response);
+    when(sharingRoleCapabilityService.start(any(), any())).thenReturn(response);
 
     this.mockMvc.perform(
         post("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/sharing/roles/capabilities")
@@ -42,23 +42,23 @@ class SharingRoleCapabilityControllerTest extends BaseIT {
           .content(request)
           .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isCreated())
-      .andExpect(jsonPath("$.createRoleCapabilitySetsPCId").value(String.valueOf(createRoleCapabilitySetsPCId)))
-      .andExpect(jsonPath("$.updateRoleCapabilitySetsPCId").value(String.valueOf(updateRoleCapabilitySetsPCId)));
+      .andExpect(jsonPath("$.createRoleCapabilitiesPCId").value(String.valueOf(createPcId)))
+      .andExpect(jsonPath("$.updateRoleCapabilitiesPCId").value(String.valueOf(updatePcId)));
   }
 
   @Test
-  void shouldDeleteSharingRole() throws Exception {
+  void shouldDeleteSharingRoleCapabilities() throws Exception {
     var headers = defaultHeaders();
     var request = getMockDataAsString(SHARING_ROLE_CAPABILITIES_REQUEST_SAMPLE);
     var pcId = UUID.randomUUID();
-    var response = new SharingRoleCapabilitySetDeleteResponse()
+    var response = new SharingRoleCapabilityDeleteResponse()
       .pcId(pcId);
 
-    when(sharingRoleCapabilitySetService.delete(any(), any(), any())).thenReturn(response);
+    when(sharingRoleCapabilityService.delete(any(), any(), any())).thenReturn(response);
 
     this.mockMvc.perform(
         delete("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/" +
-          "sharing/roles/5844767a-8367-4926-9999-514c35840399/capabilities")
+          "sharing/roles/2844767a-8367-4926-9999-514c35840399/capabilities")
           .headers(headers)
           .content(request)
           .contentType(MediaType.APPLICATION_JSON))

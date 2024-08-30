@@ -109,7 +109,7 @@ class SharingRoleServiceTest {
     var publicationRequestPut = createPublicationRequest(sharingRoleRequest, HttpMethod.PUT.toString());
     publicationRequestPut.setMethod("PUT");
     publicationRequestPut.setTenants(Set.of("tenant1"));
-    publicationRequestPut.setUrl("/role/3844767a-8367-4926-9999-514c35840399");
+    publicationRequestPut.setUrl("/roles/3844767a-8367-4926-9999-514c35840399");
     var publicationRequestPost = createPublicationRequest(sharingRoleRequest, HttpMethod.POST.toString());
     publicationRequestPost.setMethod("POST");
     publicationRequestPost.setTenants(Set.of("tenant2"));
@@ -149,7 +149,7 @@ class SharingRoleServiceTest {
     // "tenant1" exists in tenant role association so that tenant1 is in DELETE request publication,
     var expectedPublicationRequestDelete = createPublicationRequest(sharingRoleRequest, HttpMethod.DELETE.toString());
     expectedPublicationRequestDelete.setTenants(Set.of("tenant1"));
-    expectedPublicationRequestDelete.setUrl("/role/3844767a-8367-4926-9999-514c35840399");
+    expectedPublicationRequestDelete.setUrl("/roles/3844767a-8367-4926-9999-514c35840399");
     Map<String, String> map = new LinkedHashMap<>();
     map.put("id", "3844767a-8367-4926-9999-514c35840399");
     map.put("name", "Role for policy: 104d7a66-c51d-402a-9c9f-3bdcdbbcdbe7");
