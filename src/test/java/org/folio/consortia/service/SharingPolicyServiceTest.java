@@ -1,6 +1,8 @@
 package org.folio.consortia.service;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.folio.consortia.support.EntityUtils.SHARING_POLICY_REQUEST_SAMPLE_FOR_ROLES;
+import static org.folio.consortia.support.EntityUtils.SHARING_POLICY_REQUEST_SAMPLE_WITHOUT_PAYLOAD;
 import static org.folio.consortia.support.EntityUtils.TENANT_ID_1;
 import static org.folio.consortia.support.EntityUtils.TENANT_ID_2;
 import static org.folio.consortia.support.EntityUtils.createJsonNodeForGroupPayload;
@@ -66,8 +68,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 @SpringBootTest
 class SharingPolicyServiceTest {
-  private static final String SHARING_POLICY_REQUEST_SAMPLE_FOR_ROLES = "mockdata/sharing_policies/sharing_policy_request_for_roles.json";
-  private static final String SHARING_POLICY_REQUEST_SAMPLE_WITHOUT_PAYLOAD = "mockdata/sharing_policies/sharing_policy_request_without_payload.json";
 
   @InjectMocks
   private SharingPolicyService sharingPolicyService;

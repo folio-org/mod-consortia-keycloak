@@ -1,5 +1,5 @@
-SharingRoleCapabilitySetRequest:
-  description: "A JSON schema for the Sharing Role Capability Sets object"
+SharingRoleCapabilityRequest:
+  description: "A JSON schema for the Sharing Role Capabilities object"
   type: object
   properties:
     roleId:
@@ -17,23 +17,23 @@ SharingRoleCapabilitySetRequest:
     - roleId
     - url
 
-SharingRoleCapabilitySetResponse:
-  description: "A JSON schema for the Sharing Role Capability Sets object response for post request"
+SharingRoleCapabilityResponse:
+  description: "A JSON schema for the Sharing Role Capabilities object response for post request"
   type: object
   properties:
-    createRoleCapabilitySetsPCId:
+    createRoleCapabilitiesPCId:
       type: string
       format: uuid
-    updateRoleCapabilitySetsPCId:
+    updateRoleCapabilitiesPCId:
       type: string
       format: uuid
   additionalProperties: false
   required:
-    - createRoleCapabilitySetsPCId
-    - updateRoleCapabilitySetsPCId
+    - createRoleCapabilitiesPCId
+    - updateRoleCapabilitiesPCId
 
-SharingRoleCapabilitySetDeleteResponse:
-  description: "A JSON schema for the Sharing Role Capability Sets object response for delete request"
+SharingRoleCapabilityDeleteResponse:
+  description: "A JSON schema for the Sharing Role Capability object response for delete request"
   type: object
   properties:
     pcId:

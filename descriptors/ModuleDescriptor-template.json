@@ -408,6 +408,26 @@
             "consortia.sharing-roles-capability-sets.item.delete"
           ],
           "modulePermissions": []
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/consortia/{consortiumId}/sharing/roles/capabilities",
+          "permissionsRequired": [
+            "consortia.sharing-roles-capability-sets.item.post"
+          ],
+          "modulePermissions": []
+        },
+        {
+          "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/consortia/{consortiumId}/sharing/roles/{roleId}/capabilities",
+          "permissionsRequired": [
+            "consortia.sharing-roles-capability-sets.item.delete"
+          ],
+          "modulePermissions": []
         }
       ]
     },

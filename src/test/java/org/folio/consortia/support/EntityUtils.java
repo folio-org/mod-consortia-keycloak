@@ -1,18 +1,8 @@
 package org.folio.consortia.support;
 
-import static org.folio.spring.integration.XOkapiHeaders.TENANT;
-import static org.folio.spring.integration.XOkapiHeaders.TOKEN;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 import lombok.experimental.UtilityClass;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.domain.dto.Consortium;
@@ -53,17 +43,35 @@ import org.folio.spring.integration.XOkapiHeaders;
 import org.springframework.http.HttpMethod;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import static org.folio.spring.integration.XOkapiHeaders.TENANT;
+import static org.folio.spring.integration.XOkapiHeaders.TOKEN;
+
 @UtilityClass
 public class EntityUtils {
+  public static final UUID CONSORTIUM_ID = UUID.randomUUID();
   public static final String CENTRAL_TENANT_ID = "consortium";
   public static final String TENANT_ID = "diku";
-  public static final String TENANT_ID_1 = "tenant1";
-  public static final String TENANT_ID_2 = "tenant2";
+  public static final String TENANT_ID_1 = "university";
+  public static final String TENANT_ID_2 = "college";
 
   public static final String SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE =
     "mockdata/sharing_role_capability_sets/sharing_role_capability_sets_request.json";
   public static final String SHARING_ROLE_CAPABILITY_SETS_WITHOUT_PAYLOAD_REQUEST_SAMPLE =
     "mockdata/sharing_role_capability_sets/sharing_role_capability_sets_request_without_payload.json";
+  public static final String SHARING_ROLE_CAPABILITIES_REQUEST_SAMPLE =
+    "mockdata/sharing_role_capabilities/sharing_role_capabilities_request.json";
+  public static final String SHARING_ROLE_CAPABILITIES_WITHOUT_PAYLOAD_REQUEST_SAMPLE =
+    "mockdata/sharing_role_capabilities/sharing_role_capabilities_request_without_payload.json";
+  public static final String SHARING_POLICY_REQUEST_SAMPLE_FOR_ROLES = "mockdata/sharing_policies/sharing_policy_request_for_roles.json";
+  public static final String SHARING_POLICY_REQUEST_SAMPLE_WITHOUT_PAYLOAD = "mockdata/sharing_policies/sharing_policy_request_without_payload.json";
+
 
   public static ConsortiumEntity createConsortiumEntity(String id, String name) {
     ConsortiumEntity consortiumEntity = new ConsortiumEntity();
@@ -318,6 +326,13 @@ public class EntityUtils {
       .updateRoleCapabilitySetsPCId(updateRoleCapabilitySetsPcId);
   }
 
+  public static SharingRoleCapabilitySetResponse createSharingRoleCapabilityResponse(UUID createRoleCapabilitiesPcId,
+                                                                                     UUID updateRoleCapabilitiesPcId) {
+    return new SharingRoleCapabilitySetResponse()
+      .createRoleCapabilitySetsPCId(createRoleCapabilitiesPcId)
+      .updateRoleCapabilitySetsPCId(updateRoleCapabilitiesPcId);
+  }
+
 
   public static SharingRoleDeleteResponse createSharingRoleResponseForDelete(UUID pcId) {
     return new SharingRoleDeleteResponse().pcId(pcId);
@@ -386,20 +401,20 @@ public class EntityUtils {
     return publicationRequest;
   }
 
-  public static PublicationRequest createExceptedPublicationRequest(SharingRoleCapabilitySetRequest request,
-                                                                    Set<String> tenantList, HttpMethod method) {
-    var expectedPublicationRequest = new PublicationRequest();
-    expectedPublicationRequest.setTenants(tenantList);
-    expectedPublicationRequest.setMethod(method.toString());
-    var url = request.getUrl()
-      .replace("capability-sets", request.getRoleId() + "/capability-sets");
-    expectedPublicationRequest.setUrl(url);
-    final ObjectMapper mapper = new ObjectMapper();
-    final ObjectNode root = mapper.createObjectNode();
-    root.set("group", mapper.convertValue("space", JsonNode.class));
-    root.set("source", mapper.convertValue("user", JsonNode.class));
-    expectedPublicationRequest.setPayload(root);
-    return expectedPublicationRequest;
+  public static PublicationRequest createPublicationRequest(ObjectNode payload, HttpMethod method) {
+    if (payload.has("source")) {
+      payload.put("source", "consortium");
+    } else {
+      payload.put("type", "consortium");
+    }
+    return createPublicationRequest(method)
+      .payload(payload);
+  }
+
+  public static PublicationRequest createPublicationRequest(HttpMethod method) {
+    var publicationRequest = new PublicationRequest();
+    publicationRequest.setMethod(method.toString());
+    return publicationRequest;
   }
 
   public static PublicationResultCollection createPublicationResultCollection(String tenantId1, String tenantId2) {
@@ -447,10 +462,19 @@ public class EntityUtils {
     return mapper.convertValue(payload, ObjectNode.class);
   }
 
-  public static ObjectNode createJsonNodeForRoleCapabilitySetsPayload() {
+  public static ObjectNode createPayloadForRoleCapabilitySets() {
     Map<String, Object> payload = new HashMap<>();
     payload.put("roleId", "4844767a-8367-4926-9999-514c35840399");
     payload.put("capabilitySetNames", List.of("account_item.view", "account_item.create"));
+    payload.put("type", "local");
+    ObjectMapper mapper = new ObjectMapper();
+    return mapper.convertValue(payload, ObjectNode.class);
+  }
+
+  public static ObjectNode createPayloadForRoleCapabilities() {
+    Map<String, Object> payload = new HashMap<>();
+    payload.put("roleId", "5844767a-8367-4926-9999-514c35840399");
+    payload.put("capabilityNames", List.of("account_item.view", "account_item.create"));
     payload.put("type", "local");
     ObjectMapper mapper = new ObjectMapper();
     return mapper.convertValue(payload, ObjectNode.class);

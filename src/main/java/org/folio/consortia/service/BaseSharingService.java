@@ -77,8 +77,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     log.info("start:: The Sharing {}s for {} ID '{}' and '{}' unique tenant(s) were successfully" +
       " saved to the database", configName, configName, configId, publicationPostRequest.getTenants().size());
 
-    ObjectNode updatedPayload = updatePayload(sharingConfigRequest, SourceValues.CONSORTIUM.getValue());
-    publicationPostRequest.setPayload(updatedPayload);
+    ObjectNode updatedPayload = updatePayload(sharingConfigRequest, SourceValues.CONSORTIUM.getValue());    publicationPostRequest.setPayload(updatedPayload);
     publicationPutRequest.setPayload(updatedPayload);
     log.info("start:: set source as '{}' in payload of {}: {}",
       updatedPayload.get(SourceValues.CONSORTIUM.getValue()), configName, configId);
