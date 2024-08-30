@@ -99,7 +99,7 @@ class SharingRoleServiceTest extends BaseSharingConfigServiceTest {
   }
 
   @Test
-  void shouldUpdateFailedTenantPolicies() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+  void shouldUpdateFailedTenantRole() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     var publicationId = UUID.randomUUID();
     var pcId = UUID.randomUUID();
     var request = getMockDataObject(SHARING_ROLE_REQUEST_SAMPLE, SharingRoleRequest.class);

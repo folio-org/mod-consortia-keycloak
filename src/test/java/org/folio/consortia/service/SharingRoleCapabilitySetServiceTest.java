@@ -46,7 +46,7 @@ class SharingRoleCapabilitySetServiceTest extends BaseSharingConfigServiceTest{
   SharingRoleRepository sharingRoleRepository;
 
   @Test
-  void shouldStartSharingRole() {
+  void shouldStartSharingRoleCapabilitySets() {
     var createPcId = UUID.randomUUID();
     var updatePcId = UUID.randomUUID();
     var tenantSharedRoleAndCapabilitySets = Set.of(TENANT_ID_1);
@@ -80,7 +80,7 @@ class SharingRoleCapabilitySetServiceTest extends BaseSharingConfigServiceTest{
   }
 
   @Test
-  void shouldDeleteSharingRole() {
+  void shouldDeleteSharingRoleCapabilitySets() {
     var pcId = UUID.randomUUID();
     var roleId = UUID.fromString("4844767a-8367-4926-9999-514c35840399");
     var tenantSharedRoleAndCapabilitySets = Set.of(TENANT_ID_1);
@@ -105,7 +105,7 @@ class SharingRoleCapabilitySetServiceTest extends BaseSharingConfigServiceTest{
   }
 
   @Test
-  void shouldUpdateFailedTenantPolicies() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+  void shouldUpdateFailedTenantRoleCapabilitySets() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     var publicationId = UUID.randomUUID();
     var pcId = UUID.randomUUID();
     var request = getMockDataObject(SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE, SharingRoleCapabilitySetRequest.class);

@@ -50,7 +50,7 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
   SharingRoleRepository sharingRoleRepository;
 
   @Test
-  void shouldStartSharingRole() {
+  void shouldStartSharingRoleCapabilities() {
     var createPcId = UUID.randomUUID();
     var updatePcId = UUID.randomUUID();
     var tenantSharedRoleAndCapabilities = Set.of(TENANT_ID_1);
@@ -84,7 +84,7 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
   }
 
   @Test
-  void shouldDeleteSharingRole() {
+  void shouldDeleteSharingRoleCapabilities() {
     var pcId = UUID.randomUUID();
     var roleId = UUID.fromString("5844767a-8367-4926-9999-514c35840399");
     var tenantSharedRoleAndCapabilities = Set.of(TENANT_ID_1);
@@ -109,7 +109,7 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
   }
 
   @Test
-  void shouldUpdateFailedTenantPolicies() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+  void shouldUpdateFailedTenantRoleCapabilities() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     var publicationId = UUID.randomUUID();
     var pcId = UUID.randomUUID();
     var request = getMockDataObject(SHARING_ROLE_CAPABILITIES_REQUEST_SAMPLE, SharingRoleCapabilityRequest.class);
@@ -161,7 +161,7 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
 
     var request = getMockDataObject(SHARING_ROLE_CAPABILITIES_REQUEST_SAMPLE, SharingRoleCapabilityRequest.class);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(java.lang.IllegalArgumentException.class,
       () -> sharingRoleCapabilityService.delete(CONSORTIUM_ID, roleId, request));
     verify(publicationService, times(0)).publishRequest(any(), any());
   }
@@ -171,7 +171,7 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
     var request = getMockDataObject(SHARING_ROLE_CAPABILITIES_WITHOUT_PAYLOAD_REQUEST_SAMPLE,
       SharingRoleCapabilityRequest.class);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(java.lang.IllegalArgumentException.class,
       () -> sharingRoleCapabilityService.delete(CONSORTIUM_ID, request.getRoleId(), request));
     verify(publicationService, times(0)).publishRequest(any(), any());
   }
