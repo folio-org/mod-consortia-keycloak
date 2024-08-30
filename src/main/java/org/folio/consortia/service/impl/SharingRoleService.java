@@ -6,7 +6,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
@@ -34,8 +33,6 @@ import org.springframework.stereotype.Service;
 @Log4j2
 public class SharingRoleService extends BaseSharingService<SharingRoleRequest, SharingRoleResponse, SharingRoleDeleteResponse, SharingRoleEntity> {
 
-  private static final String TYPE = "type";
-
   private final SharingRoleRepository sharingRoleRepository;
 
   public SharingRoleService(TenantService tenantService, ConsortiumService consortiumService,
@@ -58,6 +55,11 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   }
 
   @Override
+  protected String getPayloadId(ObjectNode payload) {
+    return payload.get("id").asText();
+  }
+
+  @Override
   protected void validateSharingConfigRequestOrThrow(UUID roleId, SharingRoleRequest sharingRoleRequest) {
     if (ObjectUtils.notEqual(getConfigId(sharingRoleRequest), roleId)) {
       throw new IllegalArgumentException("Mismatch id in path to roleId in request body");
@@ -71,8 +73,8 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   }
 
   @Override
-  protected Set<String> findTenantsByConfigId(UUID roleId) {
-    return sharingRoleRepository.findTenantsByRoleId(roleId);
+  protected Set<String> findTenantsForConfig(SharingRoleRequest request) {
+    return sharingRoleRepository.findTenantsByRoleId(request.getRoleId());
   }
 
   @Override
@@ -123,7 +125,7 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
 
   @Override
   protected ObjectNode updatePayload(SharingRoleRequest sharingConfigRequest, String sourceValue) {
-    JsonNode payload = objectMapper.convertValue(getPayload(sharingConfigRequest), JsonNode.class);
-    return ((ObjectNode) payload).set(TYPE, new TextNode(sourceValue));
+    var payload = objectMapper.convertValue(getPayload(sharingConfigRequest), ObjectNode.class);
+    return payload.set(TYPE, new TextNode(sourceValue));
   }
 }

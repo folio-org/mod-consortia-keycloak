@@ -58,7 +58,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -93,7 +92,7 @@ class SharingSettingServiceTest {
   private ObjectMapper objectMapper;
 
   @Test
-  void shouldStartSharingSetting() throws JsonProcessingException {
+  void shouldStartSharingSetting() {
     UUID createSettingsPcId = UUID.randomUUID();
     UUID updateSettingsPcId = UUID.randomUUID();
     Tenant tenant1 = createTenant("tenant1", "tenant1");
@@ -127,7 +126,7 @@ class SharingSettingServiceTest {
     when(sharingSettingRepository.save(any())).thenReturn(new SharingSettingEntity());
     when(folioExecutionContext.getTenantId()).thenReturn("mobius");
     when(systemUserScopedExecutionService.executeSystemUserScoped(eq("mobius"), any())).then(SharingSettingServiceTest::callSecondArgument);
-    when(objectMapper.convertValue(payload, JsonNode.class)).thenReturn(createJsonNodeForDepartmentPayload());
+    when(objectMapper.convertValue(payload, ObjectNode.class)).thenReturn(createJsonNodeForDepartmentPayload());
 
     var expectedResponse = createSharingSettingResponse(createSettingsPcId, updateSettingsPcId);
     var actualResponse = sharingSettingService.start(CONSORTIUM_ID, sharingSettingRequest);
@@ -177,7 +176,7 @@ class SharingSettingServiceTest {
   }
 
   @Test
-  void shouldUpdateFailedTenantSettings() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, JsonProcessingException {
+  void shouldUpdateFailedTenantSettings() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     UUID publicationId = UUID.randomUUID();
     UUID pcId = UUID.randomUUID();
     var publicationResponse = new PublicationResponse().id(pcId);
@@ -186,7 +185,7 @@ class SharingSettingServiceTest {
     String localTenant = "school";
     var publicationResultCollection = createPublicationResultCollection(centralTenant, localTenant);
     var publicationDetails = createPublicationDetails(PublicationStatus.ERROR);
-    JsonNode node = createJsonNodeForGroupPayload();
+    var node = createJsonNodeForGroupPayload();
     // expected data for publish request
     Set<String> expectedFailedTenantList = new HashSet<>(List.of(centralTenant, localTenant));
     var expectedPublicationRequest = createExceptedPublicationRequest(sharingSettingRequest, expectedFailedTenantList, HttpMethod.PUT);
@@ -201,7 +200,7 @@ class SharingSettingServiceTest {
       .thenReturn(true);
     when(publicationService.getPublicationDetails(CONSORTIUM_ID, publicationId)).thenReturn(publicationDetails);
     when(publicationService.getPublicationResults(CONSORTIUM_ID, publicationId)).thenReturn(publicationResultCollection);
-    when(objectMapper.convertValue(any(), eq(JsonNode.class))).thenReturn(node);
+    when(objectMapper.convertValue(any(), eq(ObjectNode.class))).thenReturn(node);
     when(folioExecutionContext.getTenantId()).thenReturn("mobius");
     when(systemUserScopedExecutionService.executeSystemUserScoped(eq("mobius"), any())).then(SharingSettingServiceTest::callSecondArgument);
     when(publicationService.publishRequest(CONSORTIUM_ID, expectedPublicationRequest)).thenReturn(publicationResponse);
@@ -218,13 +217,13 @@ class SharingSettingServiceTest {
 
   // Negative cases
   @Test
-  void shouldThrowErrorForNotEqualSettingIdWithPayloadId() throws JsonProcessingException {
+  void shouldThrowErrorForNotEqualSettingIdWithPayloadId() {
     var sharingSettingRequest = getMockDataObject(SHARING_SETTING_REQUEST_SAMPLE_FOR_DEPARTMENT, SharingSettingRequest.class);
     sharingSettingRequest.setSettingId(UUID.randomUUID());
-    JsonNode node = createJsonNodeForDepartmentPayload();
+    var node = createJsonNodeForDepartmentPayload();
 
     when(consortiumRepository.existsById(CONSORTIUM_ID)).thenReturn(true);
-    when(objectMapper.convertValue(any(), eq(JsonNode.class))).thenReturn(node);
+    when(objectMapper.convertValue(any(), eq(ObjectNode.class))).thenReturn(node);
 
     assertThrows(java.lang.IllegalArgumentException.class, () -> sharingSettingService.start(CONSORTIUM_ID, sharingSettingRequest));
     verify(publicationService, times(0)).publishRequest(any(), any());

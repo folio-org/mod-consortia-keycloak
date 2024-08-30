@@ -88,3 +88,12 @@ circulation-storage.cancellation-reasons.item.put
 circulation-storage.cancellation-reasons.item.delete
 user-settings.custom-fields.item.post
 user-settings.custom-fields.collection.get
+roles.item.post
+roles.item.put
+roles.item.delete
+policies.item.post
+policies.item.put
+policies.item.delete
+role-capabilities.collection.post
+role-capabilities.collection.put
+role-capabilities.collection.delete

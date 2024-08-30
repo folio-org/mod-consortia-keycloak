@@ -3,7 +3,6 @@ package org.folio.consortia.support;
 import static org.folio.spring.integration.XOkapiHeaders.TENANT;
 import static org.folio.spring.integration.XOkapiHeaders.TOKEN;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -12,6 +11,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import lombok.experimental.UtilityClass;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
@@ -26,6 +26,8 @@ import org.folio.consortia.domain.dto.SharingInstance;
 import org.folio.consortia.domain.dto.SharingPolicyDeleteResponse;
 import org.folio.consortia.domain.dto.SharingPolicyRequest;
 import org.folio.consortia.domain.dto.SharingPolicyResponse;
+import org.folio.consortia.domain.dto.SharingRoleCapabilitySetRequest;
+import org.folio.consortia.domain.dto.SharingRoleCapabilitySetResponse;
 import org.folio.consortia.domain.dto.SharingRoleDeleteResponse;
 import org.folio.consortia.domain.dto.SharingRoleRequest;
 import org.folio.consortia.domain.dto.SharingRoleResponse;
@@ -42,17 +44,26 @@ import org.folio.consortia.domain.entity.ConsortiumEntity;
 import org.folio.consortia.domain.entity.PublicationStatusEntity;
 import org.folio.consortia.domain.entity.PublicationTenantRequestEntity;
 import org.folio.consortia.domain.entity.SharingInstanceEntity;
+import org.folio.consortia.domain.entity.SharingRoleEntity;
 import org.folio.consortia.domain.entity.SharingSettingEntity;
 import org.folio.consortia.domain.entity.TenantDetailsEntity;
 import org.folio.consortia.domain.entity.TenantEntity;
 import org.folio.consortia.domain.entity.UserTenantEntity;
 import org.folio.spring.integration.XOkapiHeaders;
+import org.springframework.http.HttpMethod;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
 @UtilityClass
 public class EntityUtils {
   public static final String CENTRAL_TENANT_ID = "consortium";
-  public  static final String TENANT_ID = "diku";
+  public static final String TENANT_ID = "diku";
+  public static final String TENANT_ID_1 = "tenant1";
+  public static final String TENANT_ID_2 = "tenant2";
+
+  public static final String SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE =
+    "mockdata/sharing_role_capability_sets/sharing_role_capability_sets_request.json";
+  public static final String SHARING_ROLE_CAPABILITY_SETS_WITHOUT_PAYLOAD_REQUEST_SAMPLE =
+    "mockdata/sharing_role_capability_sets/sharing_role_capability_sets_request_without_payload.json";
 
   public static ConsortiumEntity createConsortiumEntity(String id, String name) {
     ConsortiumEntity consortiumEntity = new ConsortiumEntity();
@@ -131,6 +142,16 @@ public class EntityUtils {
     tenantDetailsEntity.setIsDeleted(false);
     tenantDetailsEntity.setSetupStatus(SetupStatusEnum.IN_PROGRESS);
     return tenantDetailsEntity;
+  }
+
+  public static Tenant createTenant(String id) {
+    Tenant tenant = new Tenant();
+    tenant.setId(id);
+    tenant.setName(id);
+    tenant.setIsCentral(false);
+    tenant.setCode("ABC");
+    tenant.setIsDeleted(false);
+    return tenant;
   }
 
   public static Tenant createTenant(String id, String name) {
@@ -244,6 +265,16 @@ public class EntityUtils {
     return entity;
   }
 
+  public static SharingRoleEntity createSharingRoleEntity(UUID roleId, String tenantId) {
+    var entity = new SharingRoleEntity();
+    entity.setId(UUID.randomUUID());
+    entity.setRoleId(roleId);
+    entity.setTenantId(tenantId);
+    entity.setIsCapabilitySetsShared(false);
+    entity.setIsCapabilitiesShared(false);
+    return entity;
+  }
+
   public static PublicationTenantRequestEntity createPublicationTenantRequestEntity(
     PublicationStatusEntity publicationStatusEntity,
       String tenant, PublicationStatus status, int statusCode) {
@@ -278,6 +309,13 @@ public class EntityUtils {
 
   public static SharingRoleResponse createSharingRoleResponse(UUID createRolePcId, UUID updateRolePcId) {
     return new SharingRoleResponse().createRolesPCId(createRolePcId).updateRolesPCId(updateRolePcId);
+  }
+
+  public static SharingRoleCapabilitySetResponse createSharingRoleCapabilitySetResponse(UUID createRoleCapabilitySetsPcId,
+                                                                           UUID updateRoleCapabilitySetsPcId) {
+    return new SharingRoleCapabilitySetResponse()
+      .createRoleCapabilitySetsPCId(createRoleCapabilitySetsPcId)
+      .updateRoleCapabilitySetsPCId(updateRoleCapabilitySetsPcId);
   }
 
 
@@ -332,6 +370,38 @@ public class EntityUtils {
     return publicationRequest;
   }
 
+  public static PublicationRequest createPublicationRequest(SharingRoleCapabilitySetRequest request, String method){
+    var publicationRequest = new PublicationRequest();
+    publicationRequest.setUrl(request.getUrl());
+    publicationRequest.setMethod(method);
+    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectNode root = mapper.createObjectNode();
+    var capabilitySetNames = mapper.createArrayNode();
+    capabilitySetNames.add("account_item.view");
+    capabilitySetNames.add("account_item.create");
+    root.set("roleId", mapper.convertValue("4844767a-8367-4926-9999-514c35840399", JsonNode.class));
+    root.set("capabilitySetNames", capabilitySetNames);
+    root.set("type", mapper.convertValue("consortium", JsonNode.class));
+    publicationRequest.setPayload(root);
+    return publicationRequest;
+  }
+
+  public static PublicationRequest createExceptedPublicationRequest(SharingRoleCapabilitySetRequest request,
+                                                                    Set<String> tenantList, HttpMethod method) {
+    var expectedPublicationRequest = new PublicationRequest();
+    expectedPublicationRequest.setTenants(tenantList);
+    expectedPublicationRequest.setMethod(method.toString());
+    var url = request.getUrl()
+      .replace("capability-sets", request.getRoleId() + "/capability-sets");
+    expectedPublicationRequest.setUrl(url);
+    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectNode root = mapper.createObjectNode();
+    root.set("group", mapper.convertValue("space", JsonNode.class));
+    root.set("source", mapper.convertValue("user", JsonNode.class));
+    expectedPublicationRequest.setPayload(root);
+    return expectedPublicationRequest;
+  }
+
   public static PublicationResultCollection createPublicationResultCollection(String tenantId1, String tenantId2) {
     var pbr1 = new PublicationResult();
     pbr1.setTenantId(tenantId1);
@@ -350,42 +420,47 @@ public class EntityUtils {
     return pbd;
   }
 
-  public static JsonNode createJsonNodeForDepartmentPayload() throws JsonProcessingException {
+  public static ObjectNode createJsonNodeForDepartmentPayload() {
     Map<String, String> payload = new HashMap<>();
     payload.put("id", "1844767a-8367-4926-9999-514c35840399");
     payload.put("name", "ORG-NAME");
     payload.put("source", "local");
     ObjectMapper mapper = new ObjectMapper();
-    String json = mapper.writeValueAsString(payload);
-    return mapper.readTree(json);
+    return mapper.convertValue(payload, ObjectNode.class);
   }
 
-  public static JsonNode createJsonNodeForPolicyPayload() throws JsonProcessingException {
+  public static ObjectNode createJsonNodeForPolicyPayload() {
     Map<String, String> payload = new HashMap<>();
     payload.put("id", "2844767a-8367-4926-9999-514c35840399");
     payload.put("name", "Policy for role: 004d7a66-c51d-402a-9c9f-3bdcdbbcdbe7");
     payload.put("source", "local");
     ObjectMapper mapper = new ObjectMapper();
-    String json = mapper.writeValueAsString(payload);
-    return mapper.readTree(json);
+    return mapper.convertValue(payload, ObjectNode.class);
   }
 
-  public static JsonNode createJsonNodeForRolePayload() throws JsonProcessingException {
+  public static ObjectNode createJsonNodeForRolePayload() {
     Map<String, String> payload = new HashMap<>();
     payload.put("id", "3844767a-8367-4926-9999-514c35840399");
     payload.put("name", "Role for policy: 104d7a66-c51d-402a-9c9f-3bdcdbbcdbe7");
     payload.put("type", "local");
     ObjectMapper mapper = new ObjectMapper();
-    String json = mapper.writeValueAsString(payload);
-    return mapper.readTree(json);
+    return mapper.convertValue(payload, ObjectNode.class);
   }
 
-  public static JsonNode createJsonNodeForGroupPayload() throws JsonProcessingException {
+  public static ObjectNode createJsonNodeForRoleCapabilitySetsPayload() {
+    Map<String, Object> payload = new HashMap<>();
+    payload.put("roleId", "4844767a-8367-4926-9999-514c35840399");
+    payload.put("capabilitySetNames", List.of("account_item.view", "account_item.create"));
+    payload.put("type", "local");
+    ObjectMapper mapper = new ObjectMapper();
+    return mapper.convertValue(payload, ObjectNode.class);
+  }
+
+  public static ObjectNode createJsonNodeForGroupPayload() {
     Map<String, String> payload = new HashMap<>();
     payload.put("group", "space");
     ObjectMapper mapper = new ObjectMapper();
-    String json = mapper.writeValueAsString(payload);
-    return mapper.readTree(json);
+    return mapper.convertValue(payload, ObjectNode.class);
   }
 
   public static User createUser(String username) {

@@ -1,0 +1,12 @@
+{
+  "roleId": "4844767a-8367-4926-9999-514c35840399",
+  "url": "/role/capability-sets",
+  "payload": {
+    "roleId": "4844767a-8367-4926-9999-514c35840399",
+    "capabilitySetNames": [
+      "account_item.view",
+      "account_item.create"
+    ],
+    "type": "local"
+  }
+}
