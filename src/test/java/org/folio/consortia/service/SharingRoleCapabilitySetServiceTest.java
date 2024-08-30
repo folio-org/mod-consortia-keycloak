@@ -3,7 +3,6 @@ package org.folio.consortia.service;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetRequest;
-import org.folio.consortia.domain.entity.SharingRoleEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.SharingRoleRepository;
 import org.folio.consortia.service.impl.SharingRoleCapabilitySetService;
@@ -70,7 +69,7 @@ class SharingRoleCapabilitySetServiceTest extends BaseSharingConfigServiceTest{
     when(sharingRoleRepository.findTenantsByRoleIdAndSharedCapabilitySets(request.getRoleId()))
       .thenReturn(tenantSharedRoleAndCapabilitySets);
     when(sharingRoleRepository.findByRoleIdAndTenantId(request.getRoleId(), TENANT_ID_2)).thenReturn(sharingRoleEntity);
-    when(sharingRoleRepository.save(expectedSharingRoleEntity)).thenReturn(new SharingRoleEntity());
+    when(sharingRoleRepository.save(expectedSharingRoleEntity)).thenReturn(expectedSharingRoleEntity);
 
     var actualResponse = sharingRoleCapabilitySetService.start(CONSORTIUM_ID, request);
 

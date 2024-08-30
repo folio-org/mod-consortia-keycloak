@@ -1,6 +1,5 @@
 package org.folio.consortia.support;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.experimental.UtilityClass;
@@ -13,17 +12,7 @@ import org.folio.consortia.domain.dto.PublicationResult;
 import org.folio.consortia.domain.dto.PublicationResultCollection;
 import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.dto.SharingInstance;
-import org.folio.consortia.domain.dto.SharingPolicyDeleteResponse;
-import org.folio.consortia.domain.dto.SharingPolicyRequest;
-import org.folio.consortia.domain.dto.SharingPolicyResponse;
-import org.folio.consortia.domain.dto.SharingRoleCapabilitySetRequest;
-import org.folio.consortia.domain.dto.SharingRoleCapabilitySetResponse;
 import org.folio.consortia.domain.dto.SharingRoleDeleteResponse;
-import org.folio.consortia.domain.dto.SharingRoleRequest;
-import org.folio.consortia.domain.dto.SharingRoleResponse;
-import org.folio.consortia.domain.dto.SharingSettingDeleteResponse;
-import org.folio.consortia.domain.dto.SharingSettingRequest;
-import org.folio.consortia.domain.dto.SharingSettingResponse;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantCollection;
 import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
@@ -65,13 +54,25 @@ public class EntityUtils {
     "mockdata/sharing_role_capability_sets/sharing_role_capability_sets_request.json";
   public static final String SHARING_ROLE_CAPABILITY_SETS_WITHOUT_PAYLOAD_REQUEST_SAMPLE =
     "mockdata/sharing_role_capability_sets/sharing_role_capability_sets_request_without_payload.json";
+
   public static final String SHARING_ROLE_CAPABILITIES_REQUEST_SAMPLE =
     "mockdata/sharing_role_capabilities/sharing_role_capabilities_request.json";
   public static final String SHARING_ROLE_CAPABILITIES_WITHOUT_PAYLOAD_REQUEST_SAMPLE =
     "mockdata/sharing_role_capabilities/sharing_role_capabilities_request_without_payload.json";
-  public static final String SHARING_POLICY_REQUEST_SAMPLE_FOR_ROLES = "mockdata/sharing_policies/sharing_policy_request_for_roles.json";
-  public static final String SHARING_POLICY_REQUEST_SAMPLE_WITHOUT_PAYLOAD = "mockdata/sharing_policies/sharing_policy_request_without_payload.json";
 
+  public static final String SHARING_POLICY_REQUEST_SAMPLE_FOR_ROLES =
+    "mockdata/sharing_policies/sharing_policy_request_for_roles.json";
+  public static final String SHARING_POLICY_REQUEST_SAMPLE_WITHOUT_PAYLOAD =
+    "mockdata/sharing_policies/sharing_policy_request_without_payload.json";
+
+  public static final String SHARING_ROLE_REQUEST_SAMPLE =
+    "mockdata/sharing_roles/sharing_role_request.json";
+  public static final String SHARING_ROLE_REQUEST_SAMPLE_WITHOUT_PAYLOAD =
+    "mockdata/sharing_roles/sharing_role_request_without_payload.json";
+
+  public static final String SHARING_SETTING_REQUEST_SAMPLE_FOR_DEPARTMENT = "mockdata/sharing_settings/sharing_setting_request_for_department.json";
+  public static final String SHARING_SETTING_REQUEST_SAMPLE_FOR_GROUP = "mockdata/sharing_settings/sharing_setting_request_for_group.json";
+  public static final String SHARING_SETTING_REQUEST_SAMPLE_WITHOUT_PAYLOAD = "mockdata/sharing_settings/sharing_setting_request_without_payload.json";
 
   public static ConsortiumEntity createConsortiumEntity(String id, String name) {
     ConsortiumEntity consortiumEntity = new ConsortiumEntity();
@@ -298,42 +299,6 @@ public class EntityUtils {
     return entity;
   }
 
-  public static SharingSettingResponse createSharingSettingResponse(UUID createSettingsPcId, UUID updateSettingsPcId) {
-    return new SharingSettingResponse().createSettingsPCId(createSettingsPcId).updateSettingsPCId(updateSettingsPcId);
-  }
-
-  public static SharingSettingDeleteResponse createSharingSettingResponseForDelete(UUID pcId) {
-    return new SharingSettingDeleteResponse().pcId(pcId);
-  }
-
-  public static SharingPolicyResponse createSharingPolicyResponse(UUID createPolicyPcId, UUID updatePolicyPcId) {
-    return new SharingPolicyResponse().createPoliciesPCId(createPolicyPcId).updatePoliciesPCId(updatePolicyPcId);
-  }
-
-
-  public static SharingPolicyDeleteResponse createSharingPolicyResponseForDelete(UUID pcId) {
-    return new SharingPolicyDeleteResponse().pcId(pcId);
-  }
-
-  public static SharingRoleResponse createSharingRoleResponse(UUID createRolePcId, UUID updateRolePcId) {
-    return new SharingRoleResponse().createRolesPCId(createRolePcId).updateRolesPCId(updateRolePcId);
-  }
-
-  public static SharingRoleCapabilitySetResponse createSharingRoleCapabilitySetResponse(UUID createRoleCapabilitySetsPcId,
-                                                                           UUID updateRoleCapabilitySetsPcId) {
-    return new SharingRoleCapabilitySetResponse()
-      .createRoleCapabilitySetsPCId(createRoleCapabilitySetsPcId)
-      .updateRoleCapabilitySetsPCId(updateRoleCapabilitySetsPcId);
-  }
-
-  public static SharingRoleCapabilitySetResponse createSharingRoleCapabilityResponse(UUID createRoleCapabilitiesPcId,
-                                                                                     UUID updateRoleCapabilitiesPcId) {
-    return new SharingRoleCapabilitySetResponse()
-      .createRoleCapabilitySetsPCId(createRoleCapabilitiesPcId)
-      .updateRoleCapabilitySetsPCId(updateRoleCapabilitiesPcId);
-  }
-
-
   public static SharingRoleDeleteResponse createSharingRoleResponseForDelete(UUID pcId) {
     return new SharingRoleDeleteResponse().pcId(pcId);
   }
@@ -344,61 +309,6 @@ public class EntityUtils {
     tenantCollection.setTenants(tenants);
     tenantCollection.setTotalRecords(tenants.size());
     return tenantCollection;
-  }
-
-  public static PublicationRequest createPublicationRequest(SharingSettingRequest sharingPolicyRequest, String method){
-    PublicationRequest publicationRequest = new PublicationRequest();
-    publicationRequest.setUrl(sharingPolicyRequest.getUrl());
-    publicationRequest.setMethod(method);
-    final ObjectMapper mapper = new ObjectMapper();
-    final ObjectNode root = mapper.createObjectNode();
-    root.set("id", mapper.convertValue("1844767a-8367-4926-9999-514c35840399", JsonNode.class));
-    root.set("name", mapper.convertValue("ORG-NAME", JsonNode.class));
-    root.set("source", mapper.convertValue("consortium", JsonNode.class));
-    publicationRequest.setPayload(root);
-    return publicationRequest;
-  }
-
-  public static PublicationRequest createPublicationRequest(SharingPolicyRequest sharingPolicyRequest, String method){
-    PublicationRequest publicationRequest = new PublicationRequest();
-    publicationRequest.setUrl(sharingPolicyRequest.getUrl());
-    publicationRequest.setMethod(method);
-    final ObjectMapper mapper = new ObjectMapper();
-    final ObjectNode root = mapper.createObjectNode();
-    root.set("id", mapper.convertValue("2844767a-8367-4926-9999-514c35840399", JsonNode.class));
-    root.set("name", mapper.convertValue("Policy for role: 004d7a66-c51d-402a-9c9f-3bdcdbbcdbe7", JsonNode.class));
-    root.set("source", mapper.convertValue("consortium", JsonNode.class));
-    publicationRequest.setPayload(root);
-    return publicationRequest;
-  }
-
-  public static PublicationRequest createPublicationRequest(SharingRoleRequest sharingRoleRequest, String method){
-    PublicationRequest publicationRequest = new PublicationRequest();
-    publicationRequest.setUrl(sharingRoleRequest.getUrl());
-    publicationRequest.setMethod(method);
-    final ObjectMapper mapper = new ObjectMapper();
-    final ObjectNode root = mapper.createObjectNode();
-    root.set("id", mapper.convertValue("3844767a-8367-4926-9999-514c35840399", JsonNode.class));
-    root.set("name", mapper.convertValue("Role for policy: 104d7a66-c51d-402a-9c9f-3bdcdbbcdbe7", JsonNode.class));
-    root.set("type", mapper.convertValue("consortium", JsonNode.class));
-    publicationRequest.setPayload(root);
-    return publicationRequest;
-  }
-
-  public static PublicationRequest createPublicationRequest(SharingRoleCapabilitySetRequest request, String method){
-    var publicationRequest = new PublicationRequest();
-    publicationRequest.setUrl(request.getUrl());
-    publicationRequest.setMethod(method);
-    final ObjectMapper mapper = new ObjectMapper();
-    final ObjectNode root = mapper.createObjectNode();
-    var capabilitySetNames = mapper.createArrayNode();
-    capabilitySetNames.add("account_item.view");
-    capabilitySetNames.add("account_item.create");
-    root.set("roleId", mapper.convertValue("4844767a-8367-4926-9999-514c35840399", JsonNode.class));
-    root.set("capabilitySetNames", capabilitySetNames);
-    root.set("type", mapper.convertValue("consortium", JsonNode.class));
-    publicationRequest.setPayload(root);
-    return publicationRequest;
   }
 
   public static PublicationRequest createPublicationRequest(ObjectNode payload, HttpMethod method) {
@@ -435,7 +345,7 @@ public class EntityUtils {
     return pbd;
   }
 
-  public static ObjectNode createJsonNodeForDepartmentPayload() {
+  public static ObjectNode createPayloadForDepartment() {
     Map<String, String> payload = new HashMap<>();
     payload.put("id", "1844767a-8367-4926-9999-514c35840399");
     payload.put("name", "ORG-NAME");
@@ -444,7 +354,14 @@ public class EntityUtils {
     return mapper.convertValue(payload, ObjectNode.class);
   }
 
-  public static ObjectNode createJsonNodeForPolicyPayload() {
+  public static ObjectNode createPayloadForGroup() {
+    Map<String, String> payload = new HashMap<>();
+    payload.put("group", "space");
+    ObjectMapper mapper = new ObjectMapper();
+    return mapper.convertValue(payload, ObjectNode.class);
+  }
+
+  public static ObjectNode createPayloadForPolicy() {
     Map<String, String> payload = new HashMap<>();
     payload.put("id", "2844767a-8367-4926-9999-514c35840399");
     payload.put("name", "Policy for role: 004d7a66-c51d-402a-9c9f-3bdcdbbcdbe7");
@@ -453,10 +370,10 @@ public class EntityUtils {
     return mapper.convertValue(payload, ObjectNode.class);
   }
 
-  public static ObjectNode createJsonNodeForRolePayload() {
+  public static ObjectNode createPayloadForRole() {
     Map<String, String> payload = new HashMap<>();
     payload.put("id", "3844767a-8367-4926-9999-514c35840399");
-    payload.put("name", "Role for policy: 104d7a66-c51d-402a-9c9f-3bdcdbbcdbe7");
+    payload.put("name", "role names");
     payload.put("type", "local");
     ObjectMapper mapper = new ObjectMapper();
     return mapper.convertValue(payload, ObjectNode.class);
@@ -476,13 +393,6 @@ public class EntityUtils {
     payload.put("roleId", "5844767a-8367-4926-9999-514c35840399");
     payload.put("capabilityNames", List.of("account_item.view", "account_item.create"));
     payload.put("type", "local");
-    ObjectMapper mapper = new ObjectMapper();
-    return mapper.convertValue(payload, ObjectNode.class);
-  }
-
-  public static ObjectNode createJsonNodeForGroupPayload() {
-    Map<String, String> payload = new HashMap<>();
-    payload.put("group", "space");
     ObjectMapper mapper = new ObjectMapper();
     return mapper.convertValue(payload, ObjectNode.class);
   }

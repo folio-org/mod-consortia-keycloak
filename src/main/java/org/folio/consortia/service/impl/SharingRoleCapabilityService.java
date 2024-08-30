@@ -33,6 +33,8 @@ import java.util.UUID;
 public class SharingRoleCapabilityService extends BaseSharingService<SharingRoleCapabilityRequest,
   SharingRoleCapabilityResponse, SharingRoleCapabilityDeleteResponse, SharingRoleEntity> {
 
+  private static final String ID_FIELD = "roleId";
+
   private final SharingRoleRepository sharingRoleRepository;
 
   public SharingRoleCapabilityService(TenantService tenantService, ConsortiumService consortiumService,
@@ -58,7 +60,7 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
 
   @Override
   protected String getPayloadId(ObjectNode payload) {
-    return payload.get("roleId").asText();
+    return payload.get(ID_FIELD).asText();
   }
 
   @Override
@@ -71,7 +73,7 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
       throw new IllegalArgumentException("Payload must not be null");
     }
     if (!sharingRoleRepository.existsByRoleId(roleId)) {
-      throw new ResourceNotFoundException("roleId", String.valueOf(roleId));
+      throw new ResourceNotFoundException(ID_FIELD, String.valueOf(roleId));
     }
   }
 
