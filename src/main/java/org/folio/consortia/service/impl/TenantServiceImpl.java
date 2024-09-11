@@ -1,6 +1,5 @@
 package org.folio.consortia.service.impl;
 
-import static org.folio.consortia.utils.Constants.SYSTEM_USER_NAME;
 import static org.folio.consortia.utils.HelperUtils.checkIdenticalOrThrow;
 
 import java.util.List;
@@ -52,7 +51,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class TenantServiceImpl implements TenantService {
 
   private static final String SHADOW_ADMIN_PERMISSION_FILE_PATH = "permissions/admin-user-permissions.csv";
-  private static final String SHADOW_SYSTEM_USER_PERMISSION_FILE_PATH = "permissions/system-user-permissions.csv";
   private static final String TENANTS_IDS_NOT_MATCHED_ERROR_MSG = "Request body tenantId and path param tenantId should be identical";
 
   private static final String DUMMY_USERNAME = "dummy_user";
@@ -157,7 +155,6 @@ public class TenantServiceImpl implements TenantService {
     // save admin user tenant association for non-central tenant
     String centralTenantId;
     User shadowAdminUser = null;
-    User shadowSystemUser = null;
     if (tenantDto.getIsCentral()) {
       centralTenantId = tenantDto.getId();
     } else {
@@ -165,17 +162,10 @@ public class TenantServiceImpl implements TenantService {
       centralTenantId = getCentralTenantId();
       shadowAdminUser = userService.prepareShadowUser(adminUserId, folioExecutionContext.getTenantId());
       userTenantRepository.save(createUserTenantEntity(consortiumId, shadowAdminUser, tenantDto));
-      // creating shadow user of consortia system user of central tenant with same permissions.
-      var centralSystemUser = userService.getByUsername(SYSTEM_USER_NAME)
-        .orElseThrow(() -> new ResourceNotFoundException("systemUserUsername", SYSTEM_USER_NAME));
-      shadowSystemUser = userService.prepareShadowUser(UUID.fromString(centralSystemUser.getId()), folioExecutionContext.getTenantId());
-      userTenantRepository.save(createUserTenantEntity(consortiumId, shadowSystemUser, tenantDto));
     }
 
     var finalShadowAdminUser = shadowAdminUser;
-    var finalShadowSystemUser = shadowSystemUser;
     // switch to context of the desired tenant and apply all necessary setup
-
     var allHeaders = new CaseInsensitiveMap<>(folioExecutionContext.getOkapiHeaders());
     allHeaders.put("x-okapi-tenant", List.of(tenantDto.getId()));
     try (var ignored = new FolioExecutionContextSetter(folioExecutionContext.getFolioModuleMetadata(), allHeaders)) {
@@ -184,8 +174,6 @@ public class TenantServiceImpl implements TenantService {
         createUserTenantWithDummyUser(tenantDto.getId(), centralTenantId, consortiumId);
         createShadowUserWithPermissions(finalShadowAdminUser, SHADOW_ADMIN_PERMISSION_FILE_PATH); //NOSONAR
         log.info("save:: shadow admin user '{}' with permissions was created in tenant '{}'", finalShadowAdminUser.getId(), tenantDto.getId());
-        createShadowUserWithPermissions(finalShadowSystemUser, SHADOW_SYSTEM_USER_PERMISSION_FILE_PATH);
-        log.info("save:: shadow system user '{}' with permissions was created in tenant '{}'", finalShadowSystemUser.getId(), tenantDto.getId());
       }
       syncPrimaryAffiliationClient.syncPrimaryAffiliations(consortiumId.toString(), tenantDto.getId(), centralTenantId);
     }
