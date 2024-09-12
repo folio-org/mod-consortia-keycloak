@@ -23,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-public class FolioTenantControllerTest extends BaseIT {
+class FolioTenantControllerTest extends BaseIT {
 
   @MockBean
   CustomFieldService customFieldService;
