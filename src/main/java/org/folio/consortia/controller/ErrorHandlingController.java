@@ -6,6 +6,7 @@ import java.util.Objects;
 import org.folio.consortia.domain.dto.Error;
 import org.folio.consortia.domain.dto.Errors;
 import org.folio.consortia.exception.ConsortiumClientException;
+import org.folio.consortia.exception.CustomFieldCreationException;
 import org.folio.consortia.exception.InvalidTokenException;
 import org.folio.consortia.exception.UserAffiliationException;
 import org.folio.consortia.exception.PublicationException;
@@ -123,4 +124,10 @@ public class ErrorHandlingController {
     return new Errors().errors(errorList);
   }
 
+  @ExceptionHandler(CustomFieldCreationException.class)
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  public Errors handleCustomFieldCreationException(Exception e) {
+    log.error("Handle custom field creation exception", e);
+    return ErrorHelper.createInternalError(e.getMessage(), ErrorCode.INTERNAL_ERROR);
+  }
 }
