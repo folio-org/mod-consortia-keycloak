@@ -50,7 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class TenantServiceImpl implements TenantService {
 
-  private static final String SHADOW_ADMIN_PERMISSION_FILE_PATH = "permissions/admin-user-permission-sets.csv";
+  private static final String SHADOW_ADMIN_PERMISSION_SETS_FILE_PATH = "permissions/admin-user-permission-sets.csv";
   private static final String TENANTS_IDS_NOT_MATCHED_ERROR_MSG = "Request body tenantId and path param tenantId should be identical";
 
   private static final String DUMMY_USERNAME = "dummy_user";
@@ -369,7 +369,7 @@ public class TenantServiceImpl implements TenantService {
     if (Objects.isNull(userOptional.getId())) {
       userOptional = userService.createUser(user);
     }
-    permissionUserService.createWithPermissionSetsFromFile(userOptional.getId(), SHADOW_ADMIN_PERMISSION_FILE_PATH);
+    permissionUserService.createWithPermissionSetsFromFile(userOptional.getId(), SHADOW_ADMIN_PERMISSION_SETS_FILE_PATH);
   }
 
   private UserTenantEntity createUserTenantEntity(UUID consortiumId, User user, Tenant tenant) {

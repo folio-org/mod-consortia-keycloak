@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "user-capability-sets-client", url = "users", configuration = FeignClientConfiguration.class)
+@FeignClient(name = "user-capability-sets", url = "users", configuration = FeignClientConfiguration.class)
 public interface UserCapabilitySetsClient {
 
   @PutMapping("/{userId}/capability-sets")

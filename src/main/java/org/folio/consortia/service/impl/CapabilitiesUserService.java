@@ -91,7 +91,7 @@ public class CapabilitiesUserService implements PermissionUserService {
 
   private void assignPermissionSets(String userId, List<String> permissionSets) {
     log.info("Resolving capabilities by permission sets: {}", permissionSets);
-    var capabilitySets = findCapabilitiesByPermissionSets(permissionSets);
+    var capabilitySets = findCapabilitySetsByPermissionSets(permissionSets);
     if (CollectionUtils.isEmpty(capabilitySets)) {
       log.warn("No capability sets found");
       return;
@@ -135,7 +135,7 @@ public class CapabilitiesUserService implements PermissionUserService {
    * @param permissionSets permission sets
    * @return List of capability sets
    */
-  private List<CapabilitySet> findCapabilitiesByPermissionSets(List<String> permissionSets) {
+  private List<CapabilitySet> findCapabilitySetsByPermissionSets(List<String> permissionSets) {
     return loadInBatches(permissionSets, permissionsBatch ->
       queryCapabilitySets(permissionsBatch).getCapabilitySets(), CAPABILITY_SET_BATCH_SIZE);
   }
