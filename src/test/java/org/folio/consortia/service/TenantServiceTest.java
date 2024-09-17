@@ -1,5 +1,6 @@
 package org.folio.consortia.service;
 
+import static org.folio.consortia.service.impl.CustomFieldServiceImpl.ORIGINAL_TENANT_ID_CUSTOM_FIELD;
 import static org.folio.consortia.support.EntityUtils.TENANT_ID;
 import static org.folio.consortia.support.EntityUtils.createConsortiaConfiguration;
 import static org.folio.consortia.support.EntityUtils.createOkapiHeaders;
@@ -16,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.PermissionsClient;
 import org.folio.consortia.client.SyncPrimaryAffiliationClient;
@@ -132,6 +134,8 @@ class TenantServiceTest {
   private LockService lockService;
   @Mock
   private ExecutionContextBuilder executionContextBuilder;
+  @Mock
+  private CustomFieldService customFieldService;
 
   @Test
   void shouldGetTenantList() {
@@ -196,9 +200,13 @@ class TenantServiceTest {
     doNothing().when(configurationClient).saveConfiguration(createConsortiaConfiguration(TENANT_ID));
     doNothing().when(userTenantsClient).postUserTenant(any());
     when(conversionService.convert(localTenantDetailsEntity, Tenant.class)).thenReturn(tenant);
-    doAnswer(TenantServiceTest::runSecondArgument)
-      .when(systemUserScopedExecutionService).executeAsyncSystemUserScoped(anyString(), any());
     when(folioExecutionContext.getTenantId()).thenReturn(TENANT_ID);
+    when(customFieldService.getCustomFieldByName("originalTenantId")).thenReturn(ORIGINAL_TENANT_ID_CUSTOM_FIELD);
+    when(systemUserScopedExecutionService.executeSystemUserScoped(eq("TestID"), any(Callable.class)))
+      .thenAnswer(invocation -> {
+        Callable<?> action = invocation.getArgument(1);
+        return action.call();
+      });
 
     var tenant1 = tenantService.save(consortiumId, UUID.fromString(adminUser.getId()), tenant);
 
@@ -210,6 +218,8 @@ class TenantServiceTest {
     verify(userService, times(2)).createUser(any());
     verify(userService, times(1)).getByUsername(any());
     verify(lockService).lockTenantSetupWithinTransaction();
+    verify(systemUserScopedExecutionService).executeSystemUserScoped(eq("TestID"), any());
+    verify(customFieldService, never()).createCustomField(any());
 
     assertEquals(tenant, tenant1);
   }
@@ -239,8 +249,6 @@ class TenantServiceTest {
     doNothing().when(configurationClient).saveConfiguration(createConsortiaConfiguration(TENANT_ID));
     doNothing().when(userTenantsClient).postUserTenant(any());
     when(conversionService.convert(tenantDetailsEntity, Tenant.class)).thenReturn(tenant);
-    doAnswer(TenantServiceTest::runSecondArgument)
-      .when(systemUserScopedExecutionService).executeAsyncSystemUserScoped(anyString(), any());
     when(folioExecutionContext.getTenantId()).thenReturn("diku");
     Map<String, Collection<String>> okapiHeaders = new HashMap<>();
     okapiHeaders.put(XOkapiHeaders.TENANT, List.of("diku"));
@@ -248,6 +256,12 @@ class TenantServiceTest {
     when(usersClient.getUserCollection(anyString(), anyInt(), anyInt())).thenReturn(userCollection);
     doReturn(folioExecutionContext).when(executionContextBuilder).buildContext(anyString());
     mockOkapiHeaders();
+    when(customFieldService.getCustomFieldByName("originalTenantId")).thenReturn(null);
+    when(systemUserScopedExecutionService.executeSystemUserScoped(eq("TestID"), any(Callable.class)))
+      .thenAnswer(invocation -> {
+        Callable<?> action = invocation.getArgument(1);
+        return action.call();
+      });
 
     var tenant1 = tenantService.save(consortiumId, UUID.randomUUID(), tenant);
 
@@ -259,6 +273,8 @@ class TenantServiceTest {
     verify(userTenantsClient, never()).postUserTenant(any());
     verify(userService, never()).createUser(any());
     verify(permissionUserService, never()).createWithPermissionsFromFile(any(), any());
+    verify(systemUserScopedExecutionService).executeSystemUserScoped(eq("TestID"), any());
+    verify(customFieldService).createCustomField(ORIGINAL_TENANT_ID_CUSTOM_FIELD);
 
     assertEquals(tenant, tenant1);
   }

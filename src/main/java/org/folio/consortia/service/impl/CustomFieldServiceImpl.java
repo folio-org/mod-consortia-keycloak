@@ -7,6 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import org.folio.consortia.client.CustomFieldsClient;
 import org.folio.consortia.config.property.RelatedModulesProperties;
 import org.folio.consortia.domain.dto.CustomField;
+import org.folio.consortia.domain.dto.CustomFieldType;
 import org.folio.consortia.service.CustomFieldService;
 import org.springframework.stereotype.Service;
 
@@ -15,9 +16,17 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CustomFieldServiceImpl implements CustomFieldService {
 
-  private final CustomFieldsClient customFieldsClient;
-  private static final String QUERY_PATTERN_NAME = "name==%s";
+  public static final String ORIGINAL_TENANT_ID_NAME = "originalTenantId";
+  public static final CustomField ORIGINAL_TENANT_ID_CUSTOM_FIELD = CustomField.builder()
+    .name(ORIGINAL_TENANT_ID_NAME)
+    .entityType("user")
+    .helpText("Id of tenant where user created originally")
+    .customFieldType(CustomFieldType.TEXTBOX_LONG)
+    .visible(false)
+    .build();
 
+  private static final String QUERY_PATTERN_NAME = "name==%s";
+  private final CustomFieldsClient customFieldsClient;
   private final RelatedModulesProperties relatedModulesProperties;
 
   @Override
