@@ -8,7 +8,6 @@ import static org.folio.consortia.support.EntityUtils.createTenant;
 import static org.folio.consortia.support.EntityUtils.createTenantDetailsEntity;
 import static org.folio.consortia.support.EntityUtils.createTenantEntity;
 import static org.folio.consortia.support.EntityUtils.createUser;
-import static org.folio.consortia.utils.Constants.SYSTEM_USER_NAME;
 import static org.folio.consortia.utils.InputOutputTestUtils.getMockDataAsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -183,12 +182,9 @@ class TenantServiceTest {
     PermissionUserCollection permissionUserCollection = new PermissionUserCollection();
     permissionUserCollection.setPermissionUsers(List.of());
     User adminUser = createUser("diku_admin");
-    User systemUser = createUser(SYSTEM_USER_NAME);
 
     when(consortiumRepository.existsById(consortiumId)).thenReturn(true);
-    when(userService.getByUsername(any())).thenReturn(Optional.of(systemUser));
     when(userService.prepareShadowUser(UUID.fromString(adminUser.getId()), "diku")).thenReturn(adminUser);
-    when(userService.prepareShadowUser(UUID.fromString(systemUser.getId()), "diku")).thenReturn(systemUser);
     when(userService.createUser(any())).thenReturn(adminUser);
     when(userService.getById(any())).thenReturn(new User());
     when(permissionsClient.get(any())).thenReturn(permissionUserCollection);
@@ -211,12 +207,10 @@ class TenantServiceTest {
     var tenant1 = tenantService.save(consortiumId, UUID.fromString(adminUser.getId()), tenant);
 
     verify(userService, times(1)).prepareShadowUser(UUID.fromString(adminUser.getId()), "diku");
-    verify(userService, times(1)).prepareShadowUser(UUID.fromString(adminUser.getId()), "diku");
-    verify(userTenantRepository, times(2)).save(any());
+    verify(userTenantRepository, times(1)).save(any());
     verify(configurationClient).saveConfiguration(any());
     verify(userTenantsClient).postUserTenant(any());
-    verify(userService, times(2)).createUser(any());
-    verify(userService, times(1)).getByUsername(any());
+    verify(userService, times(1)).createUser(any());
     verify(lockService).lockTenantSetupWithinTransaction();
     verify(systemUserScopedExecutionService).executeSystemUserScoped(eq("TestID"), any());
     verify(customFieldService, never()).createCustomField(any());
@@ -275,6 +269,7 @@ class TenantServiceTest {
     verify(permissionUserService, never()).createWithPermissionsFromFile(any(), any());
     verify(systemUserScopedExecutionService).executeSystemUserScoped(eq("TestID"), any());
     verify(customFieldService).createCustomField(ORIGINAL_TENANT_ID_CUSTOM_FIELD);
+    verify(permissionUserService, never()).createWithPermissionSetsFromFile(any(), any());
 
     assertEquals(tenant, tenant1);
   }

@@ -3,14 +3,11 @@ package org.folio.consortia.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.folio.consortia.base.BaseIT.asJsonString;
-import static org.folio.consortia.support.TestConstants.USER_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,15 +18,15 @@ import java.util.List;
 import java.util.UUID;
 import org.folio.common.domain.model.error.Error;
 import org.folio.common.domain.model.error.ErrorResponse;
-import org.folio.common.utils.CqlQuery;
-import org.folio.consortia.client.CapabilitiesClient;
+import org.folio.consortia.client.CapabilitySetsClient;
 import org.folio.consortia.client.UserCapabilitiesClient;
+import org.folio.consortia.client.UserCapabilitySetsClient;
 import org.folio.consortia.client.UserPermissionsClient;
-import org.folio.consortia.domain.dto.Capabilities;
-import org.folio.consortia.domain.dto.Capability;
+import org.folio.consortia.domain.dto.CapabilitySet;
+import org.folio.consortia.domain.dto.CapabilitySets;
 import org.folio.consortia.domain.dto.PermissionUser;
 import org.folio.consortia.domain.dto.User;
-import org.folio.consortia.domain.dto.UserCapabilitiesRequest;
+import org.folio.consortia.domain.dto.UserCapabilitySetsRequest;
 import org.folio.consortia.service.impl.CapabilitiesUserService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -47,9 +44,11 @@ class CapabilitiesUserServiceTest {
   @InjectMocks
   CapabilitiesUserService capabilitiesUserService;
   @Mock
-  CapabilitiesClient capabilitiesClient;
+  CapabilitySetsClient capabilitySetsClient;
   @Mock
   UserCapabilitiesClient userCapabilitiesClient;
+  @Mock
+  UserCapabilitySetsClient userCapabilitySetsClient;
   @Mock
   UserPermissionsClient userPermissionsClient;
   @Mock
@@ -58,40 +57,10 @@ class CapabilitiesUserServiceTest {
   FeignException feignException;
 
   @Test
-  void shouldThrowErrorForEmptyPermissionFileWhileAdding() {
-    PermissionUser permissionUser = PermissionUser.of(UUID.randomUUID().toString(), USER_ID.toString(), List.of());
-
-    Assertions.assertThrows(java.lang.IllegalStateException.class,
-      () -> capabilitiesUserService.addPermissions(permissionUser, EMPTY_PERMISSIONS_FILE_PATH));
-  }
-
-  @Test
   void shouldThrowErrorForEmptyPermissionFileWhileCreating() {
     Assertions.assertThrows(java.lang.IllegalStateException.class,
-      () -> capabilitiesUserService.createWithPermissionsFromFile(UUID.randomUUID().toString(),
+      () -> capabilitiesUserService.createWithPermissionSetsFromFile(UUID.randomUUID().toString(),
         EMPTY_PERMISSIONS_FILE_PATH));
-  }
-
-  @Test
-  void shouldAddPermissionsToPermissionUser() {
-    PermissionUser permissionUser = PermissionUser.of(UUID.randomUUID().toString(), USER_ID.toString(), List.of());
-
-    var capabilities = new Capabilities().addCapabilitiesItem(new Capability());
-    when(capabilitiesClient.queryCapabilities(any(), anyInt(), anyInt())).thenReturn(capabilities);
-    doNothing().when(userCapabilitiesClient).assignUserCapabilities(any(), any());
-    Assertions.assertDoesNotThrow(() -> capabilitiesUserService.addPermissions(permissionUser, PERMISSIONS_FILE_PATH));
-  }
-
-  @Test
-  void addPermissions_negative_capabilityNotFound() {
-    PermissionUser permissionUser = PermissionUser.of(UUID.randomUUID().toString(), USER_ID.toString(), List.of());
-
-    var query = CqlQuery.exactMatchAny("permission", List.of("ui-users.editperms")).toString();
-    when(capabilitiesClient.queryCapabilities(query, 50, 0)).thenReturn(new Capabilities());
-
-    capabilitiesUserService.addPermissions(permissionUser, PERMISSIONS_FILE_PATH);
-
-    verify(userCapabilitiesClient, never()).assignUserCapabilities(any(), any());
   }
 
   @Test
@@ -123,21 +92,21 @@ class CapabilitiesUserServiceTest {
   void createWithPermissionsFromFile_positive_alreadyAssigned() throws JsonProcessingException {
     var errorResponse = nothingToUpdateError();
     var user = user();
-    var capabilityId = UUID.randomUUID();
-    var capabilityIds = List.of(capabilityId);
-    var capabilities = new Capabilities().addCapabilitiesItem(new Capability().id(capabilityId));
+    var capabilitySetId = UUID.randomUUID();
+    var capabilitySetIds = List.of(capabilitySetId);
+    var capabilities = new CapabilitySets().addCapabilitySetsItem(new CapabilitySet().id(capabilitySetId));
     var userId = user.getId();
-    var expectedRequest = userCapabilityRequest(userId, capabilityIds);
+    var expectedRequest = userCapabilitySetsRequest(userId, capabilitySetIds);
 
-    when(capabilitiesClient.queryCapabilities(any(), anyInt(), anyInt())).thenReturn(capabilities);
+    when(capabilitySetsClient.queryCapabilitySets(any(), anyInt(), anyInt())).thenReturn(capabilities);
     when(objectMapper.readValue(anyString(), eq(ErrorResponse.class))).thenReturn(errorResponse);
     when(feignException.contentUTF8()).thenReturn(asJsonString(errorResponse));
-    doThrow(feignException).when(userCapabilitiesClient).assignUserCapabilities(userId, expectedRequest);
+    doThrow(feignException).when(userCapabilitySetsClient).assignUserCapabilitySets(userId, expectedRequest);
 
-    capabilitiesUserService.createWithPermissionsFromFile(userId, PERMISSIONS_FILE_PATH);
+    capabilitiesUserService.createWithPermissionSetsFromFile(userId, PERMISSIONS_FILE_PATH);
 
     verify(objectMapper).readValue(anyString(), eq(ErrorResponse.class));
-    verify(userCapabilitiesClient).assignUserCapabilities(userId, expectedRequest);
+    verify(userCapabilitySetsClient).assignUserCapabilitySets(userId, expectedRequest);
   }
 
   @Test
@@ -146,22 +115,22 @@ class CapabilitiesUserServiceTest {
       .addErrorsItem(new Error().message("failure1"))
       .totalRecords(1);
     var user = user();
-    var capabilityId = UUID.randomUUID();
-    var capabilityIds = List.of(capabilityId);
-    var capabilities = new Capabilities().addCapabilitiesItem(new Capability().id(capabilityId));
+    var capabilitySetId = UUID.randomUUID();
+    var capabilitySetIds = List.of(capabilitySetId);
+    var capabilitySets = new CapabilitySets().addCapabilitySetsItem(new CapabilitySet().id(capabilitySetId));
     var userId = user.getId();
-    var expectedRequest = userCapabilityRequest(userId, capabilityIds);
+    var expectedRequest = userCapabilitySetsRequest(userId, capabilitySetIds);
 
-    when(capabilitiesClient.queryCapabilities(any(), anyInt(), anyInt())).thenReturn(capabilities);
+    when(capabilitySetsClient.queryCapabilitySets(any(), anyInt(), anyInt())).thenReturn(capabilitySets);
     when(objectMapper.readValue(anyString(), eq(ErrorResponse.class))).thenReturn(errorResponse);
     when(feignException.contentUTF8()).thenReturn(asJsonString(new ErrorResponse()));
-    doThrow(feignException).when(userCapabilitiesClient).assignUserCapabilities(userId, expectedRequest);
+    doThrow(feignException).when(userCapabilitySetsClient).assignUserCapabilitySets(userId, expectedRequest);
 
-    assertThatThrownBy(() -> capabilitiesUserService.createWithPermissionsFromFile(userId, PERMISSIONS_FILE_PATH))
+    assertThatThrownBy(() -> capabilitiesUserService.createWithPermissionSetsFromFile(userId, PERMISSIONS_FILE_PATH))
       .isInstanceOf(FeignException.class);
 
     verify(objectMapper).readValue(anyString(), eq(ErrorResponse.class));
-    verify(userCapabilitiesClient).assignUserCapabilities(userId, expectedRequest);
+    verify(userCapabilitySetsClient).assignUserCapabilitySets(userId, expectedRequest);
   }
 
   private static ErrorResponse nothingToUpdateError() {
@@ -175,7 +144,7 @@ class CapabilitiesUserServiceTest {
       .username("test-username");
   }
 
-  private static UserCapabilitiesRequest userCapabilityRequest(String userId, List<UUID> capabilityIds) {
-    return new UserCapabilitiesRequest().userId(userId).capabilityIds(capabilityIds);
+  private static UserCapabilitySetsRequest userCapabilitySetsRequest(String userId, List<UUID> capabilitySetIds) {
+    return new UserCapabilitySetsRequest().userId(userId).capabilitySetIds(capabilitySetIds);
   }
 }
