@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -504,6 +505,23 @@ class TenantServiceTest {
 
     assertThrows(ResourceNotFoundException.class, () ->
       tenantService.getTenantDetailsById(consortiumId, TENANT_ID));
+  }
+
+  @Test
+  void shouldThrowExceptionWhileAddingTenant_customFieldCreationError() {
+    UUID consortiumId = UUID.randomUUID();
+    Tenant tenant = createTenant("TestID", "Test");
+    User adminUser = createUser("diku_admin");
+
+    when(customFieldService.getCustomFieldByName("originalTenantId")).thenReturn(null);
+    when(systemUserScopedExecutionService.executeSystemUserScoped(eq("TestID"), any(Callable.class)))
+      .thenAnswer(invocation -> {
+        Callable<?> action = invocation.getArgument(1);
+        return action.call();
+      });
+    doThrow(new RuntimeException("Error")).when(customFieldService).createCustomField(ORIGINAL_TENANT_ID_CUSTOM_FIELD);
+
+    assertThrows(RuntimeException.class, () -> tenantService.save(consortiumId, UUID.fromString(adminUser.getId()), tenant));
   }
 
   private void mockOkapiHeaders() {
