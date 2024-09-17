@@ -37,17 +37,17 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import org.folio.consortia.base.BaseIT;
-import org.folio.consortia.client.CapabilitiesClient;
+import org.folio.consortia.client.CapabilitySetsClient;
 import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.SyncPrimaryAffiliationClient;
-import org.folio.consortia.client.UserCapabilitiesClient;
+import org.folio.consortia.client.UserCapabilitySetsClient;
 import org.folio.consortia.client.UserPermissionsClient;
 import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.client.UsersClient;
 import org.folio.consortia.client.UsersKeycloakClient;
 import org.folio.consortia.config.kafka.KafkaService;
-import org.folio.consortia.domain.dto.Capabilities;
-import org.folio.consortia.domain.dto.Capability;
+import org.folio.consortia.domain.dto.CapabilitySet;
+import org.folio.consortia.domain.dto.CapabilitySets;
 import org.folio.consortia.domain.dto.PermissionUser;
 import org.folio.consortia.domain.dto.PermissionUserCollection;
 import org.folio.consortia.domain.dto.SyncPrimaryAffiliationBody;
@@ -120,9 +120,9 @@ class TenantControllerTest extends BaseIT {
   @Mock
   FolioExecutionContext folioExecutionContext = new FolioExecutionContext() {};
   @MockBean
-  CapabilitiesClient capabilitiesClient;
+  CapabilitySetsClient capabilitySetsClient;
   @MockBean
-  UserCapabilitiesClient userCapabilitiesClient;
+  UserCapabilitySetsClient userCapabilitySetsClient;
   @MockBean
   UserPermissionsClient userPermissionsClient;
   @MockBean
@@ -185,8 +185,8 @@ class TenantControllerTest extends BaseIT {
     when(userService.prepareShadowUser(UUID.fromString(systemUser.getId()), TENANT)).thenReturn(systemUser);
     when(userService.getById(any())).thenReturn(adminUser);
     doReturn(new User()).when(usersKeycloakClient).getUsersByUserId(any());
-    doReturn(getCapabilities()).when(capabilitiesClient).queryCapabilities(anyString(), anyInt(), anyInt());
-    doNothing().when(userCapabilitiesClient).assignUserCapabilities(anyString(), any());
+    doReturn(getCapabilitySets()).when(capabilitySetsClient).queryCapabilitySets(anyString(), anyInt(), anyInt());
+    doNothing().when(userCapabilitySetsClient).assignUserCapabilitySets(anyString(), any());
     when(consortiumRepository.existsById(any())).thenReturn(true);
     when(tenantRepository.existsById(any())).thenReturn(false);
     when(tenantDetailsRepository.save(any(TenantDetailsEntity.class))).thenReturn(tenantDetailsEntity);
@@ -501,7 +501,7 @@ class TenantControllerTest extends BaseIT {
       .andExpectAll(status().isNoContent());
   }
 
-  private static Capabilities getCapabilities() {
-    return new Capabilities().addCapabilitiesItem(new Capability().id(UUID.randomUUID()).permission("test.permission"));
+  private static CapabilitySets getCapabilitySets() {
+    return new CapabilitySets().addCapabilitySetsItem(new CapabilitySet().id(UUID.randomUUID()).permission("test.permission"));
   }
 }

@@ -73,7 +73,6 @@ folio:
     username: ${SYSTEM_USER_NAME:consortia-system-user}
     password: ${SYSTEM_USER_PASSWORD}
     lastname: SystemConsortia
-    permissionsFilePath: permissions/system-user-permissions.csv
   timer:
     publication-records-max-age-in-seconds: 86400
   max-active-threads: 5
@@ -97,6 +96,3 @@ logging:
     liquibase: info
 related-modules:
   mod-users-id: ${MOD_USERS_ID}
-custom-fields:
-  backoff-delay: ${CUSTOM_FIELDS_RETRY_BACKOFF_DELAY:5000}
-  max-attempts: ${CUSTOM_FIELDS_RETRY_MAX_ATTEMPTS:5}
