@@ -1,5 +1,9 @@
 package org.folio.consortia.service.impl;
 
+import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
+import static org.folio.consortia.service.impl.CustomFieldServiceImpl.ORIGINAL_TENANT_ID_CUSTOM_FIELD;
+import static org.folio.consortia.service.impl.CustomFieldServiceImpl.ORIGINAL_TENANT_ID_NAME;
+import static org.folio.consortia.utils.Constants.SYSTEM_USER_NAME;
 import static org.folio.consortia.utils.HelperUtils.checkIdenticalOrThrow;
 
 import java.util.List;
@@ -30,6 +34,7 @@ import org.folio.consortia.repository.TenantRepository;
 import org.folio.consortia.repository.UserTenantRepository;
 import org.folio.consortia.service.CleanupService;
 import org.folio.consortia.service.ConsortiumService;
+import org.folio.consortia.service.CustomFieldService;
 import org.folio.consortia.service.LockService;
 import org.folio.consortia.service.PermissionUserService;
 import org.folio.consortia.service.TenantService;
@@ -39,6 +44,7 @@ import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.context.ExecutionContextBuilder;
 import org.folio.spring.data.OffsetRequest;
 import org.folio.spring.scope.FolioExecutionContextSetter;
+import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -69,6 +75,8 @@ public class TenantServiceImpl implements TenantService {
   private final SyncPrimaryAffiliationClient syncPrimaryAffiliationClient;
   private final CleanupService cleanupService;
   private final LockService lockService;
+  private final SystemUserScopedExecutionService systemUserScopedExecutionService;
+  private final CustomFieldService customFieldService;
 
   @Override
   public TenantCollection get(UUID consortiumId, Integer offset, Integer limit) {
@@ -119,11 +127,26 @@ public class TenantServiceImpl implements TenantService {
     validateConsortiumAndTenantForSaveOperation(consortiumId, tenantDto);
     validateCodeAndNameUniqueness(tenantDto);
 
+    createCustomFieldIdNeeded(tenantDto.getId());
+
     var existingTenant = tenantRepository.findById(tenantDto.getId());
 
     // checked whether tenant exists or not.
     return existingTenant.isPresent() ? reAddSoftDeletedTenant(consortiumId, existingTenant.get(), tenantDto)
       : addNewTenant(consortiumId, tenantDto, adminUserId);
+  }
+
+  private void createCustomFieldIdNeeded(String tenant) {
+    systemUserScopedExecutionService.executeSystemUserScoped(tenant, () -> {
+        if (isNotEmpty(customFieldService.getCustomFieldByName(ORIGINAL_TENANT_ID_NAME))) {
+          log.info("createOriginalTenantIdCustomField:: custom-field already available in tenant {} with name {}",
+            tenant, ORIGINAL_TENANT_ID_NAME);
+        } else {
+          customFieldService.createCustomField(ORIGINAL_TENANT_ID_CUSTOM_FIELD);
+        }
+        return null;
+      }
+    );
   }
 
   private Tenant reAddSoftDeletedTenant(UUID consortiumId, TenantEntity existingTenant, Tenant tenantDto) {

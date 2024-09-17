@@ -103,5 +103,3 @@ requires and provides, the permissions, and the additional module metadata.
 | ENV                               |         folio         | Logical name of the deployment, must be set if Kafka/Elasticsearch are shared for environments, `a-z (any case)`, `0-9`, `-`, `_` symbols only allowed     |
 | MOD_USERS_ID                      |           -           | ID of `mod-users` module that is used for `custom-fields` interface                                                                                        |
 | OKAPI_URL                         |  http://sidecar:8081  | Okapi url                                                                                                                                                  | |
-| CUSTOM_FIELDS_RETRY_BACKOFF_DELAY |         5000          | Custom fields retry backoff delay creation in milliseconds.                                                                                                |
-| CUSTOM_FIELDS_RETRY_MAX_RETRIES   |           5           | Custom fields retry max attempts creation in milliseconds.                                                                                                 |
