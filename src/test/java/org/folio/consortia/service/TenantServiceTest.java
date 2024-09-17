@@ -266,7 +266,6 @@ class TenantServiceTest {
     verify(userTenantRepository, never()).save(any());
     verify(userTenantsClient, never()).postUserTenant(any());
     verify(userService, never()).createUser(any());
-    verify(permissionUserService, never()).createWithPermissionsFromFile(any(), any());
     verify(systemUserScopedExecutionService).executeSystemUserScoped(eq("TestID"), any());
     verify(customFieldService).createCustomField(ORIGINAL_TENANT_ID_CUSTOM_FIELD);
     verify(permissionUserService, never()).createWithPermissionSetsFromFile(any(), any());
