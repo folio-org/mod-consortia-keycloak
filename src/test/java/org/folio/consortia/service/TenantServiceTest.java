@@ -512,9 +512,4 @@ class TenantServiceTest {
     Map<String, Collection<String>> okapiHeaders = createOkapiHeaders();
     when(folioExecutionContext.getOkapiHeaders()).thenReturn(okapiHeaders);
   }
-
-  private static Object runSecondArgument(InvocationOnMock invocation) {
-    invocation.<Runnable>getArgument(1).run();
-    return null;
-  }
 }

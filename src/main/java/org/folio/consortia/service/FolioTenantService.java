@@ -7,11 +7,9 @@ import liquibase.exception.UnexpectedLiquibaseException;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.BooleanUtils;
 import org.folio.consortia.config.kafka.KafkaService;
-import org.folio.consortia.config.property.CustomFieldsRetryProperties;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.exception.TenantUpgradeException;
 import org.folio.spring.liquibase.FolioSpringLiquibase;
-import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.folio.spring.service.TenantService;
 import org.folio.tenant.domain.dto.TenantAttributes;
 import org.springframework.context.annotation.Primary;
@@ -28,25 +26,16 @@ public class FolioTenantService extends TenantService {
   private static final String TENANT_NAME_PARAMETER = "tenantname";
 
   private final KafkaService kafkaService;
-  private final CustomFieldService customFieldService;
   private final FolioExecutionContext folioExecutionContext;
-  private final SystemUserScopedExecutionService systemUserScopedExecutionService;
-  private final CustomFieldsRetryProperties customFieldsRetryProperties;
 
   public FolioTenantService(JdbcTemplate jdbcTemplate,
                             KafkaService kafkaService,
                             FolioExecutionContext context,
                             FolioSpringLiquibase folioSpringLiquibase,
-                            CustomFieldService customFieldService,
-                            FolioExecutionContext folioExecutionContext,
-                            SystemUserScopedExecutionService systemUserScopedExecutionService,
-                            CustomFieldsRetryProperties customFieldsRetryProperties) {
+                            FolioExecutionContext folioExecutionContext) {
     super(jdbcTemplate, context, folioSpringLiquibase);
     this.kafkaService = kafkaService;
-    this.customFieldService = customFieldService;
     this.folioExecutionContext = folioExecutionContext;
-    this.systemUserScopedExecutionService = systemUserScopedExecutionService;
-    this.customFieldsRetryProperties = customFieldsRetryProperties;
   }
 
   /*
