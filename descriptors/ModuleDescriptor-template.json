@@ -625,6 +625,10 @@
       "permissionName": "consortia.inventory.update.ownership",
       "displayName": "Inventory: Update ownership",
       "description": "Inventory: Update ownership",
+      "subPermissions": [
+        "inventory.holdings.update-ownership.item.post",
+        "inventory.items.update-ownership.item.post"
+      ],
       "visible": true
     },
     {
