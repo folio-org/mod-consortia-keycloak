@@ -1,3 +1,7 @@
+## Version `v1.4.5` (in progress)
+### Changes:
+* Moved custom field creation to save tenant operation (MODCONSKC-32)
+
 ## Version `v1.4.4` (30.08.2024)
 ### Changes:
 * Sync mod-consortia merged PRs with mod-consortia-keycloak (MODCONSKC-25)

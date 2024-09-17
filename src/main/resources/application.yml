@@ -97,6 +97,3 @@ logging:
     liquibase: info
 related-modules:
   mod-users-id: ${MOD_USERS_ID}
-custom-fields:
-  backoff-delay: ${CUSTOM_FIELDS_RETRY_BACKOFF_DELAY:5000}
-  max-attempts: ${CUSTOM_FIELDS_RETRY_MAX_ATTEMPTS:5}
