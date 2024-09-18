@@ -6,11 +6,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum SourceValues {
-  CONSORTIUM_FOLIO_INSTANCE("CONSORTIUM-FOLIO"),
-  CONSORTIUM_MARC_INSTANCE("CONSORTIUM-MARC"),
-  CONSORTIUM_LINKED_DATA_INSTANCE("CONSORTIUM-LINKED_DATA"),
-  CONSORTIUM("consortium"),
-  USER("user");
+  CONSORTIUM("CONSORTIUM", "CONSORTIUM", "consortium"),
+  USER("USER", "REGULAR", "user");
 
-  private final String value;
+  private final String policyValue, roleValue, settingValue;
 }

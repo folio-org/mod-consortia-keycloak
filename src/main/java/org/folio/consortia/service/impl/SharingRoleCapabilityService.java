@@ -8,6 +8,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.domain.dto.SharingRoleCapabilityDeleteResponse;
 import org.folio.consortia.domain.dto.SharingRoleCapabilityRequest;
 import org.folio.consortia.domain.dto.SharingRoleCapabilityResponse;
+import org.folio.consortia.domain.dto.SourceValues;
 import org.folio.consortia.domain.entity.SharingRoleEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.SharingRoleRepository;
@@ -123,9 +124,13 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
   }
 
   @Override
-  protected ObjectNode updatePayload(SharingRoleCapabilityRequest request,
-                                     String sourceValue) {
+  protected ObjectNode updatePayload(SharingRoleCapabilityRequest request, String sourceValue) {
     var payload = objectMapper.convertValue(getPayload(request), ObjectNode.class);
     return payload.set(TYPE, new TextNode(sourceValue));
+  }
+
+  @Override
+  protected String getSourceValue(SourceValues sourceValue) {
+    return sourceValue.getRoleValue();
   }
 }

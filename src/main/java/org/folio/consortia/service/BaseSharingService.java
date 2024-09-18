@@ -77,11 +77,12 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     log.info("start:: The Sharing {}s for {} ID '{}' and '{}' unique tenant(s) were successfully" +
       " saved to the database", configName, configName, configId, publicationPostRequest.getTenants().size());
 
-    ObjectNode updatedPayload = updatePayload(sharingConfigRequest, SourceValues.CONSORTIUM.getValue());
+    var sourceValue = getSourceValue(SourceValues.CONSORTIUM);
+    ObjectNode updatedPayload = updatePayload(sharingConfigRequest, sourceValue);
     publicationPostRequest.setPayload(updatedPayload);
     publicationPutRequest.setPayload(updatedPayload);
     log.info("start:: set source as '{}' in payload of {}: {}",
-      updatedPayload.get(SourceValues.CONSORTIUM.getValue()), configName, configId);
+      updatedPayload.get(sourceValue), configName, configId);
 
     // create PC request with POST and PUT Http method to create configs, using 'mod-consortia-keycloak' system user
     return systemUserScopedExecutionService.executeSystemUserScoped(folioExecutionContext.getTenantId(), () -> {
@@ -271,14 +272,15 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
                                                 Set<String> failedTenantList) {
     log.info("updateFailedConfigsToLocalSource:: Updating failed '{}' tenants {}s ",
       failedTenantList.size(), getClassName(sharingConfigRequest));
-    ObjectNode updatedPayload = updatePayload(sharingConfigRequest, SourceValues.USER.getValue());
+    var sourceValue = getSourceValue(SourceValues.USER);
+    ObjectNode updatedPayload = updatePayload(sharingConfigRequest, sourceValue);
 
     PublicationRequest publicationPutRequest = createPublicationRequest(sharingConfigRequest, HttpMethod.PUT);
     publicationPutRequest.setPayload(updatedPayload);
     publicationPutRequest.setTenants(failedTenantList);
 
     log.info("updateFailedConfigsToLocalSource:: send PUT request to publication with new source in " +
-        "payload={} by system user of {}", SourceValues.USER.getValue(), folioExecutionContext.getTenantId());
+        "payload={} by system user of {}", sourceValue, folioExecutionContext.getTenantId());
     publishRequest(consortiumId, publicationPutRequest);
   }
 
@@ -304,6 +306,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
   protected abstract TEntity createSharingConfigEntityFromRequest(TRequest sharingConfigRequest, String tenantId);
   protected abstract TResponse createSharingConfigResponse(UUID createConfigsPcId, UUID updateConfigsPcId);
   protected abstract TDeleteResponse createSharingConfigResponse(UUID publishRequestId);
+  protected abstract String getSourceValue(SourceValues sourceValue);
   protected abstract ObjectNode updatePayload(TRequest sharingConfigRequest, String sourceValue);
 
 }

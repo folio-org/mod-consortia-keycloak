@@ -8,6 +8,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.domain.dto.SharingPolicyDeleteResponse;
 import org.folio.consortia.domain.dto.SharingPolicyRequest;
 import org.folio.consortia.domain.dto.SharingPolicyResponse;
+import org.folio.consortia.domain.dto.SourceValues;
 import org.folio.consortia.domain.entity.SharingPolicyEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.SharingPolicyRepository;
@@ -120,5 +121,10 @@ public class SharingPolicyService extends BaseSharingService<SharingPolicyReques
   protected ObjectNode updatePayload(SharingPolicyRequest sharingConfigRequest, String sourceValue) {
     var payload = objectMapper.convertValue(getPayload(sharingConfigRequest), ObjectNode.class);
     return payload.set(SOURCE, new TextNode(sourceValue));
+  }
+
+  @Override
+  protected String getSourceValue(SourceValues sourceValue) {
+    return sourceValue.getPolicyValue();
   }
 }
