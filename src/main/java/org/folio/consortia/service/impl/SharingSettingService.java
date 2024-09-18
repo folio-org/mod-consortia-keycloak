@@ -124,6 +124,6 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
 
   @Override
   protected String getSourceValue(SourceValues sourceValue) {
-    return sourceValue.getSettingsValue();
+    return sourceValue.getSettingValue();
   }
 }
