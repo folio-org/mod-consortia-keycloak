@@ -3,6 +3,6 @@
   "tenants": [],
   "payload": {
     "name": "ORG-NAME",
-    "source": "consortium"
+    "source": "CONSORTIUM"
   }
 }

@@ -313,7 +313,7 @@ public class EntityUtils {
 
   public static PublicationRequest createPublicationRequest(ObjectNode payload, HttpMethod method) {
     if (payload.has("source")) {
-      payload.put("source", "consortium");
+      payload.put("source", "CONSORTIUM");
     } else {
       payload.put("type", "consortium");
     }

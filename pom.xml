@@ -70,7 +70,6 @@
     <wiremock-standalone.version>3.0.1</wiremock-standalone.version>
     <testcontainers.version>1.20.1</testcontainers.version>
     <snakeyaml.version>2.2</snakeyaml.version>
-    <testcontainers-bom.version>1.20.1</testcontainers-bom.version>
     <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
   </properties>
 
@@ -79,7 +78,7 @@
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers-bom</artifactId>
-        <version>${testcontainers-bom.version}</version>
+        <version>${testcontainers.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -218,13 +217,11 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
-      <version>${testcontainers.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <version>${testcontainers.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
