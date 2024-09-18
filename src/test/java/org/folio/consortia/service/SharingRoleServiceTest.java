@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.folio.consortia.domain.dto.SourceValues.CONSORTIUM;
 import static org.folio.consortia.support.EntityUtils.CENTRAL_TENANT_ID;
 import static org.folio.consortia.support.EntityUtils.SHARING_ROLE_REQUEST_SAMPLE;
 import static org.folio.consortia.support.EntityUtils.SHARING_ROLE_REQUEST_SAMPLE_WITHOUT_PAYLOAD;
@@ -55,10 +56,10 @@ class SharingRoleServiceTest extends BaseSharingConfigServiceTest {
 
     // "tenant1" exists in tenant role association so that tenant1 is in PUT request publication,
     // "tenant2" is in POST method publication
-    var expectedPubRequestPOST = createPublicationRequest(payload, HttpMethod.POST)
+    var expectedPubRequestPOST = createPublicationRequest(CONSORTIUM.getRoleValue(), payload, HttpMethod.POST)
       .tenants(Set.of(TENANT_ID_2))
       .url(request.getUrl());
-    var expectedPuRequestPUT = createPublicationRequest(payload, HttpMethod.PUT)
+    var expectedPuRequestPUT = createPublicationRequest(CONSORTIUM.getRoleValue(), payload, HttpMethod.PUT)
       .tenants(Set.of(TENANT_ID_1))
       .url(request.getUrl() + "/" + request.getRoleId());
 
@@ -108,7 +109,7 @@ class SharingRoleServiceTest extends BaseSharingConfigServiceTest {
     var payload = createPayloadForRole();
 
     // expected data for publish request
-    var expectedPubRequest = createPublicationRequest(payload, HttpMethod.PUT)
+    var expectedPubRequest = createPublicationRequest(CONSORTIUM.getRoleValue(), payload, HttpMethod.PUT)
       .tenants(Set.of(CENTRAL_TENANT_ID, TENANT_ID_2))
       .url(request.getUrl() + "/" + request.getRoleId());
 

@@ -8,6 +8,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.domain.dto.SharingSettingDeleteResponse;
 import org.folio.consortia.domain.dto.SharingSettingRequest;
 import org.folio.consortia.domain.dto.SharingSettingResponse;
+import org.folio.consortia.domain.dto.SourceValues;
 import org.folio.consortia.domain.entity.SharingSettingEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.SharingSettingRepository;
@@ -121,4 +122,8 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
     return payload.set(SOURCE, new TextNode(sourceValue));
   }
 
+  @Override
+  protected String getSourceValue(SourceValues sourceValue) {
+    return sourceValue.getSettingsValue();
+  }
 }

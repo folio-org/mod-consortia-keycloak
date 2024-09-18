@@ -311,11 +311,11 @@ public class EntityUtils {
     return tenantCollection;
   }
 
-  public static PublicationRequest createPublicationRequest(ObjectNode payload, HttpMethod method) {
+  public static PublicationRequest createPublicationRequest(String sourceValue, ObjectNode payload, HttpMethod method) {
     if (payload.has("source")) {
-      payload.put("source", "CONSORTIUM");
+      payload.put("source", sourceValue);
     } else {
-      payload.put("type", "consortium");
+      payload.put("type", sourceValue);
     }
     return createPublicationRequest(method)
       .payload(payload);
