@@ -23,12 +23,24 @@
       "version": "13.0"
     },
     {
+      "id": "capability-sets",
+      "version": "2.0"
+    },
+    {
       "id": "roles",
       "version": "1.1"
     },
     {
       "id": "policies",
       "version": "1.1"
+    },
+    {
+      "id": "user-capability-sets",
+      "version": "1.0"
+    },
+    {
+      "id": "user-capabilities",
+      "version": "1.0"
     },
     {
       "id": "role-capability-sets",
@@ -40,14 +52,6 @@
     }
   ],
   "optional": [
-    {
-      "id": "capabilities",
-      "version": "1.0"
-    },
-    {
-      "id": "user-capabilities",
-      "version": "1.0"
-    },
     {
       "id": "custom-fields",
       "version": "2.1"
@@ -797,7 +801,8 @@
         "user-settings.custom-fields.item.post",
         "user-settings.custom-fields.collection.get",
         "ui-users.editperms",
-        "capabilities.collection.get",
+        "capability-sets.collection.get",
+        "user-capability-sets.collection.put",
         "roles.item.post",
         "roles.item.put",
         "roles.item.delete",
