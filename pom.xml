@@ -63,7 +63,7 @@
     <folio-service-tools.version>4.0.1</folio-service-tools.version>
     <openapi-generator.version>7.8.0</openapi-generator.version>
     <mapstruct.version>1.6.2</mapstruct.version>
-    <applications-poc-tools.version>1.5.6</applications-poc-tools.version>
+    <applications-poc-tools.version>1.5.7</applications-poc-tools.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
 
     <!-- test dependencies -->
