@@ -8,13 +8,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
 import org.folio.consortia.domain.entity.base.AuditableEntity;
 
 @Data
-@Builder
 @EqualsAndHashCode(callSuper = false)
-@RequiredArgsConstructor
+@Builder
 @AllArgsConstructor
 @Entity
 @Table(name = "sharing_policy")
@@ -26,7 +24,3 @@ public class SharingPolicyEntity extends AuditableEntity {
   private String tenantId;
 
 }
-
-
-
-
