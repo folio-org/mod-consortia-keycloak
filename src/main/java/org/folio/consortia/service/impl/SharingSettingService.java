@@ -43,13 +43,13 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   }
 
   @Override
-  protected UUID getConfigId(SharingSettingRequest sharingSettingRequest) {
-    return sharingSettingRequest.getSettingId();
+  protected UUID getConfigId(SharingSettingRequest request) {
+    return request.getSettingId();
   }
 
   @Override
-  protected Object getPayload(SharingSettingRequest sharingSettingRequest) {
-    return sharingSettingRequest.getPayload();
+  protected Object getPayload(SharingSettingRequest request) {
+    return request.getPayload();
   }
 
   @Override
@@ -67,11 +67,11 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   }
 
   @Override
-  protected void validateSharingConfigRequestOrThrow(UUID settingId, SharingSettingRequest sharingSettingRequest) {
-    if (ObjectUtils.notEqual(getConfigId(sharingSettingRequest), settingId)) {
+  protected void validateSharingConfigRequestOrThrow(UUID settingId, SharingSettingRequest request) {
+    if (ObjectUtils.notEqual(getConfigId(request), settingId)) {
       throw new IllegalArgumentException("Mismatch id in path to settingId in request body");
     }
-    if (Objects.isNull(getPayload(sharingSettingRequest))) {
+    if (Objects.isNull(getPayload(request))) {
       throw new IllegalArgumentException("Payload must not be null");
     }
     if (!sharingSettingRepository.existsBySettingId(settingId)) {
@@ -95,12 +95,12 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   }
 
   @Override
-  protected SharingSettingEntity createSharingConfigEntityFromRequest(SharingSettingRequest sharingSettingRequest, String tenantId) {
-    SharingSettingEntity sharingSettingEntity = new SharingSettingEntity();
-    sharingSettingEntity.setId(UUID.randomUUID());
-    sharingSettingEntity.setSettingId(sharingSettingRequest.getSettingId());
-    sharingSettingEntity.setTenantId(tenantId);
-    return sharingSettingEntity;
+  protected SharingSettingEntity createSharingConfigEntityFromRequest(SharingSettingRequest request, String tenantId) {
+    return SharingSettingEntity.builder()
+      .id(UUID.randomUUID())
+      .settingId(request.getSettingId())
+      .tenantId(tenantId)
+      .build();
   }
 
   @Override
@@ -117,8 +117,8 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   }
 
   @Override
-  protected ObjectNode updatePayload(SharingSettingRequest sharingConfigRequest, String sourceValue) {
-    var payload = objectMapper.convertValue(getPayload(sharingConfigRequest), ObjectNode.class);
+  protected ObjectNode updatePayload(SharingSettingRequest request, String sourceValue) {
+    var payload = objectMapper.convertValue(getPayload(request), ObjectNode.class);
     return payload.set(SOURCE, new TextNode(sourceValue));
   }
 

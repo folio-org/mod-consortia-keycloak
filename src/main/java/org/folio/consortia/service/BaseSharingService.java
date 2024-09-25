@@ -82,7 +82,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     publicationPostRequest.setPayload(updatedPayload);
     publicationPutRequest.setPayload(updatedPayload);
     log.info("start:: set source as '{}' in payload of {}: {}",
-      updatedPayload.get(sourceValue), configName, configId);
+      sourceValue, configName, configId);
 
     // create PC request with POST and PUT Http method to create configs, using 'mod-consortia-keycloak' system user
     return systemUserScopedExecutionService.executeSystemUserScoped(folioExecutionContext.getTenantId(), () -> {
@@ -293,20 +293,20 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
       .tenants(new HashSet<>());
   }
 
-  protected abstract UUID getConfigId(TRequest sharingConfigRequest);
-  protected abstract Object getPayload(TRequest sharingConfigRequest);
+  protected abstract UUID getConfigId(TRequest request);
+  protected abstract Object getPayload(TRequest request);
   protected abstract String getPayloadId(ObjectNode payload);
-  protected abstract String getUrl(TRequest sharingConfigRequest, HttpMethod httpMethod);
-  protected abstract void validateSharingConfigRequestOrThrow(UUID configId, TRequest sharingConfigRequest);
+  protected abstract String getUrl(TRequest request, HttpMethod httpMethod);
+  protected abstract void validateSharingConfigRequestOrThrow(UUID configId, TRequest request);
 
   protected abstract Set<String> findTenantsForConfig(TRequest request);
-  protected abstract void saveSharingConfig(List<TEntity> sharingConfigEntityList);
+  protected abstract void saveSharingConfig(List<TEntity> enetityList);
   protected abstract void deleteSharingConfig(UUID configId);
 
-  protected abstract TEntity createSharingConfigEntityFromRequest(TRequest sharingConfigRequest, String tenantId);
+  protected abstract TEntity createSharingConfigEntityFromRequest(TRequest request, String tenantId);
   protected abstract TResponse createSharingConfigResponse(UUID createConfigsPcId, UUID updateConfigsPcId);
   protected abstract TDeleteResponse createSharingConfigResponse(UUID publishRequestId);
   protected abstract String getSourceValue(SourceValues sourceValue);
-  protected abstract ObjectNode updatePayload(TRequest sharingConfigRequest, String sourceValue);
+  protected abstract ObjectNode updatePayload(TRequest request, String sourceValue);
 
 }
