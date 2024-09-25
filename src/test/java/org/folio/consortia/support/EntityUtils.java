@@ -23,6 +23,7 @@ import org.folio.consortia.domain.entity.ConsortiumEntity;
 import org.folio.consortia.domain.entity.PublicationStatusEntity;
 import org.folio.consortia.domain.entity.PublicationTenantRequestEntity;
 import org.folio.consortia.domain.entity.SharingInstanceEntity;
+import org.folio.consortia.domain.entity.SharingPolicyEntity;
 import org.folio.consortia.domain.entity.SharingRoleEntity;
 import org.folio.consortia.domain.entity.SharingSettingEntity;
 import org.folio.consortia.domain.entity.TenantDetailsEntity;
@@ -275,13 +276,21 @@ public class EntityUtils {
   }
 
   public static SharingRoleEntity createSharingRoleEntity(UUID roleId, String tenantId) {
-    var entity = new SharingRoleEntity();
-    entity.setId(UUID.randomUUID());
-    entity.setRoleId(roleId);
-    entity.setTenantId(tenantId);
-    entity.setIsCapabilitySetsShared(false);
-    entity.setIsCapabilitiesShared(false);
-    return entity;
+    return SharingRoleEntity.builder()
+      .id(UUID.randomUUID())
+      .roleId(roleId)
+      .tenantId(tenantId)
+      .isCapabilitiesShared(false)
+      .isCapabilitySetsShared(false)
+      .build();
+  }
+
+  public static SharingPolicyEntity createSharingPolicyEntity(UUID policyId, String tenantId) {
+    return SharingPolicyEntity.builder()
+      .id(UUID.randomUUID())
+      .policyId(policyId)
+      .tenantId(tenantId)
+      .build();
   }
 
   public static PublicationTenantRequestEntity createPublicationTenantRequestEntity(

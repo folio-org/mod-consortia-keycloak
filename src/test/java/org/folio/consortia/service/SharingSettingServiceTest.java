@@ -30,6 +30,7 @@ import static org.folio.consortia.support.EntityUtils.createPayloadForGroup;
 import static org.folio.consortia.support.EntityUtils.createPublicationDetails;
 import static org.folio.consortia.support.EntityUtils.createPublicationRequest;
 import static org.folio.consortia.support.EntityUtils.createPublicationResultCollection;
+import static org.folio.consortia.support.EntityUtils.createSharingSettingEntity;
 import static org.folio.consortia.support.TestConstants.CENTRAL_TENANT_ID;
 import static org.folio.consortia.support.TestConstants.CONSORTIUM_ID;
 import static org.folio.consortia.utils.InputOutputTestUtils.getMockDataObject;
@@ -64,10 +65,11 @@ class SharingSettingServiceTest extends BaseSharingConfigServiceTest {
     var expectedPubRequestPUT = createPublicationRequest(CONSORTIUM.getSettingValue(), payload, HttpMethod.PUT)
       .tenants(Set.of(TENANT_ID_1))
       .url(request.getUrl() + "/" + request.getSettingId());
+    var expectedSharingSettingEntity = createSharingSettingEntity(request.getSettingId(), TENANT_ID_2);
 
     setupCommonMocksForStart(createPcId, updatePcId, expectedPubRequestPOST, expectedPubRequestPUT, payload);
     when(sharingSettingRepository.findTenantsBySettingId(request.getSettingId())).thenReturn(tenantsSharedSetting);
-    when(sharingSettingRepository.save(any())).thenReturn(new SharingSettingEntity());
+    when(sharingSettingRepository.save(expectedSharingSettingEntity)).thenReturn(new SharingSettingEntity());
 
     var actualResponse = sharingSettingService.start(CONSORTIUM_ID, request);
 

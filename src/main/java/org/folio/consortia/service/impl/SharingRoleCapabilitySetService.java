@@ -48,13 +48,13 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
   }
 
   @Override
-  protected UUID getConfigId(SharingRoleCapabilitySetRequest sharingRoleCapabilitySetRequest) {
-    return sharingRoleCapabilitySetRequest.getRoleId();
+  protected UUID getConfigId(SharingRoleCapabilitySetRequest request) {
+    return request.getRoleId();
   }
 
   @Override
-  protected Object getPayload(SharingRoleCapabilitySetRequest sharingRoleCapabilitySetRequest) {
-    return sharingRoleCapabilitySetRequest.getPayload();
+  protected Object getPayload(SharingRoleCapabilitySetRequest request) {
+    return request.getPayload();
   }
 
   @Override
@@ -73,11 +73,11 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
 
   @Override
   protected void validateSharingConfigRequestOrThrow(UUID roleId,
-                                                     SharingRoleCapabilitySetRequest sharingRoleCapabilitySetRequest) {
-    if (ObjectUtils.notEqual(getConfigId(sharingRoleCapabilitySetRequest), roleId)) {
+                                                     SharingRoleCapabilitySetRequest request) {
+    if (ObjectUtils.notEqual(getConfigId(request), roleId)) {
       throw new IllegalArgumentException("Mismatch id in path to roleId in request body");
     }
-    if (Objects.isNull(getPayload(sharingRoleCapabilitySetRequest))) {
+    if (Objects.isNull(getPayload(request))) {
       throw new IllegalArgumentException("Payload must not be null");
     }
     if (!sharingRoleRepository.existsByRoleId(roleId)) {
