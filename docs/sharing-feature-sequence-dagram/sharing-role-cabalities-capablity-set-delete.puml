@@ -1,0 +1,61 @@
+@startuml
+
+!pragma teoz true
+!theme cerulean
+
+autonumber
+
+actor "user" as user
+
+participant "mod-consortia-keycloak" as mck
+database "mod-consortia-keycloak DB" as mck_db
+participant "mod-consortia-publish-coordinator" as mc_pc
+participant "mod-login-keycloak" as ml
+participant "mod-roles-keycloak" as mrk
+
+user -> mck: Initiate deleting role capability sets action
+note right
+DELETE /consortia/<consortiumId>/sharing/roles/<roleId>/capability-sets
+{
+    "roleId": "<UUID>",
+    "url": "string"
+}
+end note
+activate mck
+
+mck -> mck_db: Retrieve tenants associated with the roleId from sharing_role table using is_capability_sets_shared flag true
+note bottom
+| tenant_id | role_id | is_capability_sets_shared |
+| "tenant A" | <UUID1> | true |
+end note
+note right
+| tenant_id | role_id | is_capability_sets_shared |
+| "tenant A" | <UUID1> | true |
+| "tenant B" | <UUID2> | false |
+end note
+
+loop tenants where role capability set is shared
+    mck -> mck: Add tenant to DELETE Role Capability Sets Publish Coordinator tenants list
+end
+
+mck -> mck_db: Set is_capability_sets_shared flag to false for "roleId" and "tenant A"
+
+mck -> ml: Login via consortia-system-user
+ml --> mck: Return system user's token
+
+mck -> mc_pc: Initiate PC request with DELETE HTTP method to delete role capability sets
+mc_pc -> mrk: Send HTTP DELETE request to delete role capability sets
+mrk --> mc_pc: Return response
+mc_pc --> mck: Return Publish Coordinator id
+
+mck --> user: Return response with PC id
+note right
+Response payload:
+{
+    "deleteRoleCapabilitySetsPCId": "<UUID>"
+}
+end note
+
+user -> mck: Check if DELETE PC completed: /consortia/<UUID>/publications/<UUID>
+
+@enduml

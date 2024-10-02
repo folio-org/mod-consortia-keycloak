@@ -23,23 +23,35 @@
       "version": "13.0"
     },
     {
+      "id": "capability-sets",
+      "version": "2.0"
+    },
+    {
       "id": "roles",
       "version": "1.1"
     },
     {
       "id": "policies",
       "version": "1.1"
-    }
-  ],
-  "optional": [
+    },
     {
-      "id": "capabilities",
+      "id": "user-capability-sets",
       "version": "1.0"
     },
     {
       "id": "user-capabilities",
       "version": "1.0"
     },
+    {
+      "id": "role-capability-sets",
+      "version": "1.1"
+    },
+    {
+      "id": "role-capabilities",
+      "version": "1.0"
+    }
+  ],
+  "optional": [
     {
       "id": "custom-fields",
       "version": "2.1"
@@ -388,6 +400,46 @@
             "consortia.sharing-roles.item.delete"
           ],
           "modulePermissions": []
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/consortia/{consortiumId}/sharing/roles/capability-sets",
+          "permissionsRequired": [
+            "consortia.sharing-roles-capability-sets.item.post"
+          ],
+          "modulePermissions": []
+        },
+        {
+          "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/consortia/{consortiumId}/sharing/roles/{roleId}/capability-sets",
+          "permissionsRequired": [
+            "consortia.sharing-roles-capability-sets.item.delete"
+          ],
+          "modulePermissions": []
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/consortia/{consortiumId}/sharing/roles/capabilities",
+          "permissionsRequired": [
+            "consortia.sharing-roles-capabilities.item.post"
+          ],
+          "modulePermissions": []
+        },
+        {
+          "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/consortia/{consortiumId}/sharing/roles/{roleId}/capabilities",
+          "permissionsRequired": [
+            "consortia.sharing-roles-capabilities.item.delete"
+          ],
+          "modulePermissions": []
         }
       ]
     },
@@ -449,6 +501,7 @@
         "consortia.user-tenants.item.delete",
         "consortia.consortia-configuration.item.post",
         "consortia.inventory.share.local.instance",
+        "consortia.inventory.update.ownership",
         "consortia.sync-primary-affiliations.item.post",
         "consortia.create-primary-affiliations.item.post",
         "consortia.sharing-instances.item.post",
@@ -463,7 +516,11 @@
         "consortia.sharing-policies.item.post",
         "consortia.sharing-policies.item.delete",
         "consortia.sharing-roles.item.post",
-        "consortia.sharing-roles.item.delete"
+        "consortia.sharing-roles.item.delete",
+        "consortia.sharing-roles-capability-sets.item.post",
+        "consortia.sharing-roles-capability-sets.item.delete",
+        "consortia.sharing-roles-capabilities.item.post",
+        "consortia.sharing-roles-capabilities.item.delete"
       ]
     },
     {
@@ -569,6 +626,16 @@
       "visible": true
     },
     {
+      "permissionName": "consortia.inventory.update.ownership",
+      "displayName": "Inventory: Update ownership",
+      "description": "Inventory: Update ownership",
+      "subPermissions": [
+        "inventory.holdings.update-ownership.item.post",
+        "inventory.items.update-ownership.item.post"
+      ],
+      "visible": true
+    },
+    {
       "permissionName": "consortia.sharing-instances.item.post",
       "displayName": "create sharing instance",
       "description": "Create sharing instance"
@@ -612,6 +679,26 @@
       "permissionName": "consortia.sharing-roles.item.delete",
       "displayName": "delete sharing role",
       "description": "Delete sharing role"
+    },
+    {
+      "permissionName": "consortia.sharing-roles-capability-sets.item.post",
+      "displayName": "post sharing role capability sets",
+      "description": "Create sharing role capability sets"
+    },
+    {
+      "permissionName": "consortia.sharing-roles-capability-sets.item.delete",
+      "displayName": "delete sharing role capability sets",
+      "description": "Delete sharing role capability sets"
+    },
+    {
+      "permissionName": "consortia.sharing-roles-capabilities.item.post",
+      "displayName": "post sharing role capabilities",
+      "description": "Create sharing role capabilities"
+    },
+    {
+      "permissionName": "consortia.sharing-roles-capabilities.item.delete",
+      "displayName": "delete sharing role capabilities",
+      "description": "Delete sharing role capabilities"
     }
   ],
   "metadata": {
@@ -636,6 +723,7 @@
         "perms.users.assign.mutable",
         "perms.users.get",
         "user-tenants.item.post",
+        "user-tenants.item.delete",
         "consortia.sync-primary-affiliations.item.post",
         "consortia.create-primary-affiliations.item.post",
         "departments.item.post",
@@ -659,6 +747,9 @@
         "inventory-storage.classification-types.item.post",
         "inventory-storage.classification-types.item.put",
         "inventory-storage.classification-types.item.delete",
+        "inventory-storage.contributor-name-types.item.post",
+        "inventory-storage.contributor-name-types.item.put",
+        "inventory-storage.contributor-name-types.item.delete",
         "inventory-storage.electronic-access-relationships.item.post",
         "inventory-storage.electronic-access-relationships.item.put",
         "inventory-storage.electronic-access-relationships.item.delete",
@@ -668,6 +759,9 @@
         "inventory-storage.holdings-types.item.post",
         "inventory-storage.holdings-types.item.put",
         "inventory-storage.holdings-types.item.delete",
+        "inventory-storage.holdings-sources.item.post",
+        "inventory-storage.holdings-sources.item.put",
+        "inventory-storage.holdings-sources.item.delete",
         "inventory-storage.statistical-codes.item.post",
         "inventory-storage.statistical-codes.item.put",
         "inventory-storage.statistical-codes.item.delete",
@@ -707,13 +801,20 @@
         "user-settings.custom-fields.item.post",
         "user-settings.custom-fields.collection.get",
         "ui-users.editperms",
-        "capabilities.collection.get",
+        "capability-sets.collection.get",
+        "user-capability-sets.collection.put",
         "roles.item.post",
         "roles.item.put",
         "roles.item.delete",
         "policies.item.post",
         "policies.item.put",
-        "policies.item.delete"
+        "policies.item.delete",
+        "role-capabilities.collection.post",
+        "role-capabilities.collection.put",
+        "role-capabilities.collection.delete",
+        "role-capability-sets.collection.post",
+        "role-capability-sets.collection.put",
+        "role-capability-sets.collection.delete"
       ]
     }
   },

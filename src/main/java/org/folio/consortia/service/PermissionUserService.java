@@ -24,22 +24,13 @@ public interface PermissionUserService {
   PermissionUser createWithEmptyPermissions(String userId);
 
   /**
-   * Creates permissionUser for userId with permissions getting from file.
+   * Creates permissionUser for userId with permission sets getting from file.
    *
-   * @param userId  the id of user
-   * @param permissionsFilePath  the path of file includes permission names to add
-   *
+   * @param userId                 the id of user
+   * @param permissionSetsFilePath the path of file includes permission set names to add
    * @return PermissionUser
    */
-  PermissionUser createWithPermissionsFromFile(String userId, String permissionsFilePath);
-
-  /**
-   * Add permissions for existed permission user.
-   *
-   * @param permissionUser  the permissionUser
-   * @param permissionsFilePath  the path of file includes permission names to add
-   */
-  void addPermissions(PermissionUser permissionUser, String permissionsFilePath);
+  PermissionUser createWithPermissionSetsFromFile(String userId, String permissionSetsFilePath);
 
   /**
    * Remove user permissions from permission_users table based on userId

@@ -1,20 +1,17 @@
 package org.folio.consortia.service.impl;
 
-import org.folio.consortia.exception.ResourceNotFoundException;
-import org.folio.consortia.repository.SharingSettingRepository;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
-import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.SharingSettingDeleteResponse;
 import org.folio.consortia.domain.dto.SharingSettingRequest;
 import org.folio.consortia.domain.dto.SharingSettingResponse;
+import org.folio.consortia.domain.dto.SourceValues;
 import org.folio.consortia.domain.entity.SharingSettingEntity;
+import org.folio.consortia.exception.ResourceNotFoundException;
+import org.folio.consortia.repository.SharingSettingRepository;
 import org.folio.consortia.service.BaseSharingService;
 import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.PublicationService;
@@ -25,18 +22,14 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
-
-import lombok.extern.log4j.Log4j2;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @Log4j2
 public class SharingSettingService extends BaseSharingService<SharingSettingRequest, SharingSettingResponse, SharingSettingDeleteResponse, SharingSettingEntity> {
-
-  private static final String SOURCE = "source";
 
   private final SharingSettingRepository sharingSettingRepository;
 
@@ -50,21 +43,35 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   }
 
   @Override
-  protected UUID getConfigId(SharingSettingRequest sharingSettingRequest) {
-    return sharingSettingRequest.getSettingId();
+  protected UUID getConfigId(SharingSettingRequest request) {
+    return request.getSettingId();
   }
 
   @Override
-  protected Object getPayload(SharingSettingRequest sharingSettingRequest) {
-    return sharingSettingRequest.getPayload();
+  protected Object getPayload(SharingSettingRequest request) {
+    return request.getPayload();
   }
 
   @Override
-  protected void validateSharingConfigRequestOrThrow(UUID settingId, SharingSettingRequest sharingSettingRequest) {
-    if (ObjectUtils.notEqual(getConfigId(sharingSettingRequest), settingId)) {
+  protected String getPayloadId(ObjectNode payload) {
+    return payload.get("id").asText();
+  }
+
+  @Override
+  protected String getUrl(SharingSettingRequest request, HttpMethod httpMethod) {
+    String url = request.getUrl();
+    if (httpMethod.equals(HttpMethod.PUT) || httpMethod.equals(HttpMethod.DELETE)) {
+      url += "/" + getConfigId(request);
+    }
+    return url;
+  }
+
+  @Override
+  protected void validateSharingConfigRequestOrThrow(UUID settingId, SharingSettingRequest request) {
+    if (ObjectUtils.notEqual(getConfigId(request), settingId)) {
       throw new IllegalArgumentException("Mismatch id in path to settingId in request body");
     }
-    if (Objects.isNull(getPayload(sharingSettingRequest))) {
+    if (Objects.isNull(getPayload(request))) {
       throw new IllegalArgumentException("Payload must not be null");
     }
     if (!sharingSettingRepository.existsBySettingId(settingId)) {
@@ -73,8 +80,8 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   }
 
   @Override
-  protected Set<String> findTenantsByConfigId(UUID settingId) {
-    return sharingSettingRepository.findTenantsBySettingId(settingId);
+  protected Set<String> findTenantsForConfig(SharingSettingRequest request) {
+    return sharingSettingRepository.findTenantsBySettingId(request.getSettingId());
   }
 
   @Override
@@ -88,26 +95,12 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   }
 
   @Override
-  protected PublicationRequest createPublicationRequest(SharingSettingRequest sharingSettingRequest, String httpMethod) {
-    PublicationRequest publicationRequest = new PublicationRequest();
-    publicationRequest.setMethod(httpMethod);
-    String url = sharingSettingRequest.getUrl();
-    if (httpMethod.equals(HttpMethod.PUT.toString()) || httpMethod.equals(HttpMethod.DELETE.toString())) {
-      url += "/" + getConfigId(sharingSettingRequest);
-    }
-    publicationRequest.setUrl(url);
-    publicationRequest.setPayload(getPayload(sharingSettingRequest));
-    publicationRequest.setTenants(new HashSet<>());
-    return publicationRequest;
-  }
-
-  @Override
-  protected SharingSettingEntity createSharingConfigEntityFromRequest(SharingSettingRequest sharingSettingRequest, String tenantId) {
-    SharingSettingEntity sharingSettingEntity = new SharingSettingEntity();
-    sharingSettingEntity.setId(UUID.randomUUID());
-    sharingSettingEntity.setSettingId(sharingSettingRequest.getSettingId());
-    sharingSettingEntity.setTenantId(tenantId);
-    return sharingSettingEntity;
+  protected SharingSettingEntity createSharingConfigEntityFromRequest(SharingSettingRequest request, String tenantId) {
+    return SharingSettingEntity.builder()
+      .id(UUID.randomUUID())
+      .settingId(request.getSettingId())
+      .tenantId(tenantId)
+      .build();
   }
 
   @Override
@@ -124,9 +117,13 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   }
 
   @Override
-  protected ObjectNode updatePayload(SharingSettingRequest sharingConfigRequest, String sourceValue) {
-    JsonNode payload = objectMapper.convertValue(getPayload(sharingConfigRequest), JsonNode.class);
-    return ((ObjectNode) payload).set(SOURCE, new TextNode(sourceValue));
+  protected ObjectNode updatePayload(SharingSettingRequest request, String sourceValue) {
+    var payload = objectMapper.convertValue(getPayload(request), ObjectNode.class);
+    return payload.set(SOURCE, new TextNode(sourceValue));
   }
 
+  @Override
+  protected String getSourceValue(SourceValues sourceValue) {
+    return sourceValue.getSettingValue();
+  }
 }

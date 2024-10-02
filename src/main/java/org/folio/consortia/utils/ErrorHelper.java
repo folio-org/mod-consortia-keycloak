@@ -74,7 +74,8 @@ public class ErrorHelper {
     PUBLICATION_ERROR,
     PERMISSION_REQUIRED,
     BAD_GATEWAY,
-    UNAUTHORIZED
+    UNAUTHORIZED,
+    INTERNAL_ERROR
   }
 
 }

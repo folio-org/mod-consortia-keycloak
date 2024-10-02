@@ -145,7 +145,7 @@
             id, name, consortium_id, code, is_central, created_by, created_date, updated_by, updated_date, setup_status, is_deleted
           ) SELECT
             id, name, consortium_id, code, is_central, created_by, created_date, updated_by,
-            (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date, setup_status, is_deleted
+            (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date, setup_status::varchar, is_deleted
           FROM ${tenantname}_mod_consortia.tenant;
         END IF;
       END;

@@ -16,13 +16,14 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
-import org.folio.consortia.client.CapabilitiesClient;
+import org.folio.consortia.client.CapabilitySetsClient;
 import org.folio.consortia.client.UserCapabilitiesClient;
+import org.folio.consortia.client.UserCapabilitySetsClient;
 import org.folio.consortia.client.UserPermissionsClient;
-import org.folio.consortia.domain.dto.Capabilities;
-import org.folio.consortia.domain.dto.Capability;
+import org.folio.consortia.domain.dto.CapabilitySet;
+import org.folio.consortia.domain.dto.CapabilitySets;
 import org.folio.consortia.domain.dto.PermissionUser;
-import org.folio.consortia.domain.dto.UserCapabilitiesRequest;
+import org.folio.consortia.domain.dto.UserCapabilitySetsRequest;
 import org.folio.consortia.service.PermissionUserService;
 import org.springframework.stereotype.Service;
 
@@ -33,11 +34,12 @@ public class CapabilitiesUserService implements PermissionUserService {
 
   private static final String CAPABILITIES_UP_TO_DATE_ERROR_MSG =
     "Nothing to update, user-capability relations are not changed";
-  private static final int CAPABILITY_BATCH_SIZE = 50;
+  private static final int CAPABILITY_SET_BATCH_SIZE = 50;
   private static final String PERMISSION_QUERY_FIELD = "permission";
 
-  private final CapabilitiesClient capabilitiesClient;
+  private final CapabilitySetsClient capabilitySetsClient;
   private final UserCapabilitiesClient userCapabilitiesClient;
+  private final UserCapabilitySetsClient userCapabilitySetsClient;
   private final UserPermissionsClient userPermissionsClient;
   private final ObjectMapper objectMapper;
 
@@ -52,18 +54,12 @@ public class CapabilitiesUserService implements PermissionUserService {
   }
 
   @Override
-  public PermissionUser createWithPermissionsFromFile(String userId, String permissionsFilePath) {
-    var perms = readAndValidatePermissions(permissionsFilePath);
+  public PermissionUser createWithPermissionSetsFromFile(String userId, String permissionSetsFilePath) {
+    var perms = readAndValidatePermissions(permissionSetsFilePath);
     var permissionUser = PermissionUser.of(UUID.randomUUID().toString(), userId, perms);
     log.info("Creating permissionUser {}.", permissionUser);
-    assignPermissions(permissionUser.getUserId(), perms);
+    assignPermissionSets(permissionUser.getUserId(), perms);
     return permissionUser;
-  }
-
-  @Override
-  public void addPermissions(PermissionUser permissionUser, String permissionsFilePath) {
-    var permissions = readAndValidatePermissions(permissionsFilePath);
-    assignPermissions(permissionUser.getUserId(), permissions);
   }
 
   @Override
@@ -93,23 +89,23 @@ public class CapabilitiesUserService implements PermissionUserService {
     return result;
   }
 
-  private void assignPermissions(String userId, List<String> permissions) {
-    log.info("Resolving capabilities by permissions: {}", permissions);
-    var capabilities = findCapabilitiesByPermissions(permissions);
-    if (CollectionUtils.isEmpty(capabilities)) {
-      log.warn("No capabilities found");
+  private void assignPermissionSets(String userId, List<String> permissionSets) {
+    log.info("Resolving capabilities by permission sets: {}", permissionSets);
+    var capabilitySets = findCapabilitySetsByPermissionSets(permissionSets);
+    if (CollectionUtils.isEmpty(capabilitySets)) {
+      log.warn("No capability sets found");
       return;
     }
 
-    var ids = mapItems(capabilities, Capability::getId);
-    log.info("Assigning resolved capabilities: {}", ids);
-    assignCapabilities(userId, ids);
+    var ids = mapItems(capabilitySets, CapabilitySet::getId);
+    log.info("Assigning resolved capabilities, ids: {}, names: {}", ids, mapItems(capabilitySets, CapabilitySet::getName));
+    assignCapabilitySets(userId, ids);
   }
 
-  private void assignCapabilities(String userId, List<UUID> capabilityIds) {
+  private void assignCapabilitySets(String userId, List<UUID> capabilitySetIds) {
     try {
-      var request = new UserCapabilitiesRequest().userId(userId).capabilityIds(capabilityIds);
-      userCapabilitiesClient.assignUserCapabilities(userId, request);
+      var request = new UserCapabilitySetsRequest().userId(userId).capabilitySetIds(capabilitySetIds);
+      userCapabilitySetsClient.assignUserCapabilitySets(userId, request);
     } catch (FeignException e) {
       if (isNothingToUpdateError(e)) {
         log.info("User capabilities are up to date");
@@ -134,18 +130,18 @@ public class CapabilitiesUserService implements PermissionUserService {
   }
 
   /**
-   * Queries capabilities in batches by permissions.
+   * Queries capability sets in batches by permission sets.
    *
-   * @param permissions permissions
-   * @return List of capabilities
+   * @param permissionSets permission sets
+   * @return List of capability sets
    */
-  private List<Capability> findCapabilitiesByPermissions(List<String> permissions) {
-    return loadInBatches(permissions, permissionsBatch ->
-      queryCapabilities(permissionsBatch).getCapabilities(), CAPABILITY_BATCH_SIZE);
+  private List<CapabilitySet> findCapabilitySetsByPermissionSets(List<String> permissionSets) {
+    return loadInBatches(permissionSets, permissionsBatch ->
+      queryCapabilitySets(permissionsBatch).getCapabilitySets(), CAPABILITY_SET_BATCH_SIZE);
   }
 
-  private Capabilities queryCapabilities(List<String> permissions) {
+  private CapabilitySets queryCapabilitySets(List<String> permissions) {
     var query = CqlQuery.exactMatchAny(PERMISSION_QUERY_FIELD, permissions).toString();
-    return capabilitiesClient.queryCapabilities(query, CAPABILITY_BATCH_SIZE, 0);
+    return capabilitySetsClient.queryCapabilitySets(query, CAPABILITY_SET_BATCH_SIZE, 0);
   }
 }

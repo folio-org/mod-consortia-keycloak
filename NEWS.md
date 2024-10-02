@@ -1,6 +1,21 @@
-## Version `v1.4.3` (20.08.2024)
+## Version `v1.4.5` (25.09.2024)
 ### Changes:
-* Add script to migrate data from mod-consortia (EUREKA-65)
+* Moved custom field creation to save tenant operation (MODCONSKC-32)
+* Implemented sharing of role capabilities (MODCONSKC-21)
+* Adjusted custom fields creation error handling (MODCONSKC-7)
+* No assigned roles\caps sets for consortium_admin(central) user account shadow entity in member tenant (MODCONSKC-33)
+* Extended "Inventory: Update ownership" permission (MODCON-158)
+* Made all enum values in endpoints response with upper case as stored in DB (MODROLESKC-216)
+* Changed list of permissions sets (MODCONSKC-33)
+
+## Version `v1.4.4` (30.08.2024)
+### Changes:
+* Sync mod-consortia merged PRs with mod-consortia-keycloak (MODCONSKC-25)
+
+## Version `v1.4.3` (15.08.2024)
+### Changes:
+* Implement sharing of authorization roles (MODCONSKC-19)
+* Аdd script to migrate data from mod-consortia (EUREKA-65)
 
 ## Version `v1.4.2` (14.08.2024)
 ### Changes:

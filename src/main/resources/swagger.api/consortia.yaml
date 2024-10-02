@@ -127,7 +127,7 @@ components:
   schemas:
     userCollection:
       $ref: 'schemas/user.yaml#/UserCollection'
-    userCapabilitiesRequest:
-      $ref: schemas/capability/user/userCapabilitiesRequest.json
-    capabilities:
-      $ref: schemas/capability/capabilities.json
+    userCapabilitySetsRequest:
+      $ref: schemas/capability/user/userCapabilitySetsRequest.json
+    capability-sets:
+      $ref: schemas/capability/capabilitySets.json

@@ -1,0 +1,44 @@
+SharingRoleCapabilityRequest:
+  description: "A JSON schema for the Sharing Role Capabilities object"
+  type: object
+  properties:
+    roleId:
+      description: id of sharing role record
+      type: string
+      format: uuid
+    url:
+      description: URL for publishing requests for consortia tenants
+      type: string
+    payload:
+      description: Http request body that contains roleId, capability names
+      type: object
+  additionalProperties: false
+  required:
+    - roleId
+    - url
+
+SharingRoleCapabilityResponse:
+  description: "A JSON schema for the Sharing Role Capabilities object response for post request"
+  type: object
+  properties:
+    createRoleCapabilitiesPCId:
+      type: string
+      format: uuid
+    updateRoleCapabilitiesPCId:
+      type: string
+      format: uuid
+  additionalProperties: false
+  required:
+    - createRoleCapabilitiesPCId
+    - updateRoleCapabilitiesPCId
+
+SharingRoleCapabilityDeleteResponse:
+  description: "A JSON schema for the Sharing Role Capability object response for delete request"
+  type: object
+  properties:
+    pcId:
+      type: string
+      format: uuid
+  additionalProperties: false
+  required:
+    - pcId

@@ -13,9 +13,9 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.client.InventoryClient;
 import org.folio.consortia.config.kafka.KafkaService;
+import org.folio.consortia.domain.dto.InstanceSourceValues;
 import org.folio.consortia.domain.dto.SharingInstance;
 import org.folio.consortia.domain.dto.SharingInstanceCollection;
-import org.folio.consortia.domain.dto.SourceValues;
 import org.folio.consortia.domain.dto.Status;
 import org.folio.consortia.domain.entity.SharingInstanceEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
@@ -84,8 +84,9 @@ public class SharingInstanceServiceImpl implements SharingInstanceService {
       try (var ignored = new FolioExecutionContextSetter(
         TenantContextUtils.prepareContextForTenant(targetTenantId, folioModuleMetadata, folioExecutionContext))) {
         String source = switch (inventoryInstance.get("source").asText().toLowerCase()) {
-          case "folio" -> SourceValues.CONSORTIUM_FOLIO_INSTANCE.getValue();
-          case "marc" -> SourceValues.CONSORTIUM_MARC_INSTANCE.getValue();
+          case "folio" -> InstanceSourceValues.CONSORTIUM_FOLIO_INSTANCE.getValue();
+          case "marc" -> InstanceSourceValues.CONSORTIUM_MARC_INSTANCE.getValue();
+          case "linked_data" -> InstanceSourceValues.CONSORTIUM_LINKED_DATA_INSTANCE.getValue();
           default -> throw new IllegalStateException("source is not recognized");
         };
         var updatedInventoryInstance = ((ObjectNode) inventoryInstance).set("source", new TextNode(source));

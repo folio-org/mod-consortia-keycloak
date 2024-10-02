@@ -1,22 +1,14 @@
 package org.folio.consortia.service.impl;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
-import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.SharingRoleDeleteResponse;
 import org.folio.consortia.domain.dto.SharingRoleRequest;
 import org.folio.consortia.domain.dto.SharingRoleResponse;
+import org.folio.consortia.domain.dto.SourceValues;
 import org.folio.consortia.domain.entity.SharingRoleEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.SharingRoleRepository;
@@ -30,11 +22,14 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+
 @Service
 @Log4j2
 public class SharingRoleService extends BaseSharingService<SharingRoleRequest, SharingRoleResponse, SharingRoleDeleteResponse, SharingRoleEntity> {
-
-  private static final String TYPE = "type";
 
   private final SharingRoleRepository sharingRoleRepository;
 
@@ -48,21 +43,35 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   }
 
   @Override
-  protected UUID getConfigId(SharingRoleRequest sharingRoleRequest) {
-    return sharingRoleRequest.getRoleId();
+  protected UUID getConfigId(SharingRoleRequest request) {
+    return request.getRoleId();
   }
 
   @Override
-  protected Object getPayload(SharingRoleRequest sharingRoleRequest) {
-    return sharingRoleRequest.getPayload();
+  protected Object getPayload(SharingRoleRequest request) {
+    return request.getPayload();
   }
 
   @Override
-  protected void validateSharingConfigRequestOrThrow(UUID roleId, SharingRoleRequest sharingRoleRequest) {
-    if (ObjectUtils.notEqual(getConfigId(sharingRoleRequest), roleId)) {
+  protected String getPayloadId(ObjectNode payload) {
+    return payload.get("id").asText();
+  }
+
+  @Override
+  protected String getUrl(SharingRoleRequest request, HttpMethod httpMethod) {
+    String url = request.getUrl();
+    if (httpMethod.equals(HttpMethod.PUT) || httpMethod.equals(HttpMethod.DELETE)) {
+      url += "/" + getConfigId(request);
+    }
+    return url;
+  }
+
+  @Override
+  protected void validateSharingConfigRequestOrThrow(UUID roleId, SharingRoleRequest request) {
+    if (ObjectUtils.notEqual(getConfigId(request), roleId)) {
       throw new IllegalArgumentException("Mismatch id in path to roleId in request body");
     }
-    if (Objects.isNull(getPayload(sharingRoleRequest))) {
+    if (Objects.isNull(getPayload(request))) {
       throw new IllegalArgumentException("Payload must not be null");
     }
     if (!sharingRoleRepository.existsByRoleId(roleId)) {
@@ -71,8 +80,8 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   }
 
   @Override
-  protected Set<String> findTenantsByConfigId(UUID roleId) {
-    return sharingRoleRepository.findTenantsByRoleId(roleId);
+  protected Set<String> findTenantsForConfig(SharingRoleRequest request) {
+    return sharingRoleRepository.findTenantsByRoleId(request.getRoleId());
   }
 
   @Override
@@ -86,26 +95,14 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   }
 
   @Override
-  protected PublicationRequest createPublicationRequest(SharingRoleRequest sharingRoleRequest, String httpMethod) {
-    PublicationRequest publicationRequest = new PublicationRequest();
-    publicationRequest.setMethod(httpMethod);
-    String url = sharingRoleRequest.getUrl();
-    if (httpMethod.equals(HttpMethod.PUT.toString()) || httpMethod.equals(HttpMethod.DELETE.toString())) {
-      url += "/" + getConfigId(sharingRoleRequest);
-    }
-    publicationRequest.setUrl(url);
-    publicationRequest.setPayload(getPayload(sharingRoleRequest));
-    publicationRequest.setTenants(new HashSet<>());
-    return publicationRequest;
-  }
-
-  @Override
-  protected SharingRoleEntity createSharingConfigEntityFromRequest(SharingRoleRequest sharingRoleRequest, String tenantId) {
-    SharingRoleEntity sharingRoleEntity = new SharingRoleEntity();
-    sharingRoleEntity.setId(UUID.randomUUID());
-    sharingRoleEntity.setRoleId(sharingRoleEntity.getRoleId());
-    sharingRoleEntity.setTenantId(tenantId);
-    return sharingRoleEntity;
+  protected SharingRoleEntity createSharingConfigEntityFromRequest(SharingRoleRequest request, String tenantId) {
+    return SharingRoleEntity.builder()
+      .id(UUID.randomUUID())
+      .roleId(request.getRoleId())
+      .tenantId(tenantId)
+      .isCapabilitiesShared(false)
+      .isCapabilitySetsShared(false)
+      .build();
   }
 
   @Override
@@ -122,8 +119,13 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   }
 
   @Override
-  protected ObjectNode updatePayload(SharingRoleRequest sharingConfigRequest, String sourceValue) {
-    JsonNode payload = objectMapper.convertValue(getPayload(sharingConfigRequest), JsonNode.class);
-    return ((ObjectNode) payload).set(TYPE, new TextNode(sourceValue));
+  protected ObjectNode updatePayload(SharingRoleRequest request, String sourceValue) {
+    var payload = objectMapper.convertValue(getPayload(request), ObjectNode.class);
+    return payload.set(TYPE, new TextNode(sourceValue));
+  }
+
+  @Override
+  protected String getSourceValue(SourceValues sourceValue) {
+    return sourceValue.getRoleValue();
   }
 }

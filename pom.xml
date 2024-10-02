@@ -5,14 +5,14 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.3.2</version>
+    <version>3.3.4</version>
     <relativePath />
   </parent>
 
   <groupId>org.folio</groupId>
   <artifactId>mod-consortia-keycloak</artifactId>
   <name>mod-consortia-keycloak</name>
-  <version>1.5.0-SNAPSHOT</version>
+  <version>1.4.6-SNAPSHOT</version>
   <description>Business logic to manage consortia in FOLIO</description>
   <packaging>jar</packaging>
 
@@ -62,14 +62,14 @@
     <folio-spring-base.version>8.1.2</folio-spring-base.version>
     <folio-service-tools.version>4.0.1</folio-service-tools.version>
     <openapi-generator.version>7.8.0</openapi-generator.version>
-    <mapstruct.version>1.6.0</mapstruct.version>
-    <applications-poc-tools.version>1.5.5</applications-poc-tools.version>
+    <mapstruct.version>1.6.2</mapstruct.version>
+    <applications-poc-tools.version>1.5.7</applications-poc-tools.version>
+    <commons-lang3.version>3.17.0</commons-lang3.version>
 
     <!-- test dependencies -->
     <wiremock-standalone.version>3.0.1</wiremock-standalone.version>
     <testcontainers.version>1.20.1</testcontainers.version>
     <snakeyaml.version>2.2</snakeyaml.version>
-    <testcontainers-bom.version>1.20.1</testcontainers-bom.version>
     <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
   </properties>
 
@@ -78,7 +78,7 @@
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers-bom</artifactId>
-        <version>${testcontainers-bom.version}</version>
+        <version>${testcontainers.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -178,7 +178,7 @@
     <dependency>
       <groupId>one.util</groupId>
       <artifactId>streamex</artifactId>
-      <version>0.8.2</version>
+      <version>0.8.3</version>
     </dependency>
     <dependency>
       <groupId>org.mapstruct</groupId>
@@ -217,13 +217,11 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
-      <version>${testcontainers.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <version>${testcontainers.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -583,6 +581,7 @@
               <configOptions>
                 <dateLibrary>java</dateLibrary>
                 <interfaceOnly>true</interfaceOnly>
+                <useTags>true</useTags>
                 <useSpringBoot3>true</useSpringBoot3>
               </configOptions>
             </configuration>
@@ -619,7 +618,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.4.0</version>
+        <version>3.5.0</version>
         <configuration>
           <useSystemClassLoader>false</useSystemClassLoader>
           <argLine>@{argLine} -Dfile.encoding=UTF-8 -Duser.language=en -Duser.region=US</argLine>
