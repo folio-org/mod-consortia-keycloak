@@ -3,12 +3,17 @@ package org.folio.consortia.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import feign.FeignException;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.folio.consortia.client.PoliciesClient;
+import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.SharingPolicyDeleteResponse;
 import org.folio.consortia.domain.dto.SharingPolicyRequest;
 import org.folio.consortia.domain.dto.SharingPolicyResponse;
 import org.folio.consortia.domain.dto.SourceValues;
+import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.entity.SharingPolicyEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.SharingPolicyRepository;
@@ -22,6 +27,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -32,15 +38,17 @@ import java.util.UUID;
 public class SharingPolicyService extends
   BaseSharingService<SharingPolicyRequest, SharingPolicyResponse, SharingPolicyDeleteResponse, SharingPolicyEntity> {
 
+  private final PoliciesClient policiesClient;
   private final SharingPolicyRepository sharingPolicyRepository;
 
   public SharingPolicyService(TenantService tenantService, ConsortiumService consortiumService,
                               SystemUserScopedExecutionService systemUserScopedExecutionService,
                               PublicationService publicationService, FolioExecutionContext folioExecutionContext,
-                              ObjectMapper parentObjectMapper, TaskExecutor asyncTaskExecutor,
+                              ObjectMapper parentObjectMapper, TaskExecutor asyncTaskExecutor, PoliciesClient policiesClient,
                               SharingPolicyRepository sharingPolicyRepository) {
     super(tenantService, consortiumService, systemUserScopedExecutionService, publicationService,
       folioExecutionContext, parentObjectMapper, asyncTaskExecutor);
+    this.policiesClient = policiesClient;
     this.sharingPolicyRepository = sharingPolicyRepository;
   }
 
@@ -82,6 +90,36 @@ public class SharingPolicyService extends
   }
 
   @Override
+  protected void syncConfigWithTenant(SharingPolicyRequest request) {
+    String tenantId = folioExecutionContext.getTenantId();
+    UUID policyId = request.getPolicyId();
+    log.debug("syncConfig:: Trying to syncing sharing policy table with policy table for policy '{}'", policyId);
+
+    if (sharingPolicyRepository.existsByRoleIdAndTenantId(policyId, tenantId)) {
+      log.info("syncConfig:: Policy '{}' with tenant '{}' already exists in sharing role table, No need to sync",
+        policyId, tenantId);
+      return;
+    }
+    syncSharingPolicyWithPolicyInTenant(request, tenantId, policyId);
+  }
+
+  private void syncSharingPolicyWithPolicyInTenant(SharingPolicyRequest request, String tenantId, UUID policyId) {
+    try {
+      policiesClient.getPolicyById(policyId);
+      log.info("syncConfig:: Policy '{}' found in tenant '{}', but not found in sharing policy table, " +
+        "creating new entry", policyId, tenantId);
+
+      var sharingPolicyEntity = createSharingConfigEntity(request.getPolicyId(), tenantId);
+      sharingPolicyRepository.save(sharingPolicyEntity);
+    } catch (FeignException.NotFound e) {
+      log.info("syncConfig:: Policy '{}' not found in tenant '{}' and sharing policy table, No need to sync",
+        policyId, tenantId);
+    } catch (Exception e) {
+      log.error("syncConfig:: Error while fetching policies", e);
+    }
+  }
+
+  @Override
   protected Set<String> findTenantsForConfig(SharingPolicyRequest request) {
     return sharingPolicyRepository.findTenantsByPolicyId(request.getPolicyId());
   }
@@ -92,36 +130,58 @@ public class SharingPolicyService extends
   }
 
   @Override
-  protected void deleteSharingConfig(UUID policyId) {
-    sharingPolicyRepository.deleteByPolicyId(policyId);
+  protected void deleteSharingConfig(SharingPolicyRequest request) {
+    sharingPolicyRepository.deleteByPolicyId(request.getPolicyId());
+  }
+
+  @Override
+  protected PublicationRequest buildPublicationRequestForTenant(SharingPolicyRequest request, Tenant tenant, HttpMethod method) {
+    String urlForRequest = getUrl(request, method);
+    return new PublicationRequest()
+      .method(method.toString())
+      .url(urlForRequest)
+      .payload(getPayload(request))
+      .tenants(new HashSet<>());
   }
 
   @Override
   protected SharingPolicyEntity createSharingConfigEntityFromRequest(SharingPolicyRequest request, String tenantId) {
+    return createSharingConfigEntity(request.getPolicyId(), tenantId);
+  }
+
+  private SharingPolicyEntity createSharingConfigEntity(UUID policyId, String tenantId) {
     return SharingPolicyEntity.builder()
       .id(UUID.randomUUID())
-      .policyId(request.getPolicyId())
+      .policyId(policyId)
       .tenantId(tenantId)
       .build();
   }
 
   @Override
-  protected SharingPolicyResponse createSharingConfigResponse(UUID createSettingsPcId, UUID updateSettingsPcId) {
-    return new SharingPolicyResponse()
-      .createPoliciesPCId(createSettingsPcId)
-      .updatePoliciesPCId(updateSettingsPcId);
+  protected SharingPolicyResponse createSharingConfigResponse(List<UUID> createPcIds, List<UUID> updatePcIds) {
+    var response = new SharingPolicyResponse();
+    if (CollectionUtils.isNotEmpty(createPcIds)) {
+      response.setCreatePCId(createPcIds.get(0));
+    }
+    if (CollectionUtils.isNotEmpty(updatePcIds)) {
+      response.setUpdatePCId(updatePcIds.get(0));
+    }
+    return response;
   }
 
   @Override
-  protected SharingPolicyDeleteResponse createSharingConfigResponse(UUID publishRequestId) {
-    return new SharingPolicyDeleteResponse()
-      .pcId(publishRequestId);
+  protected SharingPolicyDeleteResponse createSharingConfigDeleteResponse(List<UUID> pcIds) {
+    var response = new SharingPolicyDeleteResponse();
+    if (CollectionUtils.isNotEmpty(pcIds)) {
+      response.setPcId(pcIds.get(0));
+    }
+    return response;
   }
 
   @Override
-  protected ObjectNode updatePayload(SharingPolicyRequest sharingConfigRequest, String sourceValue) {
-    var payload = objectMapper.convertValue(getPayload(sharingConfigRequest), ObjectNode.class);
-    return payload.set(SOURCE, new TextNode(sourceValue));
+  protected ObjectNode updateSourcePayload(Object payload, String sourceValue) {
+    var payloadNode = objectMapper.convertValue(payload, ObjectNode.class);
+    return payloadNode.set(SOURCE, new TextNode(sourceValue));
   }
 
   @Override

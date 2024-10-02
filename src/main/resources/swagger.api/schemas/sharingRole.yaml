@@ -6,6 +6,9 @@ SharingRoleRequest:
       description: id of sharing role record
       type: string
       format: uuid
+    roleName:
+      description: name of sharing role
+      type: string
     url:
       description: URL for publishing requests for consortia tenants
       type: string
@@ -15,30 +18,37 @@ SharingRoleRequest:
   additionalProperties: false
   required:
     - roleId
+    - roleName
     - url
 
 SharingRoleResponse:
   description: "A JSON schema for the Sharing roles object response for post request"
   type: object
   properties:
-    createRolesPCId:
-      type: string
-      format: uuid
-    updateRolesPCId:
-      type: string
-      format: uuid
+    createPCIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    updatePCIds:
+      type: array
+      items:
+        type: string
+        format: uuid
   additionalProperties: false
   required:
-    - createRolesPCId
-    - updateRolesPCId
+    - createPCIds
+    - updatePCIds
 
 SharingRoleDeleteResponse:
   description: "A JSON schema for the Sharing roles object response for delete request"
   type: object
   properties:
-    pcId:
-      type: string
-      format: uuid
+    pcIds:
+      type: array
+      items:
+        type: string
+        format: uuid
   additionalProperties: false
   required:
     - pcId

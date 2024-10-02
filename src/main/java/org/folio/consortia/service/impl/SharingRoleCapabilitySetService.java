@@ -3,8 +3,10 @@ package org.folio.consortia.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import feign.FeignException;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
+import org.folio.consortia.client.RoleCapabilitySetsClient;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetDeleteResponse;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetRequest;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetResponse;
@@ -34,16 +36,18 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
 
   private static final String ROLE_ID = "roleId";
 
+  private final RoleCapabilitySetsClient roleCapabilitySetsClient;
   private final SharingRoleRepository sharingRoleRepository;
 
   public SharingRoleCapabilitySetService(TenantService tenantService, ConsortiumService consortiumService,
                                          SystemUserScopedExecutionService systemUserScopedExecutionService,
                                          PublicationService publicationService,
                                          FolioExecutionContext folioExecutionContext, ObjectMapper parentObjectMapper,
-                                         TaskExecutor asyncTaskExecutor,
+                                         TaskExecutor asyncTaskExecutor, RoleCapabilitySetsClient roleCapabilitySetsClient,
                                          SharingRoleRepository sharingRoleRepository) {
     super(tenantService, consortiumService, systemUserScopedExecutionService, publicationService,
       folioExecutionContext, parentObjectMapper, asyncTaskExecutor);
+    this.roleCapabilitySetsClient = roleCapabilitySetsClient;
     this.sharingRoleRepository = sharingRoleRepository;
   }
 
@@ -86,6 +90,39 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
   }
 
   @Override
+  protected void syncConfigWithTenant(SharingRoleCapabilitySetRequest request) {
+    UUID roleId = request.getRoleId();
+    String tenantId = folioExecutionContext.getTenantId();
+    log.debug("syncConfigWithTenant:: Trying to syncing sharing role table with role capabilitSets in tenant '{}'",
+      tenantId);
+
+    if (sharingRoleRepository.existsByRoleIdAndTenantIdAndIsCapabilitySetsSharedTrue(roleId, tenantId)) {
+      log.info("syncConfigWithTenant:: Role '{}' and capabilitySets with tenant '{}' already exists in sharing role table, No need to sync",
+        roleId, tenantId);
+      return;
+    }
+
+    syncSharingRoleWithRoleCapabilitiesInTenant(roleId, tenantId);
+  }
+
+  private void syncSharingRoleWithRoleCapabilitiesInTenant(UUID roleId, String tenantId) {
+    try {
+      roleCapabilitySetsClient.getRoleCapabilitySetsRoleId(roleId.toString());
+      log.info("syncConfigWithTenant:: Role '{}' and capabilitySets found in tenant '{}', but not found in sharing role table, " +
+        " creating new record in sharing table", roleId, tenantId);
+
+      var sharingRoleEntity = getSharingRoleEntity(roleId, tenantId);
+      sharingRoleEntity.setIsCapabilitySetsShared(true);
+      sharingRoleRepository.save(sharingRoleEntity);
+    } catch (FeignException.NotFound e) {
+      log.info("syncSharingRoleWithRoleCapabilitiesInTenant:: Role '{}' and capabilitySets not found in tenant '{}'" +
+        " and sharing role table, No need to sync", roleId, tenantId);
+    }  catch (Exception e) {
+      log.error("syncConfig:: Error while fetching role capabilitySets", e);
+    }
+  }
+
+  @Override
   protected Set<String> findTenantsForConfig(SharingRoleCapabilitySetRequest request) {
     return sharingRoleRepository.findTenantsByRoleIdAndIsCapabilitySetsSharedTrue(request.getRoleId());
   }
@@ -97,8 +134,8 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
   }
 
   @Override
-  protected void deleteSharingConfig(UUID roleId) {
-    var sharingRoleEntityList = sharingRoleRepository.findByRoleId(roleId);
+  protected void deleteSharingConfig(SharingRoleCapabilitySetRequest request) {
+    var sharingRoleEntityList = sharingRoleRepository.findByRoleName(request.getRoleName());
     sharingRoleEntityList.forEach(sharingRoleEntity -> sharingRoleEntity.setIsCapabilitySetsShared(false));
     sharingRoleRepository.saveAll(sharingRoleEntityList);
   }
@@ -106,15 +143,19 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
   @Override
   protected SharingRoleEntity createSharingConfigEntityFromRequest(SharingRoleCapabilitySetRequest request,
                                                                    String tenantId) {
-    return sharingRoleRepository.findByRoleIdAndTenantId(request.getRoleId(), tenantId);
+    return getSharingRoleEntity(request.getRoleId(), tenantId);
+  }
+
+  private SharingRoleEntity getSharingRoleEntity(UUID roleId, String tenantId) {
+    return sharingRoleRepository.findByRoleIdAndTenantId(roleId, tenantId);
   }
 
   @Override
-  protected SharingRoleCapabilitySetResponse createSharingConfigResponse(UUID createRoleCapabilitySetsPCId,
-                                                                         UUID updateRoleCapabilitySetsPCId) {
+  protected SharingRoleCapabilitySetResponse createSharingConfigResponse(List<UUID> createPCIds,
+                                                                         List<UUID> updateIds) {
     return new SharingRoleCapabilitySetResponse()
-      .createRoleCapabilitySetsPCId(createRoleCapabilitySetsPCId)
-      .updateRoleCapabilitySetsPCId(updateRoleCapabilitySetsPCId);
+      .createPCIds(createPCIds)
+      .updatePCIds(updateIds);
   }
 
   @Override

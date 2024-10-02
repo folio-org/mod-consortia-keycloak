@@ -79,6 +79,14 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
     }
   }
 
+  /**
+   * Sharing settings are one share-to-all tenants action only, so don't need to sync with tenant
+   */
+  @Override
+  protected void syncConfigWithTenant(SharingSettingRequest request) {
+    log.info("syncConfigWithTenant:: No need to sync with tenant for Sharing Setting");
+  }
+
   @Override
   protected Set<String> findTenantsForConfig(SharingSettingRequest request) {
     return sharingSettingRepository.findTenantsBySettingId(request.getSettingId());
@@ -90,8 +98,8 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   }
 
   @Override
-  protected void deleteSharingConfig(UUID settingId) {
-    sharingSettingRepository.deleteBySettingId(settingId);
+  protected void deleteSharingConfig(SharingSettingRequest request) {
+    sharingSettingRepository.deleteBySettingId(request.getSettingId());
   }
 
   @Override

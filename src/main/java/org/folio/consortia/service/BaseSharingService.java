@@ -51,84 +51,103 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
   private final ConsortiumService consortiumService;
   private final SystemUserScopedExecutionService systemUserScopedExecutionService;
   private final PublicationService publicationService;
-  private final FolioExecutionContext folioExecutionContext;
+  protected final FolioExecutionContext folioExecutionContext;
   protected final ObjectMapper objectMapper;
   private final TaskExecutor asyncTaskExecutor;
 
   @Transactional
-  public TResponse start(UUID consortiumId, TRequest sharingConfigRequest) {
-    String configName = getClassName(sharingConfigRequest);
-    UUID configId = getConfigId(sharingConfigRequest);
+  public TResponse start(UUID consortiumId, TRequest request) {
+    String configName = getClassName(request);
+    UUID configId = getConfigId(request);
     log.debug("start:: Trying to share '{}' with consortiumId: {}, sharing {} id: {}",
       configName, consortiumId, configName, configId);
 
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
-    checkEqualsOfPayloadIdWithConfigId(sharingConfigRequest);
+    checkEqualsOfPayloadIdWithConfigId(request);
 
-    Set<String> sharingConfigTenants = findTenantsForConfig(sharingConfigRequest);
+    Set<String> sharingConfigTenants = findTenantsForConfig(request);
     TenantCollection allTenants = tenantService.getAll(consortiumId);
 
-    var publicationPostRequest = createPublicationRequest(sharingConfigRequest, HttpMethod.POST);
-    var publicationPutRequest = createPublicationRequest(sharingConfigRequest, HttpMethod.PUT);
+    // sync sharing config table, if there is already saved config in tenant
+    syncConfigWithTenant(request);
 
-    List<TEntity> sharingConfigEntityList = linkTenantsToPublicationPutPostRequestAndEntity(allTenants,
-      sharingConfigRequest, sharingConfigTenants, publicationPutRequest, publicationPostRequest);
+    List<PublicationRequest> pubPostRequests = new ArrayList<>();
+    List<PublicationRequest> pubPutRequests = new ArrayList<>();
+
+    List<TEntity> sharingConfigEntityList = new ArrayList<>();
+
+    for (Tenant tenant : allTenants.getTenants()) {
+      var method = sharingConfigTenants.contains(tenant.getId()) ? HttpMethod.PUT : HttpMethod.POST;
+      var publicationRequest = buildPublicationRequestForTenant(request, tenant, method);
+
+      if (method == HttpMethod.PUT) {
+        pubPostRequests.add(publicationRequest);
+      } else {
+        pubPutRequests.add(publicationRequest);
+        sharingConfigEntityList.add(createSharingConfigEntityFromRequest(request, tenant.getId()));
+      }
+
+      log.info("start:: tenant={} added to publication {} request for {}={}",
+        tenant.getId(), method.toString(), getClassName(request), getConfigId(request));
+    }
+
     saveSharingConfig(sharingConfigEntityList);
     log.info("start:: The Sharing {}s for {} ID '{}' and '{}' unique tenant(s) were successfully" +
-      " saved to the database", configName, configName, configId, publicationPostRequest.getTenants().size());
+      " saved to the database", configName, configName, configId, sharingConfigEntityList.size());
 
     var sourceValue = getSourceValue(SourceValues.CONSORTIUM);
-    ObjectNode updatedPayload = updatePayload(sharingConfigRequest, sourceValue);
-    publicationPostRequest.setPayload(updatedPayload);
-    publicationPutRequest.setPayload(updatedPayload);
+    pubPostRequests.forEach(pubRequest -> updateSourcePayload(pubRequest, sourceValue));
+    pubPutRequests.forEach(pubRequest -> updateSourcePayload(pubRequest, sourceValue));
+
     log.info("start:: set source as '{}' in payload of {}: {}",
       sourceValue, configName, configId);
 
     // create PC request with POST and PUT Http method to create configs, using 'mod-consortia-keycloak' system user
     return systemUserScopedExecutionService.executeSystemUserScoped(folioExecutionContext.getTenantId(), () -> {
-      UUID createConfigsPcId = publishRequest(consortiumId, publicationPostRequest);
-      UUID updateConfigsPcId = publishRequest(consortiumId, publicationPutRequest);
-      return createSharingConfigResponse(createConfigsPcId, updateConfigsPcId);
+      var createConfigsPcIds = executePublishRequests(consortiumId, pubPostRequests);
+      var updateConfigsPcIds = executePublishRequests(consortiumId, pubPutRequests);
+
+      return createSharingConfigResponse(createConfigsPcIds, updateConfigsPcIds);
     });
   }
-
 
   @Transactional
   @SneakyThrows
-  public TDeleteResponse delete(UUID consortiumId, UUID configId, TRequest sharingConfigRequest) {
-    String configName = getClassName(sharingConfigRequest);
+  public TDeleteResponse delete(UUID consortiumId, UUID configId, TRequest request) {
+    String configName = getClassName(request);
     log.debug("delete:: Trying to delete sharing '{}' with consortiumId: {}, sharing {} ID: {}",
       configName, consortiumId, configName, configId);
 
-    validateSharingConfigRequestOrThrow(configId, sharingConfigRequest);
+    validateSharingConfigRequestOrThrow(configId, request);
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
 
-    Set<String> sharingConfigTenants = findTenantsForConfig(sharingConfigRequest);
+    Set<String> sharedTenants = findTenantsForConfig(request);
     TenantCollection allTenants = tenantService.getAll(consortiumId);
-    var publicationDeleteRequest = createPublicationRequest(sharingConfigRequest, HttpMethod.DELETE);
-    linkTenantsToPublicationDeleteRequest(allTenants, sharingConfigRequest, sharingConfigTenants, publicationDeleteRequest);
-    log.info("delete:: Tenants with size: {} successfully added to appropriate DELETE publication " +
-      "request for {}: {}", allTenants.getTotalRecords(), configName, configId);
 
-    deleteSharingConfig(configId);
-    log.info("delete:: The Sharing {}s for {} ID '{}' and '{}' unique tenant(s) were successfully " +
-      "deleted from the database", configName, configName, configId, publicationDeleteRequest.getTenants().size());
+    List<PublicationRequest> pubDeleteRequests = new ArrayList<>();
+
+    for (Tenant tenant : allTenants.getTenants()) {
+      if (sharedTenants.contains(tenant.getId())) {
+        var publicationRequest = buildPublicationRequestForTenant(request, tenant, HttpMethod.DELETE);
+        pubDeleteRequests.add(publicationRequest);
+      }
+    }
+
+    deleteSharingConfig(request);
+    log.info("delete:: The Sharing {}s for {} ID '{}' and '{}' tenant(s) were successfully" +
+      " deleted from the database", configName, configName, configId, sharedTenants);
 
     // create PC request with DELETE Http method to create configs, using 'mod-consortia-keycloak' system user
     return systemUserScopedExecutionService.executeSystemUserScoped(folioExecutionContext.getTenantId(), () -> {
-      var pcId = publishRequest(consortiumId, publicationDeleteRequest);
-      var sharingConfigDeleteResponse = createSharingConfigResponse(pcId);
+      var pcIds = executePublishRequests(consortiumId, pubDeleteRequests);
+      var sharingConfigDeleteResponse = createSharingConfigDeleteResponse(pcIds);
 
       // update sources of failed requests
       asyncTaskExecutor.execute(getRunnableWithCurrentFolioContext(() ->
-        updateConfigsForFailedTenantsWithRetry(consortiumId, pcId, sharingConfigRequest)));
+        pcIds.forEach(pcId -> updateConfigsForFailedTenantsWithRetry(consortiumId, pcId, request))));
 
       return sharingConfigDeleteResponse;
     });
-  }
-
-  private String getClassName(TRequest sharingConfigRequest) {
-    return sharingConfigRequest.getClass().getName();
   }
 
   private void checkEqualsOfPayloadIdWithConfigId(TRequest sharingConfigRequest) {
@@ -141,62 +160,16 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
   }
 
   /**
-   * Method traverse through all tenants in db.
-   * It will add tenant to 'PUT' method publication tenant list if it exists in config tenant associations.
-   * Otherwise, it will add it to 'POST' method publication tenant list and add to sharingConfigEntityList
-   *
-   * @param allTenants             all existing tenants in db
-   * @param sharingConfigRequest   sharing config request
-   * @param sharingConfigTenants   existing tenants in configs
-   * @param publicationPutRequest  publication put request
-   * @param publicationPostRequest publication post request
-   * @return List of SharingConfigEntity objects
+   * Execute all publish request and return list of response uuids
+   * @param consortiumId id of consortium
+   * @param publicationRequests list of publication request
+   * @return list of response uuids
    */
-  private List<TEntity> linkTenantsToPublicationPutPostRequestAndEntity(TenantCollection allTenants,
-                                                                        TRequest sharingConfigRequest,
-                                                                        Set<String> sharingConfigTenants,
-                                                                        PublicationRequest publicationPutRequest,
-                                                                        PublicationRequest publicationPostRequest) {
-    List<TEntity> sharingConfigEntityList = new ArrayList<>();
-    for (Tenant tenant : allTenants.getTenants()) {
-      if (sharingConfigTenants.contains(tenant.getId())) {
-        publicationPutRequest.getTenants().add(tenant.getId());
-        log.info("linkTenantsToPublicationPutPostRequestAndEntity:: tenant={} added to publication update request for {}={}",
-          tenant.getId(), getClassName(sharingConfigRequest), getConfigId(sharingConfigRequest));
-      } else {
-        publicationPostRequest.getTenants().add(tenant.getId());
-        log.info("linkTenantsToPublicationPutPostRequestAndEntity:: tenant={} added to publication create request for {}={}",
-          tenant.getId(), getClassName(sharingConfigRequest), getConfigId(sharingConfigRequest));
-        sharingConfigEntityList.add(createSharingConfigEntityFromRequest(sharingConfigRequest, tenant.getId()));
-      }
-    }
-    return sharingConfigEntityList;
+  private List<UUID> executePublishRequests(UUID consortiumId, List<PublicationRequest> publicationRequests) {
+    return publicationRequests.stream()
+      .map(publicationRequest -> publishRequest(consortiumId, publicationRequest))
+      .toList();
   }
-
-  /**
-   * Method traverse through all tenants in db.
-   * It will add a tenant to delete a request publication tenant list
-   * if it exists in config tenant associations
-   *
-   * @param allTenants               all existing tenants in db
-   * @param sharingConfigRequest     sharing config request
-   * @param sharingConfigTenants     existing tenants in configs
-   * @param publicationDeleteRequest publication delete request
-   */
-  private void linkTenantsToPublicationDeleteRequest(TenantCollection allTenants,
-                                                     TRequest sharingConfigRequest,
-                                                     Set<String> sharingConfigTenants,
-                                                     PublicationRequest publicationDeleteRequest) {
-
-    for (Tenant tenant : allTenants.getTenants()) {
-      if (sharingConfigTenants.contains(tenant.getId())) {
-        publicationDeleteRequest.getTenants().add(tenant.getId());
-        log.info("linkTenantsToPublicationDeleteRequest:: tenant={} added to publication delete request for {}={}",
-          tenant.getId(), getClassName(sharingConfigRequest), getConfigId(sharingConfigRequest));
-      }
-    }
-  }
-
 
   private UUID publishRequest(UUID consortiumId, PublicationRequest publicationRequest) {
     if (CollectionUtils.isNotEmpty(publicationRequest.getTenants())) {
@@ -217,6 +190,10 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
    */
   private void updateConfigsForFailedTenantsWithRetry(UUID consortiumId, UUID publicationId,
                                                       TRequest sharingConfigRequest) {
+    if (publicationId == null) {
+      return;
+    }
+
     RetryTemplate retryTemplate = new RetryTemplate();
 
     SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(maxTries);
@@ -273,7 +250,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     log.info("updateFailedConfigsToLocalSource:: Updating failed '{}' tenants {}s ",
       failedTenantList.size(), getClassName(sharingConfigRequest));
     var sourceValue = getSourceValue(SourceValues.USER);
-    ObjectNode updatedPayload = updatePayload(sharingConfigRequest, sourceValue);
+    ObjectNode updatedPayload = updateSourcePayload(sharingConfigRequest, sourceValue);
 
     PublicationRequest publicationPutRequest = createPublicationRequest(sharingConfigRequest, HttpMethod.PUT);
     publicationPutRequest.setPayload(updatedPayload);
@@ -299,14 +276,20 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
   protected abstract String getUrl(TRequest request, HttpMethod httpMethod);
   protected abstract void validateSharingConfigRequestOrThrow(UUID configId, TRequest request);
 
+  protected abstract void syncConfigWithTenant(TRequest request);
   protected abstract Set<String> findTenantsForConfig(TRequest request);
   protected abstract void saveSharingConfig(List<TEntity> enetityList);
-  protected abstract void deleteSharingConfig(UUID configId);
+  protected abstract void deleteSharingConfig(TRequest request);
 
+  protected abstract PublicationRequest buildPublicationRequestForTenant(TRequest request, Tenant tenant,
+                                                                         HttpMethod method);
   protected abstract TEntity createSharingConfigEntityFromRequest(TRequest request, String tenantId);
-  protected abstract TResponse createSharingConfigResponse(UUID createConfigsPcId, UUID updateConfigsPcId);
-  protected abstract TDeleteResponse createSharingConfigResponse(UUID publishRequestId);
+  protected abstract TResponse createSharingConfigResponse(List<UUID> createConfigsPcId, List<UUID> updateConfigsPcId);
+  protected abstract TDeleteResponse createSharingConfigDeleteResponse(List<UUID> publishRequestId);
   protected abstract String getSourceValue(SourceValues sourceValue);
-  protected abstract ObjectNode updatePayload(TRequest request, String sourceValue);
+  protected abstract ObjectNode updateSourcePayload(Object payload, String sourceValue);
 
+  private String getClassName(TRequest sharingConfigRequest) {
+    return sharingConfigRequest.getClass().getSimpleName();
+  }
 }
