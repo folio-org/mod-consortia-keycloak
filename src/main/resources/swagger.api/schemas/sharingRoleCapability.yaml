@@ -27,12 +27,12 @@ SharingRoleCapabilityResponse:
   properties:
     createPCIds:
       type: array
-      item:
+      items:
         type: string
         format: uuid
     updatePCIds:
       type: array
-      item:
+      items:
         type: string
         format: uuid
   additionalProperties: false
@@ -45,8 +45,10 @@ SharingRoleCapabilityDeleteResponse:
   type: object
   properties:
     pcId:
-      type: string
-      format: uuid
+      type: array
+      items:
+        type: string
+        format: uuid
   additionalProperties: false
   required:
     - pcId

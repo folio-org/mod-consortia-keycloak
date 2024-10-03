@@ -1,5 +1,7 @@
 package org.folio.consortia.service.impl;
 
+import static org.folio.consortia.utils.TenantContextUtils.prepareContextForTenant;
+
 import com.bettercloud.vault.json.JsonObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -13,7 +15,6 @@ import org.folio.consortia.domain.dto.SharingRoleDeleteResponse;
 import org.folio.consortia.domain.dto.SharingRoleRequest;
 import org.folio.consortia.domain.dto.SharingRoleResponse;
 import org.folio.consortia.domain.dto.SourceValues;
-import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.entity.SharingRoleEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.SharingRoleRepository;
@@ -22,12 +23,13 @@ import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.PublicationService;
 import org.folio.consortia.service.TenantService;
 import org.folio.spring.FolioExecutionContext;
+import org.folio.spring.FolioModuleMetadata;
+import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -39,15 +41,18 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
 
   private static final String ID = "id";
 
-  private RolesClient rolesClient;
+  private final RolesClient rolesClient;
+  private final FolioModuleMetadata moduleMetadata;
   private final SharingRoleRepository sharingRoleRepository;
 
   public SharingRoleService(TenantService tenantService, ConsortiumService consortiumService,
                             SystemUserScopedExecutionService systemUserScopedExecutionService,
                             PublicationService publicationService, FolioExecutionContext folioExecutionContext,
-                            ObjectMapper parentObjectMapper, TaskExecutor asyncTaskExecutor, SharingRoleRepository sharingRoleRepository) {
+                            ObjectMapper parentObjectMapper, TaskExecutor asyncTaskExecutor, RolesClient rolesClient, FolioModuleMetadata moduleMetadata, SharingRoleRepository sharingRoleRepository) {
     super(tenantService, consortiumService, systemUserScopedExecutionService, publicationService,
       folioExecutionContext, parentObjectMapper, asyncTaskExecutor);
+    this.rolesClient = rolesClient;
+    this.moduleMetadata = moduleMetadata;
     this.sharingRoleRepository = sharingRoleRepository;
   }
 
@@ -94,23 +99,29 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   }
 
   @Override
-  protected void syncConfigWithTenant(SharingRoleRequest request) {
+  protected void syncConfigWithTenants(Set<String> sharedConfigTenants, SharingRoleRequest request) {
     String roleName = request.getRoleName();
-    String tenantId = folioExecutionContext.getTenantId();
+    String centralTenantId = folioExecutionContext.getTenantId();
     log.debug("syncConfig:: Trying to syncing sharing role table with roles table for role '{}' and tenant '{}'",
-      request.getRoleName(), tenantId);
+      request.getRoleName(), centralTenantId);
 
-    if (sharingRoleRepository.existsByRoleIdAndTenantId(request.getRoleId(), tenantId)) {
-      log.info("syncConfig:: Role '{}' with tenant '{}' already exists in sharing role table, No need to sync",
-        request.getRoleId(), tenantId);
+    if (sharingRoleRepository.existsByRoleIdAndTenantId(request.getRoleId(), centralTenantId)) {
+      log.info("syncConfig:: Role '{}' with central tenant '{}' already exists, Syncing with other tenants: {}",
+        request.getRoleName(), centralTenantId, sharedConfigTenants);
+
+      sharedConfigTenants.stream()
+        .filter(tenantId -> !tenantId.equals(centralTenantId))
+        .forEach(memberTenantId -> syncSharingRoleWithRoleInTenant(request, roleName, memberTenantId));
       return;
     }
 
-    syncSharingRoleWithRoleInTenant(request, roleName, tenantId);
+    log.info("syncConfig:: Role '{}' not found, trying to sync with only central tenant '{}'" +
+        " because role haven't shared with other tenants yet", request.getRoleId(), centralTenantId);
+    syncSharingRoleWithRoleInTenant(request, roleName, centralTenantId);
   }
 
   private void syncSharingRoleWithRoleInTenant(SharingRoleRequest request, String roleName, String tenantId) {
-    try {
+    try (var ignored = new FolioExecutionContextSetter(prepareContextForTenant(tenantId, moduleMetadata, folioExecutionContext))) {
       String cqlQuery = String.format("name==%s", roleName);
       JsonObject role = rolesClient.getRolesByQuery(cqlQuery);
       UUID roleId = UUID.fromString(role.getString(ID));
@@ -140,22 +151,24 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   }
 
   @Override
-  protected PublicationRequest buildPublicationRequestForTenant(SharingRoleRequest request, Tenant tenant,
+  protected PublicationRequest buildPublicationRequestForTenant(SharingRoleRequest request, String tenantId,
                                                                 HttpMethod method) {
     var payload = objectMapper.convertValue(getPayload(request), ObjectNode.class);
     String url = request.getUrl();
-    // set roleId for each tenant, because roleId will be different for each tenant
+
     if (method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE)) {
-      UUID tenantRoleId = sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), tenant.getId());
+      // roleId will be different for each tenant
+      var tenantRoleId = sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), tenantId);
       url += "/" + tenantRoleId;
       payload.put(ID, tenantRoleId.toString());
+      log.info("buildPublicationRequestForTenant:: roleId '{}' was set to tenant '{}'", tenantRoleId, tenantId);
     }
 
     return new PublicationRequest()
       .method(method.toString())
       .url(url)
       .payload(payload)
-      .tenants(new HashSet<>());
+      .tenants(Set.of(tenantId));
   }
 
   @Override

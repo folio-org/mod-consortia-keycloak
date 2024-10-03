@@ -3,7 +3,6 @@ package org.folio.consortia.service;
 import static org.folio.spring.scope.FolioExecutionScopeExecutionContextManager.getRunnableWithCurrentFolioContext;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -49,7 +48,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
 
   private final TenantService tenantService;
   private final ConsortiumService consortiumService;
-  private final SystemUserScopedExecutionService systemUserScopedExecutionService;
+  protected final SystemUserScopedExecutionService systemUserScopedExecutionService;
   private final PublicationService publicationService;
   protected final FolioExecutionContext folioExecutionContext;
   protected final ObjectMapper objectMapper;
@@ -65,11 +64,12 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
     checkEqualsOfPayloadIdWithConfigId(request);
 
-    Set<String> sharingConfigTenants = findTenantsForConfig(request);
+    Set<String> sharedConfigTenants = findTenantsForConfig(request);
     TenantCollection allTenants = tenantService.getAll(consortiumId);
 
-    // sync sharing config table, if there is already saved config in tenant
-    syncConfigWithTenant(request);
+    // sync sharing config table, if there is already created config in tenant
+    syncConfigWithTenants(sharedConfigTenants, request);
+    sharedConfigTenants = findTenantsForConfig(request); // update sharedConfigTenants after sync
 
     List<PublicationRequest> pubPostRequests = new ArrayList<>();
     List<PublicationRequest> pubPutRequests = new ArrayList<>();
@@ -77,8 +77,8 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     List<TEntity> sharingConfigEntityList = new ArrayList<>();
 
     for (Tenant tenant : allTenants.getTenants()) {
-      var method = sharingConfigTenants.contains(tenant.getId()) ? HttpMethod.PUT : HttpMethod.POST;
-      var publicationRequest = buildPublicationRequestForTenant(request, tenant, method);
+      var method = sharedConfigTenants.contains(tenant.getId()) ? HttpMethod.PUT : HttpMethod.POST;
+      var publicationRequest = buildPublicationRequestForTenant(request, tenant.getId(), method);
 
       if (method == HttpMethod.PUT) {
         pubPostRequests.add(publicationRequest);
@@ -124,12 +124,14 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     Set<String> sharedTenants = findTenantsForConfig(request);
     TenantCollection allTenants = tenantService.getAll(consortiumId);
 
+    syncConfigWithTenants(sharedTenants, request);
+    sharedTenants = findTenantsForConfig(request); // update sharedTenants after sync
+
     List<PublicationRequest> pubDeleteRequests = new ArrayList<>();
 
     for (Tenant tenant : allTenants.getTenants()) {
       if (sharedTenants.contains(tenant.getId())) {
-        var publicationRequest = buildPublicationRequestForTenant(request, tenant, HttpMethod.DELETE);
-        pubDeleteRequests.add(publicationRequest);
+        pubDeleteRequests.add(buildPublicationRequestForTenant(request, tenant.getId(), HttpMethod.DELETE));
       }
     }
 
@@ -173,8 +175,11 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
 
   private UUID publishRequest(UUID consortiumId, PublicationRequest publicationRequest) {
     if (CollectionUtils.isNotEmpty(publicationRequest.getTenants())) {
+      log.info("publishRequest:: Sending {} request to publication with {} tenants for consortiumId={} and url={}",
+        publicationRequest.getMethod(), publicationRequest.getTenants().size(), consortiumId, publicationRequest.getUrl());
       return publicationService.publishRequest(consortiumId, publicationRequest).getId();
     }
+
     log.info("publishRequest:: Tenant list of publishing for http method: {} is empty", publicationRequest.getMethod());
     return null;
   }
@@ -245,29 +250,22 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
       .map(PublicationResult::getTenantId).collect(Collectors.toSet());
   }
 
-  private void updateFailedConfigsToLocalSource(UUID consortiumId, TRequest sharingConfigRequest,
+  private void updateFailedConfigsToLocalSource(UUID consortiumId, TRequest request,
                                                 Set<String> failedTenantList) {
     log.info("updateFailedConfigsToLocalSource:: Updating failed '{}' tenants {}s ",
-      failedTenantList.size(), getClassName(sharingConfigRequest));
-    var sourceValue = getSourceValue(SourceValues.USER);
-    ObjectNode updatedPayload = updateSourcePayload(sharingConfigRequest, sourceValue);
+      failedTenantList.size(), getClassName(request));
 
-    PublicationRequest publicationPutRequest = createPublicationRequest(sharingConfigRequest, HttpMethod.PUT);
-    publicationPutRequest.setPayload(updatedPayload);
-    publicationPutRequest.setTenants(failedTenantList);
+    List<PublicationRequest> pubPutRequests = new ArrayList<>();
+    failedTenantList.forEach(tenantId ->
+      pubPutRequests.add(buildPublicationRequestForTenant(request,  tenantId, HttpMethod.PUT)));
+
+    var sourceValue = getSourceValue(SourceValues.USER);
+    var updatedPayload = updateSourcePayload(request, sourceValue);
+    pubPutRequests.forEach(pubRequest -> pubRequest.setPayload(updatedPayload));
 
     log.info("updateFailedConfigsToLocalSource:: send PUT request to publication with new source in " +
         "payload={} by system user of {}", sourceValue, folioExecutionContext.getTenantId());
-    publishRequest(consortiumId, publicationPutRequest);
-  }
-
-  private PublicationRequest createPublicationRequest(TRequest sharingConfigRequest, HttpMethod method) {
-    String urlForRequest = getUrl(sharingConfigRequest, method);
-    return new PublicationRequest()
-      .method(method.toString())
-      .url(urlForRequest)
-      .payload(getPayload(sharingConfigRequest))
-      .tenants(new HashSet<>());
+    executePublishRequests(consortiumId, pubPutRequests);
   }
 
   protected abstract UUID getConfigId(TRequest request);
@@ -276,12 +274,12 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
   protected abstract String getUrl(TRequest request, HttpMethod httpMethod);
   protected abstract void validateSharingConfigRequestOrThrow(UUID configId, TRequest request);
 
-  protected abstract void syncConfigWithTenant(TRequest request);
+  protected abstract void syncConfigWithTenants(Set<String> sharedConfigTenants, TRequest request);
   protected abstract Set<String> findTenantsForConfig(TRequest request);
   protected abstract void saveSharingConfig(List<TEntity> enetityList);
   protected abstract void deleteSharingConfig(TRequest request);
 
-  protected abstract PublicationRequest buildPublicationRequestForTenant(TRequest request, Tenant tenant,
+  protected abstract PublicationRequest buildPublicationRequestForTenant(TRequest request, String tenantId,
                                                                          HttpMethod method);
   protected abstract TEntity createSharingConfigEntityFromRequest(TRequest request, String tenantId);
   protected abstract TResponse createSharingConfigResponse(List<UUID> createConfigsPcId, List<UUID> updateConfigsPcId);

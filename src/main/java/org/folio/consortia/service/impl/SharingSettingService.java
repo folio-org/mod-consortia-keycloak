@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.SharingSettingDeleteResponse;
 import org.folio.consortia.domain.dto.SharingSettingRequest;
 import org.folio.consortia.domain.dto.SharingSettingResponse;
@@ -22,6 +24,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -83,7 +86,7 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
    * Sharing settings are one share-to-all tenants action only, so don't need to sync with tenant
    */
   @Override
-  protected void syncConfigWithTenant(SharingSettingRequest request) {
+  protected void syncConfigWithTenants(Set<String> sharedConfigTenants, SharingSettingRequest request) {
     log.info("syncConfigWithTenant:: No need to sync with tenant for Sharing Setting");
   }
 
@@ -103,6 +106,16 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   }
 
   @Override
+  protected PublicationRequest buildPublicationRequestForTenant(SharingSettingRequest request, String tenantId, HttpMethod method) {
+    String urlForRequest = getUrl(request, method);
+    return new PublicationRequest()
+      .method(method.toString())
+      .url(urlForRequest)
+      .payload(getPayload(request))
+      .tenants(new HashSet<>());
+  }
+
+  @Override
   protected SharingSettingEntity createSharingConfigEntityFromRequest(SharingSettingRequest request, String tenantId) {
     return SharingSettingEntity.builder()
       .id(UUID.randomUUID())
@@ -112,26 +125,35 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   }
 
   @Override
-  protected SharingSettingResponse createSharingConfigResponse(UUID createSettingsPcId, UUID updateSettingsPcId) {
-    return new SharingSettingResponse()
-      .createSettingsPCId(createSettingsPcId)
-      .updateSettingsPCId(updateSettingsPcId);
+  protected SharingSettingResponse createSharingConfigResponse(List<UUID> createSettingsPcId,
+                                                               List<UUID> updateSettingsPcId) {
+    var response = new SharingSettingResponse();
+    if (CollectionUtils.isNotEmpty(createSettingsPcId)) {
+      response.setCreateSettingsPCId(createSettingsPcId.get(0));
+    }
+    if (CollectionUtils.isNotEmpty(updateSettingsPcId)) {
+      response.setUpdateSettingsPCId(updateSettingsPcId.get(0));
+    }
+    return response;
   }
 
   @Override
-  protected SharingSettingDeleteResponse createSharingConfigResponse(UUID publishRequestId) {
-    return new SharingSettingDeleteResponse()
-      .pcId(publishRequestId);
-  }
-
-  @Override
-  protected ObjectNode updatePayload(SharingSettingRequest request, String sourceValue) {
-    var payload = objectMapper.convertValue(getPayload(request), ObjectNode.class);
-    return payload.set(SOURCE, new TextNode(sourceValue));
+  protected SharingSettingDeleteResponse createSharingConfigDeleteResponse(List<UUID> publishRequestIds) {
+    var deleteResponse = new SharingSettingDeleteResponse();
+    if (CollectionUtils.isNotEmpty(publishRequestIds)) {
+      deleteResponse.setPcId(publishRequestIds.get(0));
+    }
+    return deleteResponse;
   }
 
   @Override
   protected String getSourceValue(SourceValues sourceValue) {
     return sourceValue.getSettingValue();
+  }
+
+  @Override
+  protected ObjectNode updateSourcePayload(Object payload, String sourceValue) {
+    var node = objectMapper.convertValue(payload, ObjectNode.class);
+    return node.set(SOURCE, new TextNode(sourceValue));
   }
 }

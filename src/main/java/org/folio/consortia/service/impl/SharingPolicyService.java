@@ -13,7 +13,6 @@ import org.folio.consortia.domain.dto.SharingPolicyDeleteResponse;
 import org.folio.consortia.domain.dto.SharingPolicyRequest;
 import org.folio.consortia.domain.dto.SharingPolicyResponse;
 import org.folio.consortia.domain.dto.SourceValues;
-import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.entity.SharingPolicyEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.SharingPolicyRepository;
@@ -90,7 +89,7 @@ public class SharingPolicyService extends
   }
 
   @Override
-  protected void syncConfigWithTenant(SharingPolicyRequest request) {
+  protected void syncConfigWithTenants(Set<String> sharedConfigTenants, SharingPolicyRequest request) {
     String tenantId = folioExecutionContext.getTenantId();
     UUID policyId = request.getPolicyId();
     log.debug("syncConfig:: Trying to syncing sharing policy table with policy table for policy '{}'", policyId);
@@ -135,7 +134,7 @@ public class SharingPolicyService extends
   }
 
   @Override
-  protected PublicationRequest buildPublicationRequestForTenant(SharingPolicyRequest request, Tenant tenant, HttpMethod method) {
+  protected PublicationRequest buildPublicationRequestForTenant(SharingPolicyRequest request, String tenantId, HttpMethod method) {
     String urlForRequest = getUrl(request, method);
     return new PublicationRequest()
       .method(method.toString())

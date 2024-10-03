@@ -38,10 +38,7 @@ public interface SharingRoleRepository extends JpaRepository<SharingRoleEntity, 
 
   boolean existsByRoleIdAndTenantIdAndIsCapabilitySetsSharedTrue(UUID roleId, String tenantId);
 
-  boolean existsByRoleIdAndTenantIdAndIsCapabilitiesSharedTrue(UUID roleId, String tenantId);
-
-  @Modifying
-  void deleteByRoleId(UUID roleId);
+  boolean existsByRoleNameAndTenantIdAndIsCapabilitiesSharedTrue(String roleName, String tenantId);
 
   @Modifying
   void deleteByRoleName(String roleName);
