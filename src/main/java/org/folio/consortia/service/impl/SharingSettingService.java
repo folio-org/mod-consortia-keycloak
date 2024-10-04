@@ -24,7 +24,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -112,7 +111,12 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
       .method(method.toString())
       .url(urlForRequest)
       .payload(getPayload(request))
-      .tenants(new HashSet<>());
+      .tenants(Set.of(tenantId));
+  }
+
+  @Override
+  protected boolean shouldCompactRequests() {
+    return true; // publish payloads are the same for all tenants, so need to compact requests
   }
 
   @Override

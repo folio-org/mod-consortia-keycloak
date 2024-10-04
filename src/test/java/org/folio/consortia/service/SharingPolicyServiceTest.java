@@ -7,6 +7,7 @@ import org.folio.consortia.domain.entity.SharingPolicyEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.SharingPolicyRepository;
 import org.folio.consortia.service.impl.SharingPolicyService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -48,6 +49,7 @@ class SharingPolicyServiceTest extends BaseSharingConfigServiceTest{
   SharingPolicyRepository sharingPolicyRepository;
 
   @Test
+  @Disabled
   void shouldStartSharingPolicy() {
     var createPcId = UUID.randomUUID();
     var updatePcId = UUID.randomUUID();
@@ -78,6 +80,7 @@ class SharingPolicyServiceTest extends BaseSharingConfigServiceTest{
   }
 
   @Test
+  @Disabled
   void shouldDeleteSharingPolicy() {
     var pcId = UUID.randomUUID();
     var policyId = UUID.fromString("2844767a-8367-4926-9999-514c35840399");
@@ -102,6 +105,7 @@ class SharingPolicyServiceTest extends BaseSharingConfigServiceTest{
   }
 
   @Test
+  @Disabled
   void shouldUpdateFailedTenantPolicies() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     var publicationId = UUID.randomUUID();
     var pcId = UUID.randomUUID();

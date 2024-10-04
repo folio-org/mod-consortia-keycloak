@@ -379,9 +379,9 @@ public class EntityUtils {
     return mapper.convertValue(payload, ObjectNode.class);
   }
 
-  public static ObjectNode createPayloadForRole() {
+  public static ObjectNode createPayloadForRole(String roleId) {
     Map<String, String> payload = new HashMap<>();
-    payload.put("id", "3844767a-8367-4926-9999-514c35840399");
+    payload.put("id", roleId);
     payload.put("name", "role names");
     payload.put("type", "local");
     ObjectMapper mapper = new ObjectMapper();

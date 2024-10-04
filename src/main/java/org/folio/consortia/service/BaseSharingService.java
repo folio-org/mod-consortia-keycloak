@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -81,9 +82,9 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
       var publicationRequest = buildPublicationRequestForTenant(request, tenant.getId(), method);
 
       if (method == HttpMethod.PUT) {
-        pubPostRequests.add(publicationRequest);
-      } else {
         pubPutRequests.add(publicationRequest);
+      } else {
+        pubPostRequests.add(publicationRequest);
         sharingConfigEntityList.add(createSharingConfigEntityFromRequest(request, tenant.getId()));
       }
 
@@ -91,13 +92,18 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
         tenant.getId(), method.toString(), getClassName(request), getConfigId(request));
     }
 
+    // make to one request for all tenants if required by configuration
+    compactPublishRequestsIfNeed(pubPostRequests);
+    compactPublishRequestsIfNeed(pubPutRequests);
+
     saveSharingConfig(sharingConfigEntityList);
     log.info("start:: The Sharing {}s for {} ID '{}' and '{}' unique tenant(s) were successfully" +
       " saved to the database", configName, configName, configId, sharingConfigEntityList.size());
 
     var sourceValue = getSourceValue(SourceValues.CONSORTIUM);
-    pubPostRequests.forEach(pubRequest -> updateSourcePayload(pubRequest, sourceValue));
-    pubPutRequests.forEach(pubRequest -> updateSourcePayload(pubRequest, sourceValue));
+    Stream.of(pubPostRequests, pubPutRequests)
+      .forEach(requests -> requests.forEach(pubRequest ->
+        pubRequest.setPayload(updateSourcePayload(pubRequest.getPayload(), sourceValue))));
 
     log.info("start:: set source as '{}' in payload of {}: {}",
       sourceValue, configName, configId);
@@ -135,6 +141,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
       }
     }
 
+    compactPublishRequestsIfNeed(pubDeleteRequests);
     deleteSharingConfig(request);
     log.info("delete:: The Sharing {}s for {} ID '{}' and '{}' tenant(s) were successfully" +
       " deleted from the database", configName, configName, configId, sharedTenants);
@@ -150,38 +157,6 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
 
       return sharingConfigDeleteResponse;
     });
-  }
-
-  private void checkEqualsOfPayloadIdWithConfigId(TRequest sharingConfigRequest) {
-    String sharingConfigId = String.valueOf(getConfigId(sharingConfigRequest));
-    var payloadNode = objectMapper.convertValue(getPayload(sharingConfigRequest), ObjectNode.class);
-    String payloadId = getPayloadId(payloadNode);
-    if (ObjectUtils.notEqual(sharingConfigId, payloadId)) {
-      throw new IllegalArgumentException("Mismatch ID in payload with ID");
-    }
-  }
-
-  /**
-   * Execute all publish request and return list of response uuids
-   * @param consortiumId id of consortium
-   * @param publicationRequests list of publication request
-   * @return list of response uuids
-   */
-  private List<UUID> executePublishRequests(UUID consortiumId, List<PublicationRequest> publicationRequests) {
-    return publicationRequests.stream()
-      .map(publicationRequest -> publishRequest(consortiumId, publicationRequest))
-      .toList();
-  }
-
-  private UUID publishRequest(UUID consortiumId, PublicationRequest publicationRequest) {
-    if (CollectionUtils.isNotEmpty(publicationRequest.getTenants())) {
-      log.info("publishRequest:: Sending {} request to publication with {} tenants for consortiumId={} and url={}",
-        publicationRequest.getMethod(), publicationRequest.getTenants().size(), consortiumId, publicationRequest.getUrl());
-      return publicationService.publishRequest(consortiumId, publicationRequest).getId();
-    }
-
-    log.info("publishRequest:: Tenant list of publishing for http method: {} is empty", publicationRequest.getMethod());
-    return null;
   }
 
   /**
@@ -259,19 +234,69 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     failedTenantList.forEach(tenantId ->
       pubPutRequests.add(buildPublicationRequestForTenant(request,  tenantId, HttpMethod.PUT)));
 
+    compactPublishRequestsIfNeed(pubPutRequests);
     var sourceValue = getSourceValue(SourceValues.USER);
-    var updatedPayload = updateSourcePayload(request, sourceValue);
-    pubPutRequests.forEach(pubRequest -> pubRequest.setPayload(updatedPayload));
+    pubPutRequests.forEach(pubRequest -> pubRequest.setPayload(updateSourcePayload(pubRequest.getPayload(), sourceValue)));
 
     log.info("updateFailedConfigsToLocalSource:: send PUT request to publication with new source in " +
         "payload={} by system user of {}", sourceValue, folioExecutionContext.getTenantId());
     executePublishRequests(consortiumId, pubPutRequests);
   }
 
+  private void checkEqualsOfPayloadIdWithConfigId(TRequest sharingConfigRequest) {
+    String sharingConfigId = String.valueOf(getConfigId(sharingConfigRequest));
+    var payloadNode = objectMapper.convertValue(getPayload(sharingConfigRequest), ObjectNode.class);
+    String payloadId = getPayloadId(payloadNode);
+    if (ObjectUtils.notEqual(sharingConfigId, payloadId)) {
+      throw new IllegalArgumentException("Mismatch ID in payload with ID");
+    }
+  }
+
+  private void compactPublishRequestsIfNeed(List<PublicationRequest> publicationRequests) {
+    if (CollectionUtils.isEmpty(publicationRequests)) {
+      return;
+    }
+
+    if (shouldCompactRequests()) {
+      Set<String> tenants = publicationRequests.stream()
+        .map(PublicationRequest::getTenants)
+        .flatMap(Set::stream)
+        .collect(Collectors.toSet());
+
+      publicationRequests.get(0).setTenants(tenants);
+      publicationRequests.subList(1, publicationRequests.size()).clear();
+    }
+  }
+
+  /**
+   * Execute all publish request and return list of response uuids
+   * @param consortiumId id of consortium
+   * @param publicationRequests list of publication request
+   * @return list of response uuids
+   */
+  private List<UUID> executePublishRequests(UUID consortiumId, List<PublicationRequest> publicationRequests) {
+    return publicationRequests.stream()
+      .map(publicationRequest -> publishRequest(consortiumId, publicationRequest))
+      .toList();
+  }
+
+  private UUID publishRequest(UUID consortiumId, PublicationRequest publicationRequest) {
+    if (CollectionUtils.isEmpty(publicationRequest.getTenants())) {
+      log.info("publishRequest:: Tenant list of publishing for http method: {} is empty", publicationRequest.getMethod());
+      return null;
+    }
+
+    log.info("publishRequest:: Sending {} request to publication with {} tenants for consortiumId={} and url={}",
+      publicationRequest.getMethod(), publicationRequest.getTenants().size(), consortiumId, publicationRequest.getUrl());
+    return publicationService.publishRequest(consortiumId, publicationRequest).getId();
+  }
+
   protected abstract UUID getConfigId(TRequest request);
   protected abstract Object getPayload(TRequest request);
   protected abstract String getPayloadId(ObjectNode payload);
   protected abstract String getUrl(TRequest request, HttpMethod httpMethod);
+  protected abstract String getSourceValue(SourceValues sourceValue);
+  protected abstract boolean shouldCompactRequests();
   protected abstract void validateSharingConfigRequestOrThrow(UUID configId, TRequest request);
 
   protected abstract void syncConfigWithTenants(Set<String> sharedConfigTenants, TRequest request);
@@ -284,7 +309,6 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
   protected abstract TEntity createSharingConfigEntityFromRequest(TRequest request, String tenantId);
   protected abstract TResponse createSharingConfigResponse(List<UUID> createConfigsPcId, List<UUID> updateConfigsPcId);
   protected abstract TDeleteResponse createSharingConfigDeleteResponse(List<UUID> publishRequestId);
-  protected abstract String getSourceValue(SourceValues sourceValue);
   protected abstract ObjectNode updateSourcePayload(Object payload, String sourceValue);
 
   private String getClassName(TRequest sharingConfigRequest) {

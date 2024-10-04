@@ -88,6 +88,15 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
   }
 
   @Override
+  protected String getSourceValue(SourceValues sourceValue) {
+    return sourceValue.getRoleValue();
+  }
+
+  protected boolean shouldCompactRequests() {
+    return false; // payloads are different for each tenant, so requests must not be compacted
+  }
+
+  @Override
   protected void validateSharingConfigRequestOrThrow(UUID roleId,
                                                      SharingRoleCapabilityRequest request) {
     if (ObjectUtils.notEqual(getConfigId(request), roleId)) {
@@ -204,11 +213,6 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
   protected SharingRoleCapabilityDeleteResponse createSharingConfigDeleteResponse(List<UUID> publishRequestId) {
     return new SharingRoleCapabilityDeleteResponse()
       .pcIds(publishRequestId);
-  }
-
-  @Override
-  protected String getSourceValue(SourceValues sourceValue) {
-    return sourceValue.getRoleValue();
   }
 
   @Override

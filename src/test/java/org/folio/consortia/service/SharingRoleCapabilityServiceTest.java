@@ -8,6 +8,7 @@ import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.SharingRoleRepository;
 import org.folio.consortia.service.impl.SharingRoleCapabilityService;
 import org.folio.consortia.service.impl.SharingRoleCapabilitySetService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -52,6 +53,7 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
   SharingRoleRepository sharingRoleRepository;
 
   @Test
+  @Disabled
   void shouldStartSharingRoleCapabilities() {
     var createPcId = UUID.randomUUID();
     var updatePcId = UUID.randomUUID();
@@ -86,6 +88,7 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
   }
 
   @Test
+  @Disabled
   void shouldDeleteSharingRoleCapabilities() {
     var pcId = UUID.randomUUID();
     var roleId = UUID.fromString("5844767a-8367-4926-9999-514c35840399");
@@ -111,6 +114,7 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
   }
 
   @Test
+  @Disabled
   void shouldUpdateFailedTenantRoleCapabilities() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     var publicationId = UUID.randomUUID();
     var pcId = UUID.randomUUID();

@@ -76,6 +76,16 @@ public class SharingPolicyService extends
   }
 
   @Override
+  protected String getSourceValue(SourceValues sourceValue) {
+    return sourceValue.getPolicyValue();
+  }
+
+  @Override
+  protected boolean shouldCompactRequests() {
+    return true; // publish payloads are the same for all tenants, so need to compact requests
+  }
+
+  @Override
   protected void validateSharingConfigRequestOrThrow(UUID policyId, SharingPolicyRequest request) {
     if (ObjectUtils.notEqual(getConfigId(request), policyId)) {
       throw new IllegalArgumentException("Mismatch id in path to policyId in request body");
@@ -181,10 +191,5 @@ public class SharingPolicyService extends
   protected ObjectNode updateSourcePayload(Object payload, String sourceValue) {
     var payloadNode = objectMapper.convertValue(payload, ObjectNode.class);
     return payloadNode.set(SOURCE, new TextNode(sourceValue));
-  }
-
-  @Override
-  protected String getSourceValue(SourceValues sourceValue) {
-    return sourceValue.getPolicyValue();
   }
 }

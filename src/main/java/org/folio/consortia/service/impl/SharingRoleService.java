@@ -81,6 +81,16 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   }
 
   @Override
+  protected String getSourceValue(SourceValues sourceValue) {
+    return sourceValue.getRoleValue();
+  }
+
+  @Override
+  protected boolean shouldCompactRequests() {
+    return false; // payloads are different for each tenant, so requests must not be compacted
+  }
+
+  @Override
   protected void validateSharingConfigRequestOrThrow(UUID roleId, SharingRoleRequest request) {
     if (ObjectUtils.notEqual(getConfigId(request), roleId)) {
       throw new IllegalArgumentException("Mismatch id in path to roleId in request body");
@@ -204,10 +214,5 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   protected ObjectNode updateSourcePayload(Object payload, String sourceValue) {
     var payloadNode = objectMapper.convertValue(payload, ObjectNode.class);
     return payloadNode.set(TYPE, new TextNode(sourceValue));
-  }
-
-  @Override
-  protected String getSourceValue(SourceValues sourceValue) {
-    return sourceValue.getRoleValue();
   }
 }
