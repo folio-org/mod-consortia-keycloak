@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
 import java.util.UUID;
 import org.folio.consortia.base.BaseIT;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetDeleteResponse;
@@ -30,8 +31,8 @@ class SharingRoleCapabilitySetControllerTest extends BaseIT {
     UUID createRoleCapabilitySetsPCId = UUID.randomUUID();
     UUID updateRoleCapabilitySetsPCId = UUID.randomUUID();
     var response = new SharingRoleCapabilitySetResponse()
-      .createRoleCapabilitySetsPCId(createRoleCapabilitySetsPCId)
-      .updateRoleCapabilitySetsPCId(updateRoleCapabilitySetsPCId);
+      .createPCIds(List.of(createRoleCapabilitySetsPCId))
+      .updatePCIds(List.of(updateRoleCapabilitySetsPCId));
 
     when(sharingRoleCapabilitySetService.start(any(), any())).thenReturn(response);
 
@@ -51,7 +52,7 @@ class SharingRoleCapabilitySetControllerTest extends BaseIT {
     String request = getMockDataAsString(SHARING_ROLE_CAPABILITY_SETS_REQUEST_SAMPLE);
     UUID pcId = UUID.randomUUID();
     var response = new SharingRoleCapabilitySetDeleteResponse()
-      .pcId(pcId);
+      .pcIds(List.of(pcId));
 
     when(sharingRoleCapabilitySetService.delete(any(), any(), any())).thenReturn(response);
 

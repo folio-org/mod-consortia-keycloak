@@ -16,6 +16,7 @@ import org.springframework.http.HttpMethod;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -78,8 +79,8 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
 
     var actualResponse = sharingRoleCapabilityService.start(CONSORTIUM_ID, request);
 
-    assertThat(actualResponse.getCreateRoleCapabilitiesPCId()).isEqualTo(createPcId);
-    assertThat(actualResponse.getUpdateRoleCapabilitiesPCId()).isEqualTo(updatePcId);
+    assertThat(actualResponse.getCreatePCIds()).isEqualTo(createPcId);
+    assertThat(actualResponse.getUpdatePCIds()).isEqualTo(updatePcId);
 
     verify(publicationService, times(2)).publishRequest(any(), any());
   }
@@ -102,10 +103,10 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
     when(sharingRoleRepository.findTenantsByRoleIdAndIsCapabilitiesSharedTrue(request.getRoleId()))
       .thenReturn(tenantSharedRoleAndCapabilities);
 
-    var expectedResponse = createSharingRoleResponseForDelete(pcId);
+    var expectedResponse = createSharingRoleResponseForDelete(List.of(pcId));
     var actualResponse = sharingRoleCapabilityService.delete(CONSORTIUM_ID, roleId, request);
 
-    assertThat(actualResponse.getPcId()).isEqualTo(expectedResponse.getPcId());
+    assertThat(actualResponse.getPcIds()).isEqualTo(expectedResponse.getPcIds());
     verify(publicationService, times(1)).publishRequest(any(), any());
   }
 

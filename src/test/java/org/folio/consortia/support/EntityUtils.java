@@ -308,8 +308,8 @@ public class EntityUtils {
     return entity;
   }
 
-  public static SharingRoleDeleteResponse createSharingRoleResponseForDelete(UUID pcId) {
-    return new SharingRoleDeleteResponse().pcId(pcId);
+  public static SharingRoleDeleteResponse createSharingRoleResponseForDelete(List<UUID> pcIds) {
+    return new SharingRoleDeleteResponse().pcIds(pcIds);
   }
 
 

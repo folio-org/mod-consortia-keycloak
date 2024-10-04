@@ -29,8 +29,8 @@ class SharingPolicyControllerTest extends BaseIT {
     UUID createPoliciesPcId = UUID.randomUUID();
     UUID updatePoliciesPcId = UUID.randomUUID();
     SharingPolicyResponse sharingPolicyResponse = new SharingPolicyResponse()
-      .createPoliciesPCId(createPoliciesPcId)
-      .updatePoliciesPCId(updatePoliciesPcId);
+      .createPCId(createPoliciesPcId)
+      .updatePCId(updatePoliciesPcId);
 
     when(sharingPolicyService.start(any(), any())).thenReturn(sharingPolicyResponse);
 

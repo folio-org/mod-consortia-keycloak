@@ -74,8 +74,8 @@ class SharingRoleCapabilitySetServiceTest extends BaseSharingConfigServiceTest{
 
     var actualResponse = sharingRoleCapabilitySetService.start(CONSORTIUM_ID, request);
 
-    assertThat(actualResponse.getCreateRoleCapabilitySetsPCId()).isEqualTo(createPcId);
-    assertThat(actualResponse.getUpdateRoleCapabilitySetsPCId()).isEqualTo(updatePcId);
+    assertThat(actualResponse.getCreatePCIds()).isEqualTo(createPcId);
+    assertThat(actualResponse.getUpdatePCIds()).isEqualTo(updatePcId);
 
     verify(publicationService, times(2)).publishRequest(any(), any());
   }
@@ -100,7 +100,7 @@ class SharingRoleCapabilitySetServiceTest extends BaseSharingConfigServiceTest{
 
     var actualResponse = sharingRoleCapabilitySetService.delete(CONSORTIUM_ID, roleId, request);
 
-    assertThat(actualResponse.getPcId()).isEqualTo(pcId);
+    assertThat(actualResponse.getPcIds()).isEqualTo(pcId);
 
     verify(publicationService, times(1)).publishRequest(any(), any());
   }

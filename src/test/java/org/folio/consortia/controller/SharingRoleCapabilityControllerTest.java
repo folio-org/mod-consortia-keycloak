@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.folio.consortia.support.EntityUtils.SHARING_ROLE_CAPABILITIES_REQUEST_SAMPLE;
@@ -31,8 +32,8 @@ class SharingRoleCapabilityControllerTest extends BaseIT {
     var createPcId = UUID.randomUUID();
     var updatePcId = UUID.randomUUID();
     var response = new SharingRoleCapabilityResponse()
-      .createRoleCapabilitiesPCId(createPcId)
-      .updateRoleCapabilitiesPCId(updatePcId);
+      .createPCIds(List.of(createPcId))
+      .updatePCIds(List.of(updatePcId));
 
     when(sharingRoleCapabilityService.start(any(), any())).thenReturn(response);
 
@@ -52,7 +53,7 @@ class SharingRoleCapabilityControllerTest extends BaseIT {
     var request = getMockDataAsString(SHARING_ROLE_CAPABILITIES_REQUEST_SAMPLE);
     var pcId = UUID.randomUUID();
     var response = new SharingRoleCapabilityDeleteResponse()
-      .pcId(pcId);
+      .pcIds(List.of(pcId));
 
     when(sharingRoleCapabilityService.delete(any(), any(), any())).thenReturn(response);
 

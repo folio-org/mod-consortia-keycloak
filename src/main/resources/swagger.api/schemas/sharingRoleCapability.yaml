@@ -44,7 +44,7 @@ SharingRoleCapabilityDeleteResponse:
   description: "A JSON schema for the Sharing Role Capability object response for delete request"
   type: object
   properties:
-    pcId:
+    pcIds:
       type: array
       items:
         type: string

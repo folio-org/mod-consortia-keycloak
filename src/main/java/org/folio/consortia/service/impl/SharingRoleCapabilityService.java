@@ -203,7 +203,7 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
   @Override
   protected SharingRoleCapabilityDeleteResponse createSharingConfigDeleteResponse(List<UUID> publishRequestId) {
     return new SharingRoleCapabilityDeleteResponse()
-      .pcId(publishRequestId);
+      .pcIds(publishRequestId);
   }
 
   @Override

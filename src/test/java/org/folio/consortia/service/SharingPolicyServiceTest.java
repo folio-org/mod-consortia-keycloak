@@ -71,8 +71,8 @@ class SharingPolicyServiceTest extends BaseSharingConfigServiceTest{
 
     var actualResponse = sharingPolicyService.start(CONSORTIUM_ID, request);
 
-    assertThat(actualResponse.getCreatePoliciesPCId()).isEqualTo(createPcId);
-    assertThat(actualResponse.getUpdatePoliciesPCId()).isEqualTo(updatePcId);
+    assertThat(actualResponse.getCreatePCId()).isEqualTo(createPcId);
+    assertThat(actualResponse.getUpdatePCId()).isEqualTo(updatePcId);
 
     verify(publicationService, times(2)).publishRequest(any(), any());
   }

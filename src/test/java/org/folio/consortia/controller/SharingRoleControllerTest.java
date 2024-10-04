@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.folio.consortia.base.BaseIT;
@@ -29,8 +30,8 @@ class SharingRoleControllerTest extends BaseIT {
     UUID createRolesPcId = UUID.randomUUID();
     UUID updateRolesPcId = UUID.randomUUID();
     SharingRoleResponse sharingRoleResponse = new SharingRoleResponse()
-      .createRolesPCId(createRolesPcId)
-      .updateRolesPCId(updateRolesPcId);
+      .createPCIds(List.of(createRolesPcId))
+      .updatePCIds(List.of(updateRolesPcId));
 
     when(sharingRoleService.start(any(), any())).thenReturn(sharingRoleResponse);
 
@@ -49,7 +50,7 @@ class SharingRoleControllerTest extends BaseIT {
   void shouldDeleteSharingRole(String body) throws Exception {
     var headers = defaultHeaders();
     UUID pcId = UUID.randomUUID();
-    SharingRoleDeleteResponse sharingRoleDeleteResponse = new SharingRoleDeleteResponse().pcId(pcId);
+    SharingRoleDeleteResponse sharingRoleDeleteResponse = new SharingRoleDeleteResponse().pcIds(List.of(pcId));
 
     when(sharingRoleService.delete(any(), any(), any())).thenReturn(sharingRoleDeleteResponse);
 
