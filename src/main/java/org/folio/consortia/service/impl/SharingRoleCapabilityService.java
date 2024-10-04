@@ -145,7 +145,7 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
 
   @Override
   protected Set<String> findTenantsForConfig(SharingRoleCapabilityRequest request) {
-    return sharingRoleRepository.findTenantsByRoleIdAndIsCapabilitiesSharedTrue(request.getRoleId());
+    return sharingRoleRepository.findTenantsByRoleNameAndIsCapabilitiesSharedTrue(request.getRoleName());
   }
 
   @Override
@@ -156,7 +156,7 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
 
   @Override
   protected void deleteSharingConfig(SharingRoleCapabilityRequest request) {
-    var sharingRoleEntityList = sharingRoleRepository.findByRoleId(request.getRoleId());
+    var sharingRoleEntityList = sharingRoleRepository.findByRoleName(request.getRoleName());
     sharingRoleEntityList.forEach(sharingRoleEntity -> sharingRoleEntity.setIsCapabilitiesShared(false));
     sharingRoleRepository.saveAll(sharingRoleEntityList);
   }

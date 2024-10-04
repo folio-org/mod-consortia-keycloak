@@ -105,7 +105,7 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
     log.debug("syncConfig:: Trying to syncing sharing role table with roles table for role '{}' and tenant '{}'",
       request.getRoleName(), centralTenantId);
 
-    if (sharingRoleRepository.existsByRoleIdAndTenantId(request.getRoleId(), centralTenantId)) {
+    if (sharingRoleRepository.existsByRoleNameAndTenantId(roleName, centralTenantId)) {
       log.info("syncConfig:: Role '{}' with central tenant '{}' already exists, Syncing with other tenants: {}",
         request.getRoleName(), centralTenantId, sharedConfigTenants);
 

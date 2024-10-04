@@ -94,7 +94,7 @@ public class SharingPolicyService extends
     UUID policyId = request.getPolicyId();
     log.debug("syncConfig:: Trying to syncing sharing policy table with policy table for policy '{}'", policyId);
 
-    if (sharingPolicyRepository.existsByRoleIdAndTenantId(policyId, tenantId)) {
+    if (sharingPolicyRepository.existsByPolicyIdAndTenantId(policyId, tenantId)) {
       log.info("syncConfig:: Policy '{}' with tenant '{}' already exists in sharing role table, No need to sync",
         policyId, tenantId);
       return;

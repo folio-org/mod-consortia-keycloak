@@ -39,5 +39,9 @@
     <addColumn tableName="sharing_role">
       <column name="role_name" type="text"/>
     </addColumn>
+
+    <createIndex tableName="sharing_role" indexName="role_name_idx">
+      <column name="role_name"/>
+    </createIndex>
   </changeSet>
 </databaseChangeLog>

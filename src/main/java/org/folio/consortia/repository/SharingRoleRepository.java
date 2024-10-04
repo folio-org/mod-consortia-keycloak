@@ -11,21 +11,18 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface SharingRoleRepository extends JpaRepository<SharingRoleEntity, UUID> {
 
-  List<SharingRoleEntity> findByRoleId(UUID roleId);
   List<SharingRoleEntity> findByRoleName(String roleName);
 
-  SharingRoleEntity findByRoleIdAndTenantId(UUID roleId, String tenantId);
   SharingRoleEntity findByRoleNameAndTenantId(String roleName, String tenantId);
-
-  @Query("SELECT sr.tenantId FROM SharingRoleEntity sr WHERE sr.roleId = ?1")
-  Set<String> findTenantsByRoleId(UUID roleId);
 
   @Query("SELECT sr.tenantId FROM SharingRoleEntity sr WHERE sr.roleName = ?1")
   Set<String> findTenantsByRoleName(String roleName);
 
-  Set<String> findTenantsByRoleIdAndIsCapabilitySetsSharedTrue(UUID roleId);
+  @Query("SELECT sr.tenantId FROM SharingRoleEntity sr WHERE sr.roleName = ?1 and sr.isCapabilitiesShared = true")
+  Set<String> findTenantsByRoleNameAndIsCapabilitiesSharedTrue(String roleName);
 
-  Set<String> findTenantsByRoleIdAndIsCapabilitiesSharedTrue(UUID roleId);
+  @Query("SELECT sr.tenantId FROM SharingRoleEntity sr WHERE sr.roleName = ?1 and sr.isCapabilitySetsShared = true")
+  Set<String> findTenantsByRoleNameAndIsCapabilitySetsSharedTrue(String roleName);
 
   @Query("select s.roleId from SharingRoleEntity s where s.roleName = ?1 and s.tenantId = ?2")
   UUID findRoleIdByRoleNameAndTenantId(String roleName, String tenantId);
@@ -33,10 +30,6 @@ public interface SharingRoleRepository extends JpaRepository<SharingRoleEntity, 
   boolean existsByRoleId(UUID roleId);
 
   boolean existsByRoleNameAndTenantId(String roleName, String tenantId);
-
-  boolean existsByRoleIdAndTenantId(UUID roleId, String tenantId);
-
-  boolean existsByRoleIdAndTenantIdAndIsCapabilitySetsSharedTrue(UUID roleId, String tenantId);
 
   boolean existsByRoleNameAndTenantIdAndIsCapabilitiesSharedTrue(String roleName, String tenantId);
 
