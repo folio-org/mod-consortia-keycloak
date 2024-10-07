@@ -803,7 +803,7 @@
         "ui-users.editperms",
         "capability-sets.collection.get",
         "user-capability-sets.collection.put",
-        "roles.item.get",
+        "roles.collection.get",
         "roles.item.post",
         "roles.item.put",
         "roles.item.delete",
