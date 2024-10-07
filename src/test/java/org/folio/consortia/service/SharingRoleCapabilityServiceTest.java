@@ -159,11 +159,11 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
       .thenReturn(false)
       .thenReturn(false)
       .thenReturn(true);
-    when(objectMapper.convertValue(eq(request.getPayload()), eq(ObjectNode.class)))
+    when(objectMapper.convertValue(request.getPayload(), ObjectNode.class))
       .thenReturn(payloadForTenant1)
       .thenReturn(payloadForTenant2);
-    when(objectMapper.convertValue(eq(payloadForTenant1), eq(ObjectNode.class))).thenReturn(payloadForTenant1);
-    when(objectMapper.convertValue(eq(payloadForTenant2), eq(ObjectNode.class))).thenReturn(payloadForTenant2);
+    when(objectMapper.convertValue(payloadForTenant1, ObjectNode.class)).thenReturn(payloadForTenant1);
+    when(objectMapper.convertValue(payloadForTenant2, ObjectNode.class)).thenReturn(payloadForTenant2);
 
     when(sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), EntityUtils.CENTRAL_TENANT_ID)).thenReturn(roleIdForTenant1);
     when(sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_2)).thenReturn(roleIdForTenant2);

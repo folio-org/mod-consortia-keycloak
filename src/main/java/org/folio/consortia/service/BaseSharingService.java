@@ -294,7 +294,6 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
   protected abstract UUID getConfigId(TRequest request);
   protected abstract Object getPayload(TRequest request);
   protected abstract String getPayloadId(ObjectNode payload);
-  protected abstract String getUrl(TRequest request, HttpMethod httpMethod);
   protected abstract String getSourceValue(SourceValues sourceValue);
   protected abstract boolean shouldCompactRequests();
   protected abstract void validateSharingConfigRequestOrThrow(UUID configId, TRequest request);

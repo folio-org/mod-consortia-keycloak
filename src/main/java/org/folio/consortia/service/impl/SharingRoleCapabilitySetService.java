@@ -79,15 +79,6 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
   }
 
   @Override
-  protected String getUrl(SharingRoleCapabilitySetRequest request, HttpMethod httpMethod) {
-    String url = request.getUrl();
-    if (httpMethod.equals(HttpMethod.PUT) || httpMethod.equals(HttpMethod.DELETE)) {
-      url = url.replace("capability-sets", getConfigId(request) + "/capability-sets");
-    }
-    return url;
-  }
-
-  @Override
   protected String getSourceValue(SourceValues sourceValue) {
     return sourceValue.getRoleValue();
   }
