@@ -175,10 +175,9 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
                                                                 HttpMethod method) {
     var payload = objectMapper.convertValue(getPayload(request), ObjectNode.class);
     String url = request.getUrl();
-    if (method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE)) {
-      // roleId will be different for each tenant
+    if (method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE)) { // roleId will be different for each tenant
       var tenantRoleId = sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), tenantId);
-      url = url.replace("capabilities", tenantRoleId + "/capabilities");
+      url = url.replace("capability-sets", tenantRoleId + "/capability-sets");
       payload.put(ROLE_ID, tenantRoleId.toString());
       log.info("buildPublicationRequestForTenant:: roleId '{}' was sent to tenant '{}'", tenantRoleId, tenantId);
     }

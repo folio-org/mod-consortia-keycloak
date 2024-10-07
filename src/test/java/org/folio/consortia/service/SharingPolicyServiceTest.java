@@ -1,13 +1,15 @@
 package org.folio.consortia.service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import feign.FeignException;
+import org.folio.consortia.client.PoliciesClient;
 import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.dto.SharingPolicyRequest;
 import org.folio.consortia.domain.entity.SharingPolicyEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.SharingPolicyRepository;
 import org.folio.consortia.service.impl.SharingPolicyService;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -47,27 +49,30 @@ class SharingPolicyServiceTest extends BaseSharingConfigServiceTest{
   SharingPolicyService sharingPolicyService;
   @Mock
   SharingPolicyRepository sharingPolicyRepository;
+  @Mock
+  PoliciesClient policiesClient;
 
   @Test
-  @Disabled
   void shouldStartSharingPolicy() {
+    var request = getMockDataObject(SHARING_POLICY_REQUEST_SAMPLE_FOR_ROLES, SharingPolicyRequest.class);
     var createPcId = UUID.randomUUID();
     var updatePcId = UUID.randomUUID();
     var tenantSharedPolicy = Set.of(TENANT_ID_1);
-    var request = getMockDataObject(SHARING_POLICY_REQUEST_SAMPLE_FOR_ROLES, SharingPolicyRequest.class);
     var payload = createPayloadForPolicy();
 
     // "tenant1" exists in tenant policy association so that tenant1 is in PUT request publication,
     // "tenant2" is in POST method publication
-    var expectedPubRequestPost = createPublicationRequest(CONSORTIUM.getPolicyValue(), payload, HttpMethod.POST)
-      .tenants(Set.of(TENANT_ID_2))
-      .url(request.getUrl());
     var expectedPubRequestPut = createPublicationRequest(CONSORTIUM.getPolicyValue(), payload, HttpMethod.PUT)
       .tenants(Set.of(TENANT_ID_1))
       .url(request.getUrl() + "/" + request.getPolicyId());
+    var expectedPubRequestPost = createPublicationRequest(CONSORTIUM.getPolicyValue(), payload, HttpMethod.POST)
+      .tenants(Set.of(TENANT_ID_2))
+      .url(request.getUrl());
     var expectedSharingPolicyEntity = createSharingPolicyEntity(request.getPolicyId(), TENANT_ID_2);
 
     setupCommonMocksForStart(createPcId, updatePcId, expectedPubRequestPost, expectedPubRequestPut, payload);
+    when(policiesClient.getPolicyById(any()))
+      .thenThrow(new FeignException.NotFound("Policy not found", buildFeignRequest(), null, null));
     when(sharingPolicyRepository.findTenantsByPolicyId(request.getPolicyId())).thenReturn(tenantSharedPolicy);
     when(sharingPolicyRepository.save(expectedSharingPolicyEntity)).thenReturn(new SharingPolicyEntity());
 
@@ -77,10 +82,10 @@ class SharingPolicyServiceTest extends BaseSharingConfigServiceTest{
     assertThat(actualResponse.getUpdatePCId()).isEqualTo(updatePcId);
 
     verify(publicationService, times(2)).publishRequest(any(), any());
+    verify(policiesClient).getPolicyById(request.getPolicyId());
   }
 
   @Test
-  @Disabled
   void shouldDeleteSharingPolicy() {
     var pcId = UUID.randomUUID();
     var policyId = UUID.fromString("2844767a-8367-4926-9999-514c35840399");
@@ -102,10 +107,10 @@ class SharingPolicyServiceTest extends BaseSharingConfigServiceTest{
     assertThat(actualResponse.getPcId()).isEqualTo(pcId);
 
     verify(publicationService, times(1)).publishRequest(any(), any());
+    verify(policiesClient).getPolicyById(request.getPolicyId());
   }
 
   @Test
-  @Disabled
   void shouldUpdateFailedTenantPolicies() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     var publicationId = UUID.randomUUID();
     var pcId = UUID.randomUUID();
