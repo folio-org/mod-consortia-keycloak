@@ -258,6 +258,8 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     }
 
     if (shouldCompactRequests()) {
+      log.info("compactPublishRequestsIfNeed:: compacting '{}' publish request(s) to one with all tenants and same payload",
+        publicationRequests.size());
       Set<String> tenants = publicationRequests.stream()
         .map(PublicationRequest::getTenants)
         .flatMap(Set::stream)
