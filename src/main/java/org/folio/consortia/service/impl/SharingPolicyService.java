@@ -66,22 +66,8 @@ public class SharingPolicyService extends
   }
 
   @Override
-  protected String getUrl(SharingPolicyRequest request, HttpMethod httpMethod) {
-    String url = request.getUrl();
-    if (httpMethod.equals(HttpMethod.PUT) || httpMethod.equals(HttpMethod.DELETE)) {
-      url += "/" + getConfigId(request);
-    }
-    return url;
-  }
-
-  @Override
   protected String getSourceValue(SourceValues sourceValue) {
     return sourceValue.getPolicyValue();
-  }
-
-  @Override
-  protected boolean shouldCompactRequests() {
-    return true; // publish payloads are the same for all tenants, so need to compact requests
   }
 
   @Override
@@ -95,6 +81,14 @@ public class SharingPolicyService extends
     if (!sharingPolicyRepository.existsByPolicyId(policyId)) {
       throw new ResourceNotFoundException("policyId", String.valueOf(policyId));
     }
+  }
+
+  /**
+   * Policy has unique id, so payload should be same for all tenant
+   */
+  @Override
+  protected boolean shouldCompactRequests() {
+    return true;
   }
 
   @Override
@@ -112,19 +106,23 @@ public class SharingPolicyService extends
   }
 
   private void syncSharingPolicyWithPolicyInTenant(SharingPolicyRequest request, String tenantId, UUID policyId) {
-    try {
-      policiesClient.getPolicyById(policyId);
-      log.info("syncConfig:: Policy '{}' found in tenant '{}', but not found in sharing policy table, " +
-        "creating new entry", policyId, tenantId);
+    systemUserScopedExecutionService.executeSystemUserScoped(tenantId, () -> {
+      try {
+        policiesClient.getPolicyById(policyId);
+        log.info("syncConfig:: Policy '{}' found in tenant '{}', but not found in sharing policy table, " +
+          "creating new entry", policyId, tenantId);
 
-      var sharingPolicyEntity = createSharingConfigEntity(request.getPolicyId(), tenantId);
-      sharingPolicyRepository.save(sharingPolicyEntity);
-    } catch (FeignException.NotFound e) {
-      log.info("syncConfig:: Policy '{}' not found in tenant '{}' and sharing policy table, No need to sync",
-        policyId, tenantId);
-    } catch (Exception e) {
-      log.error("syncConfig:: Error while fetching policies", e);
-    }
+        var sharingPolicyEntity = createSharingConfigEntity(request.getPolicyId(), tenantId);
+        sharingPolicyRepository.save(sharingPolicyEntity);
+      } catch (FeignException.NotFound e) {
+        log.info("syncConfig:: Policy '{}' not found in tenant '{}' and sharing policy table, No need to sync",
+          policyId, tenantId);
+      } catch (Exception e) {
+        log.error("syncConfig:: Error while fetching policies", e);
+        throw new IllegalStateException("Error while fetching policies", e);
+      }
+      return null;
+    });
   }
 
   @Override
@@ -150,6 +148,14 @@ public class SharingPolicyService extends
       .url(urlForRequest)
       .payload(getPayload(request))
       .tenants(Set.of(tenantId));
+  }
+
+  private String getUrl(SharingPolicyRequest request, HttpMethod httpMethod) {
+    String url = request.getUrl();
+    if (httpMethod.equals(HttpMethod.PUT) || httpMethod.equals(HttpMethod.DELETE)) {
+      url += "/" + getConfigId(request);
+    }
+    return url;
   }
 
   @Override

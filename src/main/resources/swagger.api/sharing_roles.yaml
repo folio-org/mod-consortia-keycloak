@@ -162,6 +162,8 @@ components:
         application/json:
           schema:
             $ref: "schemas/sharingRole.yaml#/SharingRoleRequest"
+          example:
+            $ref: "examples/requests/sharing_role_request.json"
     SharingRoleCapabilitySetBody:
       description: Sharing role capability sets object
       required: true
@@ -169,6 +171,8 @@ components:
         application/json:
           schema:
             $ref: "schemas/sharingRoleCapabilitySet.yaml#/SharingRoleCapabilitySetRequest"
+          example:
+            $ref: "examples/requests/sharing_role_capability_sets_request.json"
     SharingRoleCapabilityBody:
       description: Sharing role capabilities object
       required: true
@@ -176,6 +180,8 @@ components:
         application/json:
           schema:
             $ref: "schemas/sharingRoleCapability.yaml#/SharingRoleCapabilityRequest"
+          example:
+            $ref: "examples/requests/sharing_role_capabilities_request.json"
   responses:
     SharingRoleResponse:
       description: Returns a sharing role object response for post operation
@@ -183,36 +189,48 @@ components:
         application/json:
           schema:
             $ref: "schemas/sharingRole.yaml#/SharingRoleResponse"
+          example:
+            $ref: "examples/responses/sharing_role_response.json"
     SharingRoleCapabilitySetResponse:
       description: Returns a sharing role capability set object response for post operation
       content:
         application/json:
           schema:
             $ref: "schemas/sharingRoleCapabilitySet.yaml#/SharingRoleCapabilitySetResponse"
+          example:
+            $ref: "examples/responses/sharing_role_response.json"
     SharingRoleCapabilityResponse:
       description: Returns a sharing role capability object response for post operation
       content:
         application/json:
           schema:
             $ref: "schemas/sharingRoleCapability.yaml#/SharingRoleCapabilityResponse"
+          example:
+            $ref: "examples/responses/sharing_role_response.json"
     SharingRoleDeleteResponse:
       description: Returns a sharing role response for delete operation
       content:
         application/json:
           schema:
             $ref: "schemas/sharingRole.yaml#/SharingRoleDeleteResponse"
+          example:
+            $ref: "examples/responses/sharing_role_delete_response.json"
     SharingRoleCapabilitySetDeleteResponse:
       description: Returns a sharing role capability set response for delete operation
       content:
         application/json:
           schema:
             $ref: "schemas/sharingRoleCapabilitySet.yaml#/SharingRoleCapabilitySetDeleteResponse"
+          example:
+            $ref: "examples/responses/sharing_role_delete_response.json"
     SharingRoleCapabilityDeleteResponse:
       description: Returns a sharing role capability response for delete operation
       content:
         application/json:
           schema:
             $ref: "schemas/sharingRoleCapability.yaml#/SharingRoleCapabilityDeleteResponse"
+          example:
+            $ref: "examples/responses/sharing_role_delete_response.json"
     NoContent:
       description: No content
     Conflict:

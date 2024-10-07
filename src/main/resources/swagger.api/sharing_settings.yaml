@@ -58,6 +58,8 @@ components:
         application/json:
           schema:
             $ref: "schemas/sharingSetting.yaml#/SharingSettingRequest"
+          example:
+            $ref: "examples/requests/sharing_setting_request_for_department.json"
   responses:
     SharingSettingResponse:
       description: Returns a sharing setting object response for post operation
@@ -65,12 +67,16 @@ components:
         application/json:
           schema:
             $ref: "schemas/sharingSetting.yaml#/SharingSettingResponse"
+          example:
+            $ref: "examples/responses/sharing_setting_response.json"
     SharingSettingDeleteResponse:
       description: Returns a sharing setting response for delete operation
       content:
         application/json:
           schema:
             $ref: "schemas/sharingSetting.yaml#/SharingSettingDeleteResponse"
+          example:
+            $ref: "examples/responses/sharing_setting_delete_response.json"
     NoContent:
       description: No content
     Conflict:

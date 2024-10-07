@@ -60,15 +60,6 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   }
 
   @Override
-  protected String getUrl(SharingSettingRequest request, HttpMethod httpMethod) {
-    String url = request.getUrl();
-    if (httpMethod.equals(HttpMethod.PUT) || httpMethod.equals(HttpMethod.DELETE)) {
-      url += "/" + getConfigId(request);
-    }
-    return url;
-  }
-
-  @Override
   protected void validateSharingConfigRequestOrThrow(UUID settingId, SharingSettingRequest request) {
     if (ObjectUtils.notEqual(getConfigId(request), settingId)) {
       throw new IllegalArgumentException("Mismatch id in path to settingId in request body");
@@ -114,9 +105,20 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
       .tenants(Set.of(tenantId));
   }
 
+  private String getUrl(SharingSettingRequest request, HttpMethod httpMethod) {
+    String url = request.getUrl();
+    if (httpMethod.equals(HttpMethod.PUT) || httpMethod.equals(HttpMethod.DELETE)) {
+      url += "/" + getConfigId(request);
+    }
+    return url;
+  }
+
+  /**
+   * Setting has unique id, so payload should be same for all tenant
+   */
   @Override
   protected boolean shouldCompactRequests() {
-    return true; // publish payloads are the same for all tenants, so need to compact requests
+    return true;
   }
 
   @Override
