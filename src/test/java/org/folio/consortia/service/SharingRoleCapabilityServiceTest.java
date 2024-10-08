@@ -19,6 +19,7 @@ import org.springframework.http.HttpMethod;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -87,7 +88,8 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
     when(sharingRoleRepository.findTenantsByRoleNameAndIsCapabilitiesSharedTrue(request.getRoleName()))
       .thenReturn(tenantSharedRoleAndCapabilities);
     when(sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_1)).thenReturn(roleIdForTenant1);
-    when(sharingRoleRepository.findByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_2)).thenReturn(sharingRoleEntity);
+    when(sharingRoleRepository.findByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_2))
+      .thenReturn(Optional.of(sharingRoleEntity));
     when(sharingRoleRepository.saveAll(List.of(expectedSharingRoleEntity))).thenReturn(List.of(expectedSharingRoleEntity));
 
     var actualResponse = sharingRoleCapabilityService.start(CONSORTIUM_ID, request);
