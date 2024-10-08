@@ -12,9 +12,9 @@ import com.fasterxml.jackson.databind.node.TextNode;
 
 import feign.FeignException;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.client.RoleCapabilitiesClient;
-import org.folio.consortia.client.RolesClient;
 import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.SharingRoleCapabilityDeleteResponse;
 import org.folio.consortia.domain.dto.SharingRoleCapabilityRequest;
@@ -136,7 +136,13 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
       }
 
       var roleIdForTenant = existingRole.get().getRoleId();
-      roleCapabilitiesClient.getRoleCapabilitiesByRoleId(roleName);
+      var capabilities = roleCapabilitiesClient.getRoleCapabilitiesByRoleId(roleName);
+      if (CollectionUtils.isEmpty(capabilities.getCapabilities())) {
+        log.info("syncConfigWithTenant:: No capabilitySets found for role '{}' in tenant '{}'" +
+          "No need to sync", roleIdForTenant, tenantId);
+        return;
+      }
+
       log.info("syncConfigWithTenant:: Role '{}' and capabilities found in tenant '{}', but not found in sharing role table, " +
         " creating new record in sharing table", roleIdForTenant, tenantId);
 

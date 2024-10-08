@@ -11,9 +11,9 @@ import com.fasterxml.jackson.databind.node.TextNode;
 
 import feign.FeignException;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.client.RoleCapabilitySetsClient;
-import org.folio.consortia.client.RolesClient;
 import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetDeleteResponse;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetRequest;
@@ -134,10 +134,15 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
       }
 
       var roleIdForTenant = existingRole.get().getRoleId();
-      roleCapabilitySetsClient.getRoleCapabilitySetsRoleId(roleIdForTenant.toString());
-      log.info("syncConfigWithTenant:: Role '{}' and capabilitySets found in tenant '{}', but not found in sharing role table, " +
-        " creating new record in sharing table", roleIdForTenant, tenantId);
+      var capabilitySets = roleCapabilitySetsClient.getRoleCapabilitySetsRoleId(roleIdForTenant.toString());
+      if (CollectionUtils.isEmpty(capabilitySets.getCapabilitySets())) {
+        log.info("syncConfigWithTenant:: No capabilitySets found for role '{}' found in tenant '{}'" +
+          "No need to sync", roleIdForTenant, tenantId);
+        return;
+      }
 
+      log.info("syncConfigWithTenant:: Role '{}' and capabilitySets found in tenant '{}', but not found in sharing role table, " +
+        " updating record in sharing table", roleIdForTenant, tenantId);
       var entity = getSharingRoleEntity(roleName, tenantId);
       entity.setIsCapabilitySetsShared(true);
       sharingRoleRepository.save(entity);
