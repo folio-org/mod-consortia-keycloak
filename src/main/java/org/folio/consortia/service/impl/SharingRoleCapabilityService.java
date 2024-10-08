@@ -123,7 +123,7 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
   private void syncSharingRoleWithRoleCapabilitiesInTenant(String roleName, String tenantId) {
     systemUserScopedExecutionService.executeSystemUserScoped(tenantId, () -> {
       try {
-        String cqlQuery = String.format("query=name==%s", roleName);
+        String cqlQuery = String.format("name==%s", roleName);
         var roles = rolesClient.getRolesByQuery(cqlQuery);
         String roleId = roles.getRoles().get(0).getId().toString();
 

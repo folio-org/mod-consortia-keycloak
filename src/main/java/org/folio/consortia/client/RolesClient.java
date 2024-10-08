@@ -17,6 +17,6 @@ public interface RolesClient {
   JsonObject getRoleById(@PathVariable UUID roleId);
 
   @GetMapping
-  Roles getRolesByQuery(@RequestParam String query);
+  Roles getRolesByQuery(@RequestParam("query") String query);
 
 }
