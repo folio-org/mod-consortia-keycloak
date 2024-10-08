@@ -1,6 +1,8 @@
 package org.folio.consortia.client;
 
 import com.bettercloud.vault.json.JsonObject;
+
+import org.folio.consortia.domain.dto.Roles;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +17,6 @@ public interface RolesClient {
   JsonObject getRoleById(@PathVariable UUID roleId);
 
   @GetMapping
-  JsonObject getRolesByQuery(@RequestParam String query);
+  Roles getRolesByQuery(@RequestParam String query);
 
 }

@@ -1,11 +1,17 @@
 package org.folio.consortia.service.impl;
 
-import com.bettercloud.vault.json.JsonObject;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+
 import feign.FeignException;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.client.RolesClient;
 import org.folio.consortia.domain.dto.PublicationRequest;
@@ -25,11 +31,6 @@ import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
 
 @Service
 @Log4j2
@@ -124,15 +125,18 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
     systemUserScopedExecutionService.executeSystemUserScoped(tenantId, () -> {
       try {
         String cqlQuery = String.format("name==%s", roleName);
-        JsonObject role = rolesClient.getRolesByQuery(cqlQuery);
-        UUID roleId = UUID.fromString(role.getString(ID));
+        var roles = rolesClient.getRolesByQuery(cqlQuery);
+        var roleList = roles.getRoles();
+        if (CollectionUtils.isNotEmpty(roleList)) {
+          var roleId = roleList.get(0).getId();
 
-        request.setRoleId(roleId);
-        log.info("syncConfig:: Role '{}' is found in tenant '{}' but not found in sharing role table," +
-          " creating new record in sharing table", roleId, tenantId);
+          request.setRoleId(roleId);
+          log.info("syncConfig:: Role '{}' is found in tenant '{}' but not found in sharing role table," +
+            " creating new record in sharing table", roleId, tenantId);
 
-        var sharingRoleEntity = createSharingConfigEntity(roleId, roleName, tenantId);
-        sharingRoleRepository.save(sharingRoleEntity);
+          var sharingRoleEntity = createSharingConfigEntity(roleId, roleName, tenantId);
+          sharingRoleRepository.save(sharingRoleEntity);
+        }
       } catch (FeignException.NotFound e) {
         log.info("syncConfig:: Role '{}' not found in tenant '{}' and sharing role table, No need to sync",
           roleName, tenantId);

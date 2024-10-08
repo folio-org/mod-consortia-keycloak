@@ -1,15 +1,22 @@
 package org.folio.consortia.service.impl;
 
-import com.bettercloud.vault.json.JsonObject;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+
 import feign.FeignException;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.client.RoleCapabilitySetsClient;
 import org.folio.consortia.client.RolesClient;
 import org.folio.consortia.domain.dto.PublicationRequest;
+import org.folio.consortia.domain.dto.Role;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetDeleteResponse;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetRequest;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetResponse;
@@ -27,17 +34,11 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-
 @Service
 @Log4j2
 public class SharingRoleCapabilitySetService extends BaseSharingService<SharingRoleCapabilitySetRequest,
   SharingRoleCapabilitySetResponse, SharingRoleCapabilitySetDeleteResponse, SharingRoleEntity> {
 
-  private static final String ID = "id";
   private static final String ROLE_ID = "roleId";
 
   private final RoleCapabilitySetsClient roleCapabilitySetsClient;
@@ -124,17 +125,19 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
     systemUserScopedExecutionService.executeSystemUserScoped(tenantId, () -> {
       try {
         String cqlQuery = String.format("name==%s", roleName);
-        JsonObject roleObject = rolesClient.getRolesByQuery(cqlQuery);
-        String roleId = roleObject.getString(ID);
+        var roles = rolesClient.getRolesByQuery(cqlQuery);
+        List<Role> roleList = roles.getRoles();
+        if (CollectionUtils.isNotEmpty(roleList)) {
+          UUID roleId = roleList.get(0).getId();
+          roleCapabilitySetsClient.getRoleCapabilitySetsRoleId(roleId.toString());
+          log.info("syncConfigWithTenant:: Role '{}' and capabilitySets found in tenant '{}', but not found in sharing role table, " +
+            " creating new record in sharing table", roleId, tenantId);
 
-        roleCapabilitySetsClient.getRoleCapabilitySetsRoleId(roleObject.getString(ID));
-        log.info("syncConfigWithTenant:: Role '{}' and capabilitySets found in tenant '{}', but not found in sharing role table, " +
-          " creating new record in sharing table", roleId, tenantId);
-
-        var entity = getSharingRoleEntity(roleName, tenantId);
-        entity.setRoleId(UUID.fromString(roleId)); // set new found roleId
-        entity.setIsCapabilitySetsShared(true);
-        sharingRoleRepository.save(entity);
+          var entity = getSharingRoleEntity(roleName, tenantId);
+          entity.setRoleId(roleId); // set new found roleId
+          entity.setIsCapabilitySetsShared(true);
+          sharingRoleRepository.save(entity);
+        }
       } catch (FeignException.NotFound e) {
         log.info("syncSharingRoleWithRoleCapabilitySetsInTenant:: Role '{}' and capabilitySets not found in tenant '{}'" +
           " and sharing role table, No need to sync", roleName, tenantId);
@@ -190,7 +193,8 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
   }
 
   private SharingRoleEntity getSharingRoleEntity(String roleName, String tenantId) {
-    return sharingRoleRepository.findByRoleNameAndTenantId(roleName, tenantId);
+    return sharingRoleRepository.findByRoleNameAndTenantId(roleName, tenantId)
+      .orElseThrow(() -> new ResourceNotFoundException("sharing role, tenantId", roleName + ", " + tenantId));
   }
 
   @Override

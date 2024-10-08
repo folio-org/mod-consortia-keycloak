@@ -1,6 +1,7 @@
 package org.folio.consortia.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -13,7 +14,9 @@ public interface SharingRoleRepository extends JpaRepository<SharingRoleEntity, 
 
   List<SharingRoleEntity> findByRoleName(String roleName);
 
-  SharingRoleEntity findByRoleNameAndTenantId(String roleName, String tenantId);
+  Optional<SharingRoleEntity> findByRoleNameAndTenantId(String roleName, String tenantId);
+
+  Optional<SharingRoleEntity> findByRoleIdAndTenantId(String roleName, String tenantId);
 
   @Query("SELECT sr.tenantId FROM SharingRoleEntity sr WHERE sr.roleName = ?1")
   Set<String> findTenantsByRoleName(String roleName);
@@ -30,6 +33,7 @@ public interface SharingRoleRepository extends JpaRepository<SharingRoleEntity, 
   boolean existsByRoleId(UUID roleId);
 
   boolean existsByRoleNameAndTenantId(String roleName, String tenantId);
+  boolean existsByRoleIdAndTenantId(UUID roleId, String tenantId);
 
   boolean existsByRoleNameAndTenantIdAndIsCapabilitiesSharedTrue(String roleName, String tenantId);
 

@@ -1,10 +1,15 @@
 package org.folio.consortia.service.impl;
 
 
-import com.bettercloud.vault.json.JsonObject;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+
 import feign.FeignException;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
@@ -23,23 +28,16 @@ import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.PublicationService;
 import org.folio.consortia.service.TenantService;
 import org.folio.spring.FolioExecutionContext;
-import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
 
 @Service
 @Log4j2
 public class SharingRoleCapabilityService extends BaseSharingService<SharingRoleCapabilityRequest,
   SharingRoleCapabilityResponse, SharingRoleCapabilityDeleteResponse, SharingRoleEntity> {
 
-  private static final String ID = "id";
   private static final String ROLE_ID = "roleId";
 
   private final RolesClient rolesClient;
@@ -125,9 +123,9 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
   private void syncSharingRoleWithRoleCapabilitiesInTenant(String roleName, String tenantId) {
     systemUserScopedExecutionService.executeSystemUserScoped(tenantId, () -> {
       try {
-        String cqlQuery = String.format("name==%s", roleName);
-        JsonObject roleObject = rolesClient.getRolesByQuery(cqlQuery);
-        String roleId = roleObject.getString(ID);
+        String cqlQuery = String.format("query=name==%s", roleName);
+        var roles = rolesClient.getRolesByQuery(cqlQuery);
+        String roleId = roles.getRoles().get(0).getId().toString();
 
         roleCapabilitiesClient.getRoleCapabilitiesByRoleId(roleName);
         log.info("syncConfigWithTenant:: Role '{}' and capabilities found in tenant '{}', but not found in sharing role table, " +
@@ -192,7 +190,8 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
   }
 
   private SharingRoleEntity getSharingRoleEntity(String roleName, String tenantId) {
-    return sharingRoleRepository.findByRoleNameAndTenantId(roleName, tenantId);
+    return sharingRoleRepository.findByRoleNameAndTenantId(roleName, tenantId)
+      .orElseThrow(() -> new ResourceNotFoundException("sharing role, tenantId", roleName + ", " + tenantId));
   }
 
   @Override
