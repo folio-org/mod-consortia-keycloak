@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import feign.FeignException;
 import org.folio.consortia.client.RolesClient;
 import org.folio.consortia.domain.dto.PublicationStatus;
+import org.folio.consortia.domain.dto.Roles;
 import org.folio.consortia.domain.dto.SharingRoleCapabilityRequest;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.SharingRoleRepository;
@@ -83,8 +84,7 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
     when(objectMapper.convertValue(any(), eq(ObjectNode.class)))
       .thenReturn(payloadForTenant1)
       .thenReturn(payloadForTenant2);
-    when(rolesClient.getRolesByQuery(any()))
-      .thenThrow(new FeignException.NotFound("Role not found", buildFeignRequest(), null, null));
+    when(rolesClient.getRolesByQuery(any())).thenReturn(new Roles());
     when(sharingRoleRepository.findTenantsByRoleNameAndIsCapabilitiesSharedTrue(request.getRoleName()))
       .thenReturn(tenantSharedRoleAndCapabilities);
     when(sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_1)).thenReturn(roleIdForTenant1);

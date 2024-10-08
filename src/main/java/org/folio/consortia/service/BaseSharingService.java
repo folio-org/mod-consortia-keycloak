@@ -65,12 +65,10 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
     checkEqualsOfPayloadIdWithConfigId(request);
 
+    syncConfigWithTenants(request);
+
     Set<String> sharedConfigTenants = findTenantsForConfig(request);
     TenantCollection allTenants = tenantService.getAll(consortiumId);
-
-    // sync sharing config table, if there is already created config in tenant
-    syncConfigWithTenants(sharedConfigTenants, request);
-    sharedConfigTenants = findTenantsForConfig(request); // update sharedConfigTenants after sync
 
     List<PublicationRequest> pubPostRequests = new ArrayList<>();
     List<PublicationRequest> pubPutRequests = new ArrayList<>();
@@ -127,11 +125,10 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     validateSharingConfigRequestOrThrow(configId, request);
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
 
+    syncConfigWithTenants(request);
+
     Set<String> sharedTenants = findTenantsForConfig(request);
     TenantCollection allTenants = tenantService.getAll(consortiumId);
-
-    syncConfigWithTenants(sharedTenants, request);
-    sharedTenants = findTenantsForConfig(request); // update sharedTenants after sync
 
     List<PublicationRequest> pubDeleteRequests = new ArrayList<>();
 
@@ -300,7 +297,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
   protected abstract boolean shouldCompactRequests();
   protected abstract void validateSharingConfigRequestOrThrow(UUID configId, TRequest request);
 
-  protected abstract void syncConfigWithTenants(Set<String> sharedConfigTenants, TRequest request);
+  protected abstract void syncConfigWithTenants(TRequest request);
   protected abstract Set<String> findTenantsForConfig(TRequest request);
   protected abstract void saveSharingConfig(List<TEntity> enetityList);
   protected abstract void deleteSharingConfig(TRequest request);

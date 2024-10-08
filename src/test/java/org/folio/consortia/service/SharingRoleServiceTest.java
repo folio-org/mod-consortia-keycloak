@@ -2,9 +2,9 @@ package org.folio.consortia.service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import feign.FeignException;
 import org.folio.consortia.client.RolesClient;
 import org.folio.consortia.domain.dto.PublicationStatus;
+import org.folio.consortia.domain.dto.Roles;
 import org.folio.consortia.domain.dto.SharingRoleRequest;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.SharingRoleRepository;
@@ -79,8 +79,7 @@ class SharingRoleServiceTest extends BaseSharingConfigServiceTest {
     when(objectMapper.convertValue(any(), eq(ObjectNode.class)))
       .thenReturn(payloadForTenant1)
       .thenReturn(payloadForTenant2);
-    when(rolesClient.getRolesByQuery(any()))
-      .thenThrow(new FeignException.NotFound("Role not found", buildFeignRequest(), null, null));
+    when(rolesClient.getRolesByQuery(any())).thenReturn(new Roles());
     when(sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_1)).thenReturn(roleIdForTenant1);
     when(sharingRoleRepository.findTenantsByRoleName(request.getRoleName())).thenReturn(tenantsSharedRole);
     when(sharingRoleRepository.save(expectedSharingRoleEntity)).thenReturn(expectedSharingRoleEntity);
@@ -110,8 +109,7 @@ class SharingRoleServiceTest extends BaseSharingConfigServiceTest {
 
     setupCommonMocksForDelete(pcId, expectedPubRequestDELETE);
     when(objectMapper.convertValue(any(), eq(ObjectNode.class))).thenReturn(payload);
-    when(rolesClient.getRolesByQuery(any()))
-      .thenThrow(new FeignException.NotFound("Role not found", buildFeignRequest(), null, null));
+    when(rolesClient.getRolesByQuery(any())).thenReturn(new Roles());
     when(sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_1)).thenReturn(request.getRoleId());
     when(sharingRoleRepository.existsByRoleId(roleId)).thenReturn(true);
     when(sharingRoleRepository.findTenantsByRoleName(request.getRoleName())).thenReturn(tenantsSharedRole);

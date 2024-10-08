@@ -92,7 +92,7 @@ public class SharingPolicyService extends
   }
 
   @Override
-  protected void syncConfigWithTenants(Set<String> sharedConfigTenants, SharingPolicyRequest request) {
+  protected void syncConfigWithTenants(SharingPolicyRequest request) {
     String tenantId = folioExecutionContext.getTenantId();
     UUID policyId = request.getPolicyId();
     log.debug("syncConfig:: Trying to syncing sharing policy table with policy table for policy '{}'", policyId);

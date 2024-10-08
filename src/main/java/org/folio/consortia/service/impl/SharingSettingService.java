@@ -76,7 +76,7 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
    * Sharing settings are one share-to-all tenants action only, so don't need to sync with tenant
    */
   @Override
-  protected void syncConfigWithTenants(Set<String> sharedConfigTenants, SharingSettingRequest request) {
+  protected void syncConfigWithTenants(SharingSettingRequest request) {
     log.info("syncConfigWithTenant:: No need to sync with tenant for Sharing Setting");
   }
 
