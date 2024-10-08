@@ -7,6 +7,7 @@
 * Extended "Inventory: Update ownership" permission (MODCON-158)
 * Made all enum values in endpoints response with upper case as stored in DB (MODROLESKC-216)
 * Changed list of permissions sets (MODCONSKC-33)
+* Rename change-manager permissions (MODCONSKC-37)
 
 ## Version `v1.4.4` (30.08.2024)
 ### Changes:
