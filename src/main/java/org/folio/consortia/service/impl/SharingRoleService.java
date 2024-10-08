@@ -113,13 +113,13 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
       updateRolesIfNeed(request, centralTenantId);
       findTenantsForConfig(request).stream()
         .filter(tenantId -> !tenantId.equals(centralTenantId))
-        .forEach(memberTenantId -> syncSharingRoleWithRoleInTenant(request, roleName, memberTenantId));
+        .forEach(memberTenantId -> syncSharingRoleWithRoleInTenant(roleName, memberTenantId));
       return;
     }
 
     log.info("syncConfig:: Role '{}' not found, trying to sync with only central tenant '{}'" +
         " because role haven't shared with other tenants yet", request.getRoleId(), centralTenantId);
-    syncSharingRoleWithRoleInTenant(request, roleName, centralTenantId);
+    syncSharingRoleWithRoleInTenant(roleName, centralTenantId);
   }
 
   private void checkEqualsOfRoleNameWithPayload(SharingRoleRequest request) {
@@ -148,7 +148,7 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
     saveSharingConfig(sharingRoles);
   }
 
-  private void syncSharingRoleWithRoleInTenant(SharingRoleRequest request, String roleName, String tenantId) {
+  private void syncSharingRoleWithRoleInTenant(String roleName, String tenantId) {
     systemUserScopedExecutionService.executeSystemUserScoped(tenantId, () -> {
       try {
         String cqlQuery = String.format("name==%s", roleName);
@@ -160,12 +160,11 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
           return null;
         }
 
-        var roleId = roleList.get(0).getId();
-        request.setRoleId(roleId);
+        var roleIdForTenant = roleList.get(0).getId();
         log.info("syncConfig:: Role '{}' is found in tenant '{}' but not found in sharing role table," +
-          " creating new record in sharing table", roleId, tenantId);
-
-        var sharingRoleEntity = createSharingConfigEntity(roleId, roleName, tenantId);
+          " creating new record in sharing table", roleIdForTenant, tenantId);
+        var sharingRoleEntity = getOrCreateSharingConfigEntity(roleIdForTenant, roleName, tenantId);
+        sharingRoleEntity.setRoleId(roleIdForTenant);
         sharingRoleRepository.save(sharingRoleEntity);
       } catch (Exception e) {
         log.error("syncConfig:: Error while fetching roles", e);
@@ -173,6 +172,11 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
       }
       return null;
     });
+  }
+
+  private SharingRoleEntity getOrCreateSharingConfigEntity(UUID roleId, String roleName, String tenantId) {
+    var entity = sharingRoleRepository.findByRoleNameAndTenantId(roleName, tenantId);
+    return entity.orElseGet(() -> createSharingConfigEntity(roleId, roleName, tenantId));
   }
 
   @Override

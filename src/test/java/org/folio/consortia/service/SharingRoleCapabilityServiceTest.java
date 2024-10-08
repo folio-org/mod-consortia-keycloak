@@ -2,14 +2,12 @@ package org.folio.consortia.service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import feign.FeignException;
-import org.folio.consortia.client.RolesClient;
 import org.folio.consortia.domain.dto.PublicationStatus;
-import org.folio.consortia.domain.dto.Roles;
 import org.folio.consortia.domain.dto.SharingRoleCapabilityRequest;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.SharingRoleRepository;
 import org.folio.consortia.service.impl.SharingRoleCapabilityService;
+import org.folio.consortia.service.impl.SharingRoleService;
 import org.folio.consortia.support.EntityUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -55,7 +53,7 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
   @Mock
   SharingRoleRepository sharingRoleRepository;
   @Mock
-  RolesClient rolesClient;
+  SharingRoleService sharingRoleService;
 
   @Test
   void shouldStartSharingRoleCapabilities() {
@@ -84,7 +82,7 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
     when(objectMapper.convertValue(any(), eq(ObjectNode.class)))
       .thenReturn(payloadForTenant1)
       .thenReturn(payloadForTenant2);
-    when(rolesClient.getRolesByQuery(any())).thenReturn(new Roles());
+    when(sharingRoleRepository.existsByRoleIdAndTenantId(any(), any())).thenReturn(false);
     when(sharingRoleRepository.findTenantsByRoleNameAndIsCapabilitiesSharedTrue(request.getRoleName()))
       .thenReturn(tenantSharedRoleAndCapabilities);
     when(sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_1)).thenReturn(roleIdForTenant1);
@@ -98,7 +96,6 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
     assertThat(actualResponse.getUpdatePCIds()).isEqualTo(List.of(updatePcId));
 
     verify(publicationService, times(2)).publishRequest(any(), any());
-    verify(rolesClient).getRolesByQuery(any());
   }
 
   @Test
@@ -117,8 +114,6 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
 
     setupCommonMocksForDelete(pcId, expectedPubRequestDelete);
     when(objectMapper.convertValue(any(), eq(ObjectNode.class))).thenReturn(payload);
-    when(rolesClient.getRolesByQuery(any()))
-      .thenThrow(new FeignException.NotFound("Role not found", buildFeignRequest(), null, null));
     when(sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_1)).thenReturn(roleId);
     when(sharingRoleRepository.existsByRoleId(roleId)).thenReturn(true);
     when(sharingRoleRepository.findTenantsByRoleNameAndIsCapabilitiesSharedTrue(request.getRoleName()))
@@ -129,7 +124,6 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
     assertThat(actualResponse.getPcIds()).isEqualTo(List.of(pcId));
 
     verify(publicationService, times(1)).publishRequest(any(), any());
-    verify(rolesClient).getRolesByQuery(any());
   }
 
   @Test
