@@ -135,5 +135,3 @@ components:
       $ref: schemas/capability/capabilities.json
     roles:
       $ref: schemas/role/roles.json
-    policies:
-      $ref: schemas/policy/policies.json

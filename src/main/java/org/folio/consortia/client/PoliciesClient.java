@@ -1,6 +1,5 @@
 package org.folio.consortia.client;
 
-import org.folio.consortia.domain.dto.Policy;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,6 +10,5 @@ import java.util.UUID;
 public interface PoliciesClient {
 
   @GetMapping(value = "/{policyId}")
-  Policy getPolicyById(@PathVariable UUID policyId);
-
+  void getPolicyById(@PathVariable UUID policyId);
 }

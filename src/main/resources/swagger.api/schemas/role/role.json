@@ -12,18 +12,6 @@
     "name": {
       "description": "A human-readable name/label for this role",
       "type": "string"
-    },
-    "description": {
-      "description": "Free form description of the role",
-      "type": "string"
-    },
-    "type": {
-      "description": "Role type",
-      "$ref": "roleType.json"
-    },
-    "metadata": {
-      "readOnly": true,
-      "$ref": "../common.yaml#/Metadata"
     }
   },
   "required": [

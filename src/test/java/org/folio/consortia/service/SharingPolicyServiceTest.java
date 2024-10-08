@@ -38,6 +38,7 @@ import static org.folio.consortia.utils.InputOutputTestUtils.getMockDataObject;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -71,8 +72,8 @@ class SharingPolicyServiceTest extends BaseSharingConfigServiceTest{
     var expectedSharingPolicyEntity = createSharingPolicyEntity(request.getPolicyId(), TENANT_ID_2);
 
     setupCommonMocksForStart(createPcId, updatePcId, expectedPubRequestPost, expectedPubRequestPut, payload);
-    when(policiesClient.getPolicyById(any()))
-      .thenThrow(new FeignException.NotFound("Policy not found", buildFeignRequest(), null, null));
+    doThrow(new FeignException.NotFound("Policy not found", buildFeignRequest(), null, null))
+      .when(policiesClient).getPolicyById(any());
     when(sharingPolicyRepository.findTenantsByPolicyId(request.getPolicyId())).thenReturn(tenantSharedPolicy);
     when(sharingPolicyRepository.save(expectedSharingPolicyEntity)).thenReturn(new SharingPolicyEntity());
 

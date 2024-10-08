@@ -129,7 +129,6 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
         var roleList = roles.getRoles();
         if (CollectionUtils.isNotEmpty(roleList)) {
           var roleId = roleList.get(0).getId();
-
           request.setRoleId(roleId);
           log.info("syncConfig:: Role '{}' is found in tenant '{}' but not found in sharing role table," +
             " creating new record in sharing table", roleId, tenantId);
