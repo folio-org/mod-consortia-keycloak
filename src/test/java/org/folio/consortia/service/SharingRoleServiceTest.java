@@ -3,7 +3,6 @@ package org.folio.consortia.service;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.dto.SharingRoleRequest;
-import org.folio.consortia.domain.entity.SharingRoleEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.SharingRoleRepository;
 import org.folio.consortia.service.impl.SharingRoleService;
@@ -29,6 +28,7 @@ import static org.folio.consortia.support.EntityUtils.createPayloadForRole;
 import static org.folio.consortia.support.EntityUtils.createPublicationDetails;
 import static org.folio.consortia.support.EntityUtils.createPublicationRequest;
 import static org.folio.consortia.support.EntityUtils.createPublicationResultCollection;
+import static org.folio.consortia.support.EntityUtils.createSharingRoleEntity;
 import static org.folio.consortia.support.TestConstants.CONSORTIUM_ID;
 import static org.folio.consortia.utils.InputOutputTestUtils.getMockDataObject;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -62,10 +62,11 @@ class SharingRoleServiceTest extends BaseSharingConfigServiceTest {
     var expectedPuRequestPUT = createPublicationRequest(CONSORTIUM.getRoleValue(), payload, HttpMethod.PUT)
       .tenants(Set.of(TENANT_ID_1))
       .url(request.getUrl() + "/" + request.getRoleId());
+    var expectedSharingRoleEntity = createSharingRoleEntity(request.getRoleId(), TENANT_ID_2);
 
     setupCommonMocksForStart(createPcId, updatePcId, expectedPubRequestPOST, expectedPuRequestPUT, payload);
     when(sharingRoleRepository.findTenantsByRoleId(request.getRoleId())).thenReturn(tenantsSharedRole);
-    when(sharingRoleRepository.save(any())).thenReturn(new SharingRoleEntity());
+    when(sharingRoleRepository.save(expectedSharingRoleEntity)).thenReturn(expectedSharingRoleEntity);
 
     var actualResponse = sharingRoleService.start(CONSORTIUM_ID, request);
 

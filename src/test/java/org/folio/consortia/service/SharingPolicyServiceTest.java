@@ -29,6 +29,7 @@ import static org.folio.consortia.support.EntityUtils.createPayloadForPolicy;
 import static org.folio.consortia.support.EntityUtils.createPublicationDetails;
 import static org.folio.consortia.support.EntityUtils.createPublicationRequest;
 import static org.folio.consortia.support.EntityUtils.createPublicationResultCollection;
+import static org.folio.consortia.support.EntityUtils.createSharingPolicyEntity;
 import static org.folio.consortia.support.TestConstants.CONSORTIUM_ID;
 import static org.folio.consortia.utils.InputOutputTestUtils.getMockDataObject;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -62,10 +63,11 @@ class SharingPolicyServiceTest extends BaseSharingConfigServiceTest{
     var expectedPubRequestPut = createPublicationRequest(CONSORTIUM.getPolicyValue(), payload, HttpMethod.PUT)
       .tenants(Set.of(TENANT_ID_1))
       .url(request.getUrl() + "/" + request.getPolicyId());
+    var expectedSharingPolicyEntity = createSharingPolicyEntity(request.getPolicyId(), TENANT_ID_2);
 
     setupCommonMocksForStart(createPcId, updatePcId, expectedPubRequestPost, expectedPubRequestPut, payload);
     when(sharingPolicyRepository.findTenantsByPolicyId(request.getPolicyId())).thenReturn(tenantSharedPolicy);
-    when(sharingPolicyRepository.save(any())).thenReturn(new SharingPolicyEntity());
+    when(sharingPolicyRepository.save(expectedSharingPolicyEntity)).thenReturn(new SharingPolicyEntity());
 
     var actualResponse = sharingPolicyService.start(CONSORTIUM_ID, request);
 

@@ -43,13 +43,13 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   }
 
   @Override
-  protected UUID getConfigId(SharingRoleRequest sharingRoleRequest) {
-    return sharingRoleRequest.getRoleId();
+  protected UUID getConfigId(SharingRoleRequest request) {
+    return request.getRoleId();
   }
 
   @Override
-  protected Object getPayload(SharingRoleRequest sharingRoleRequest) {
-    return sharingRoleRequest.getPayload();
+  protected Object getPayload(SharingRoleRequest request) {
+    return request.getPayload();
   }
 
   @Override
@@ -67,11 +67,11 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   }
 
   @Override
-  protected void validateSharingConfigRequestOrThrow(UUID roleId, SharingRoleRequest sharingRoleRequest) {
-    if (ObjectUtils.notEqual(getConfigId(sharingRoleRequest), roleId)) {
+  protected void validateSharingConfigRequestOrThrow(UUID roleId, SharingRoleRequest request) {
+    if (ObjectUtils.notEqual(getConfigId(request), roleId)) {
       throw new IllegalArgumentException("Mismatch id in path to roleId in request body");
     }
-    if (Objects.isNull(getPayload(sharingRoleRequest))) {
+    if (Objects.isNull(getPayload(request))) {
       throw new IllegalArgumentException("Payload must not be null");
     }
     if (!sharingRoleRepository.existsByRoleId(roleId)) {
@@ -95,12 +95,14 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   }
 
   @Override
-  protected SharingRoleEntity createSharingConfigEntityFromRequest(SharingRoleRequest sharingRoleRequest, String tenantId) {
-    SharingRoleEntity sharingRoleEntity = new SharingRoleEntity();
-    sharingRoleEntity.setId(UUID.randomUUID());
-    sharingRoleEntity.setRoleId(sharingRoleEntity.getRoleId());
-    sharingRoleEntity.setTenantId(tenantId);
-    return sharingRoleEntity;
+  protected SharingRoleEntity createSharingConfigEntityFromRequest(SharingRoleRequest request, String tenantId) {
+    return SharingRoleEntity.builder()
+      .id(UUID.randomUUID())
+      .roleId(request.getRoleId())
+      .tenantId(tenantId)
+      .isCapabilitiesShared(false)
+      .isCapabilitySetsShared(false)
+      .build();
   }
 
   @Override
@@ -117,8 +119,8 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   }
 
   @Override
-  protected ObjectNode updatePayload(SharingRoleRequest sharingConfigRequest, String sourceValue) {
-    var payload = objectMapper.convertValue(getPayload(sharingConfigRequest), ObjectNode.class);
+  protected ObjectNode updatePayload(SharingRoleRequest request, String sourceValue) {
+    var payload = objectMapper.convertValue(getPayload(request), ObjectNode.class);
     return payload.set(TYPE, new TextNode(sourceValue));
   }
 

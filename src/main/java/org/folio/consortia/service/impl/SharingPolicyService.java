@@ -29,27 +29,29 @@ import java.util.UUID;
 
 @Service
 @Log4j2
-public class SharingPolicyService extends BaseSharingService<SharingPolicyRequest, SharingPolicyResponse, SharingPolicyDeleteResponse, SharingPolicyEntity> {
+public class SharingPolicyService extends
+  BaseSharingService<SharingPolicyRequest, SharingPolicyResponse, SharingPolicyDeleteResponse, SharingPolicyEntity> {
 
   private final SharingPolicyRepository sharingPolicyRepository;
 
   public SharingPolicyService(TenantService tenantService, ConsortiumService consortiumService,
                               SystemUserScopedExecutionService systemUserScopedExecutionService,
                               PublicationService publicationService, FolioExecutionContext folioExecutionContext,
-                              ObjectMapper parentObjectMapper, TaskExecutor asyncTaskExecutor, SharingPolicyRepository sharingPolicyRepository) {
+                              ObjectMapper parentObjectMapper, TaskExecutor asyncTaskExecutor,
+                              SharingPolicyRepository sharingPolicyRepository) {
     super(tenantService, consortiumService, systemUserScopedExecutionService, publicationService,
       folioExecutionContext, parentObjectMapper, asyncTaskExecutor);
     this.sharingPolicyRepository = sharingPolicyRepository;
   }
 
   @Override
-  protected UUID getConfigId(SharingPolicyRequest sharingPolicyRequest) {
-    return sharingPolicyRequest.getPolicyId();
+  protected UUID getConfigId(SharingPolicyRequest request) {
+    return request.getPolicyId();
   }
 
   @Override
-  protected Object getPayload(SharingPolicyRequest sharingPolicyRequest) {
-    return sharingPolicyRequest.getPayload();
+  protected Object getPayload(SharingPolicyRequest request) {
+    return request.getPayload();
   }
 
   @Override
@@ -67,11 +69,11 @@ public class SharingPolicyService extends BaseSharingService<SharingPolicyReques
   }
 
   @Override
-  protected void validateSharingConfigRequestOrThrow(UUID policyId, SharingPolicyRequest sharingPolicyRequest) {
-    if (ObjectUtils.notEqual(getConfigId(sharingPolicyRequest), policyId)) {
+  protected void validateSharingConfigRequestOrThrow(UUID policyId, SharingPolicyRequest request) {
+    if (ObjectUtils.notEqual(getConfigId(request), policyId)) {
       throw new IllegalArgumentException("Mismatch id in path to policyId in request body");
     }
-    if (Objects.isNull(getPayload(sharingPolicyRequest))) {
+    if (Objects.isNull(getPayload(request))) {
       throw new IllegalArgumentException("Payload must not be null");
     }
     if (!sharingPolicyRepository.existsByPolicyId(policyId)) {
@@ -95,12 +97,12 @@ public class SharingPolicyService extends BaseSharingService<SharingPolicyReques
   }
 
   @Override
-  protected SharingPolicyEntity createSharingConfigEntityFromRequest(SharingPolicyRequest sharingPolicyRequest, String tenantId) {
-    SharingPolicyEntity sharingPolicyEntity = new SharingPolicyEntity();
-    sharingPolicyEntity.setId(UUID.randomUUID());
-    sharingPolicyEntity.setPolicyId(sharingPolicyRequest.getPolicyId());
-    sharingPolicyEntity.setTenantId(tenantId);
-    return sharingPolicyEntity;
+  protected SharingPolicyEntity createSharingConfigEntityFromRequest(SharingPolicyRequest request, String tenantId) {
+    return SharingPolicyEntity.builder()
+      .id(UUID.randomUUID())
+      .policyId(request.getPolicyId())
+      .tenantId(tenantId)
+      .build();
   }
 
   @Override
@@ -108,7 +110,6 @@ public class SharingPolicyService extends BaseSharingService<SharingPolicyReques
     return new SharingPolicyResponse()
       .createPoliciesPCId(createSettingsPcId)
       .updatePoliciesPCId(updateSettingsPcId);
-
   }
 
   @Override
