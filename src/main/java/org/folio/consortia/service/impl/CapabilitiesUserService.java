@@ -20,6 +20,7 @@ import org.folio.consortia.client.CapabilitySetsClient;
 import org.folio.consortia.client.UserCapabilitiesClient;
 import org.folio.consortia.client.UserCapabilitySetsClient;
 import org.folio.consortia.client.UserPermissionsClient;
+import org.folio.consortia.client.UserRolesClient;
 import org.folio.consortia.domain.dto.CapabilitySet;
 import org.folio.consortia.domain.dto.CapabilitySets;
 import org.folio.consortia.domain.dto.PermissionUser;
@@ -40,6 +41,7 @@ public class CapabilitiesUserService implements PermissionUserService {
   private final CapabilitySetsClient capabilitySetsClient;
   private final UserCapabilitiesClient userCapabilitiesClient;
   private final UserCapabilitySetsClient userCapabilitySetsClient;
+  private final UserRolesClient userRolesClient;
   private final UserPermissionsClient userPermissionsClient;
   private final ObjectMapper objectMapper;
 
@@ -65,7 +67,10 @@ public class CapabilitiesUserService implements PermissionUserService {
   @Override
   public void deletePermissionUser(String userId) {
     userCapabilitiesClient.deleteUserCapabilities(userId);
-    log.info("deleteUserPermissions:: Deleted capabilities with userId={}", userId);
+    userCapabilitySetsClient.deleteUserCapabilitySets(userId);
+    userRolesClient.deleteUserRoles(userId);
+    // TODO Delete policies
+    log.info("deleteUserPermissions:: Deleted user capabilities, capability sets and roles with userId={}", userId);
   }
 
   private List<String> readAndValidatePermissions(String permissionsFilePath) {
