@@ -25,11 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import org.folio.consortia.client.PermissionsClient;
 import org.folio.consortia.client.UsersKeycloakClient;
 import org.folio.consortia.domain.converter.UserTenantConverter;
-import org.folio.consortia.domain.dto.PermissionUser;
-import org.folio.consortia.domain.dto.PermissionUserCollection;
 import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserEvent;
 import org.folio.consortia.domain.dto.UserTenant;
@@ -84,15 +81,13 @@ class UserTenantServiceTest {
   @Mock
   private UsersKeycloakClient usersKeycloakClient;
   @Mock
-  private PermissionsClient permissionsClient;
-  @Mock
   private FolioExecutionContext folioExecutionContext;
   @Mock
   private SystemUserScopedExecutionService systemUserScopedExecutionService;
   @Mock
   private FolioModuleMetadata folioModuleMetadata;
   @Mock
-  private PermissionUserService permissionUserService;
+  private CapabilitiesUserService capabilitiesUserService;
   @Mock
   private TenantService tenantService;
   @Mock
@@ -354,14 +349,10 @@ class UserTenantServiceTest {
     String tenantId = String.valueOf(UUID.randomUUID());
     UserTenantEntity userTenant = createUserTenantEntity(associationId, userId, "testuser", tenantId);
     userTenant.setIsPrimary(false);
-    PermissionUser permissionUser = new PermissionUser();
-    PermissionUserCollection permissionUserCollection = new PermissionUserCollection();
-    permissionUserCollection.setPermissionUsers(List.of(permissionUser));
     when(consortiumRepository.findById(UUID.fromString(CONSORTIUM_ID))).thenReturn(Optional.of(createConsortiumEntity()));
     when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any())).thenReturn(Optional.of(userTenant));
     when(userService.getById(any())).thenReturn(createNullUserEntity());
     when(userService.prepareShadowUser(any(), any())).thenReturn(createNullUserEntity());
-    when(permissionsClient.get(any())).thenReturn(permissionUserCollection);
     doNothing().when(usersKeycloakClient).saveUser(any());
     when(userTenantRepository.save(userTenant)).thenReturn(userTenant);
     mockOkapiHeaders();
@@ -377,15 +368,10 @@ class UserTenantServiceTest {
     String tenantId = String.valueOf(UUID.randomUUID());
     UserTenantEntity userTenant = createUserTenantEntity(associationId, userId, "testuser", tenantId);
     userTenant.setIsPrimary(false);
-    PermissionUser permissionUser = new PermissionUser();
-    PermissionUserCollection permissionUserCollection = new PermissionUserCollection();
-    permissionUserCollection.setPermissionUsers(List.of());
     when(consortiumRepository.findById(UUID.fromString(CONSORTIUM_ID))).thenReturn(Optional.of(createConsortiumEntity()));
     when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any())).thenReturn(Optional.of(userTenant));
     when(userService.getById(any())).thenReturn(createNullUserEntity());
     when(userService.prepareShadowUser(any(), any())).thenReturn(createNullUserEntity());
-    when(permissionsClient.get(any())).thenReturn(permissionUserCollection);
-    when(permissionsClient.create(any())).thenReturn(permissionUser);
     doNothing().when(usersKeycloakClient).saveUser(any());
     when(userTenantRepository.save(userTenant)).thenReturn(userTenant);
     mockOkapiHeaders();
@@ -409,7 +395,7 @@ class UserTenantServiceTest {
     mockOkapiHeaders();
 
     assertDoesNotThrow(() -> userTenantService.deleteShadowUsers(userId1));
-    verify(permissionUserService, times(3)).deletePermissionUser(userId1.toString());
+    verify(capabilitiesUserService, times(3)).deletePermissionUser(userId1.toString());
   }
 
   @Test

@@ -37,14 +37,11 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import org.folio.consortia.client.ConsortiaConfigurationClient;
-import org.folio.consortia.client.PermissionsClient;
 import org.folio.consortia.client.SyncPrimaryAffiliationClient;
 import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.client.UsersClient;
 import org.folio.consortia.client.UsersKeycloakClient;
 import org.folio.consortia.config.kafka.KafkaService;
-import org.folio.consortia.domain.dto.PermissionUser;
-import org.folio.consortia.domain.dto.PermissionUserCollection;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantDetails;
 import org.folio.consortia.domain.dto.User;
@@ -112,13 +109,9 @@ class TenantServiceTest {
   @Mock
   UserTenantService userTenantService;
   @Mock
-  private PermissionsClient permissionsClient;
-  @Mock
   private UserTenantsClient userTenantsClient;
   @Mock
-  private PermissionUserService permissionUserService;
-  @Mock
-  private PermissionUserService permissionService;
+  private CapabilitiesUserService capabilitiesUserService;
   @Mock
   private UserService userService;
   @Mock
@@ -179,17 +172,12 @@ class TenantServiceTest {
     TenantDetailsEntity localTenantDetailsEntity = createTenantDetailsEntity("ABC1", "TestName1");
     Tenant tenant = createTenant("TestID", "Test");
     TenantEntity centralTenant = createTenantEntity("diku", "diku");
-    PermissionUserCollection permissionUserCollection = new PermissionUserCollection();
-    permissionUserCollection.setPermissionUsers(List.of());
     User adminUser = createUser("diku_admin");
 
     when(consortiumRepository.existsById(consortiumId)).thenReturn(true);
     when(userService.prepareShadowUser(UUID.fromString(adminUser.getId()), "diku")).thenReturn(adminUser);
     when(userService.createUser(any())).thenReturn(adminUser);
     when(userService.getById(any())).thenReturn(new User());
-    when(permissionsClient.get(any())).thenReturn(permissionUserCollection);
-    when(permissionsClient.create(any())).thenReturn(
-      PermissionUser.of(UUID.randomUUID().toString(), adminUser.getId(), List.of("users.collection.get")));
     when(tenantRepository.existsById(any())).thenReturn(false);
     when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(centralTenant));
     when(tenantDetailsRepository.save(any(TenantDetailsEntity.class))).thenReturn(localTenantDetailsEntity);
@@ -224,10 +212,6 @@ class TenantServiceTest {
     TenantDetailsEntity tenantDetailsEntity = createTenantDetailsEntity("ABC1", "TestName1");
     Tenant tenant = createTenant("TestID", "Test", true);
     TenantEntity centralTenant = createTenantEntity(TENANT_ID);
-    PermissionUser permissionUser = new PermissionUser();
-    permissionUser.setPermissions(List.of("users.collection.get"));
-    PermissionUserCollection permissionUserCollection = new PermissionUserCollection();
-    permissionUserCollection.setPermissionUsers(List.of(permissionUser));
     User user = new User();
     user.setId(UUID.randomUUID().toString());
     var userCollectionString = getMockDataAsString("mockdata/user_collection.json");
@@ -235,8 +219,6 @@ class TenantServiceTest {
 
     when(consortiumRepository.existsById(consortiumId)).thenReturn(true);
     when(userService.prepareShadowUser(any(), any())).thenReturn(user);
-    when(permissionsClient.get(any())).thenReturn(permissionUserCollection);
-    doNothing().when(permissionsClient).addPermission(any(), any());
     when(tenantRepository.existsById(any())).thenReturn(false);
     when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(centralTenant));
     when(tenantDetailsRepository.save(any(TenantDetailsEntity.class))).thenReturn(tenantDetailsEntity);
@@ -268,7 +250,7 @@ class TenantServiceTest {
     verify(userService, never()).createUser(any());
     verify(systemUserScopedExecutionService).executeSystemUserScoped(eq("TestID"), any());
     verify(customFieldService).createCustomField(ORIGINAL_TENANT_ID_CUSTOM_FIELD);
-    verify(permissionUserService, never()).createWithPermissionSetsFromFile(any(), any());
+    verify(capabilitiesUserService, never()).createWithPermissionSetsFromFile(any(), any());
 
     assertEquals(tenant, tenant1);
   }
@@ -302,7 +284,7 @@ class TenantServiceTest {
     verifyNoInteractions(userTenantRepository);
     verify(userTenantsClient).postUserTenant(any());
     verifyNoInteractions(userService);
-    verifyNoInteractions(permissionUserService);
+    verifyNoInteractions(capabilitiesUserService);
 
     assertEquals(newTenant, actualTenant);
   }
