@@ -293,7 +293,7 @@ public class UserTenantServiceImpl implements UserTenantService {
           TenantContextUtils.prepareContextForTenant(tenantId, folioModuleMetadata, folioExecutionContext))) {
           userService.deleteById(userId.toString());
           log.info("Trying to delete permission user for userId={}", userId.toString());
-          capabilitiesUserService.deletePermissionUser(userId.toString());
+          capabilitiesUserService.deleteUserCapabilitiesAndRoles(userId.toString());
           log.info("Removed shadow user: {} from tenant : {}", userId, tenantId);
         }
       });

@@ -15,5 +15,5 @@ public interface CapabilitiesUserService {
    *
    * @param userId id of user
    */
-  void deletePermissionUser(String userId);
+  void deleteUserCapabilitiesAndRoles(String userId);
 }

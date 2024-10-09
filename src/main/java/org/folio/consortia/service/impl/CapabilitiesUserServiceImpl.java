@@ -44,16 +44,16 @@ public class CapabilitiesUserServiceImpl implements CapabilitiesUserService {
   @Override
   public void createWithPermissionSetsFromFile(String userId, String permissionSetsFilePath) {
     var perms = readAndValidatePermissionSets(permissionSetsFilePath);
-    log.info("Assigning permission sets: [{}] to user: '{}'", perms, userId);
+    log.info("createWithPermissionSetsFromFile:: Assigning permission sets: [{}] to user: '{}'", perms, userId);
     assignPermissionSets(userId, perms);
   }
 
   @Override
-  public void deletePermissionUser(String userId) {
+  public void deleteUserCapabilitiesAndRoles(String userId) {
     userCapabilitiesClient.deleteUserCapabilities(userId);
     userCapabilitySetsClient.deleteUserCapabilitySets(userId);
     userRolesClient.deleteUserRoles(userId);
-    log.info("deletePermissionUser:: Deleted capabilities, capability sets and roles for user: '{}'", userId);
+    log.info("deleteUserCapabilitiesAndRoles:: Deleted user capabilities, capability sets and roles with userId: '{}'", userId);
   }
 
   private List<String> readAndValidatePermissionSets(String permissionsFilePath) {

@@ -355,7 +355,7 @@ class UserTenantServiceTest {
     mockOkapiHeaders();
 
     assertDoesNotThrow(() -> userTenantService.deleteShadowUsers(userId1));
-    verify(capabilitiesUserService, times(3)).deletePermissionUser(userId1.toString());
+    verify(capabilitiesUserService, times(3)).deleteUserCapabilitiesAndRoles(userId1.toString());
   }
 
   @Test

@@ -62,10 +62,12 @@ class CapabilitiesUserServiceImplTest {
   }
 
   @Test
-  void shouldDeletePermissionUser() {
-    String permissionUserId = UUID.randomUUID().toString();
-    capabilitiesUserService.deletePermissionUser(permissionUserId);
-    verify(userCapabilitiesClient).deleteUserCapabilities(permissionUserId);
+  void shouldDeleteUserCapabilitiesAndRoles() {
+    String userId = UUID.randomUUID().toString();
+    capabilitiesUserService.deleteUserCapabilitiesAndRoles(userId);
+    verify(userCapabilitiesClient).deleteUserCapabilities(userId);
+    verify(userCapabilitySetsClient).deleteUserCapabilitySets(userId);
+    verify(userRolesClient).deleteUserRoles(userId);
   }
 
   @Test
