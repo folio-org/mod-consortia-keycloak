@@ -79,13 +79,18 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
     expectedSharingRoleEntity.setIsCapabilitiesShared(true);
 
     setupCommonMocksForStart(createPcId, updatePcId, expectedPubRequestPost, expectedPubRequestPut, payloadForTenant1);
-    when(objectMapper.convertValue(any(), eq(ObjectNode.class)))
+    when(objectMapper.convertValue(request.getPayload(), ObjectNode.class))
       .thenReturn(payloadForTenant1)
+      .thenReturn(payloadForTenant2);
+    when(objectMapper.convertValue(payloadForTenant1, ObjectNode.class))
+      .thenReturn(payloadForTenant1);
+    when(objectMapper.convertValue(payloadForTenant2, ObjectNode.class))
       .thenReturn(payloadForTenant2);
     when(sharingRoleRepository.existsByRoleIdAndTenantId(any(), any())).thenReturn(false);
     when(sharingRoleRepository.findTenantsByRoleNameAndIsCapabilitiesSharedTrue(request.getRoleName()))
       .thenReturn(tenantSharedRoleAndCapabilities);
     when(sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_1)).thenReturn(roleIdForTenant1);
+    when(sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_2)).thenReturn(roleIdForTenant2);
     when(sharingRoleRepository.findByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_2))
       .thenReturn(Optional.of(sharingRoleEntity));
     when(sharingRoleRepository.saveAll(List.of(expectedSharingRoleEntity))).thenReturn(List.of(expectedSharingRoleEntity));

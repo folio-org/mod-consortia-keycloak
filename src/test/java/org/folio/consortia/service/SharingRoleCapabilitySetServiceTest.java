@@ -2,7 +2,6 @@ package org.folio.consortia.service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import org.folio.consortia.client.RolesClient;
 import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetRequest;
 import org.folio.consortia.exception.ResourceNotFoundException;
@@ -66,13 +65,15 @@ class SharingRoleCapabilitySetServiceTest extends BaseSharingConfigServiceTest{
     var sharingRoleEntity = createSharingRoleEntity(request.getRoleId(), TENANT_ID_2);
     var payloadForTenant1 = createPayloadForRoleCapabilitySets(roleIdForTenant1);
     var payloadForTenant2 = createPayloadForRoleCapabilitySets(roleIdForTenant2);
+    var expectedPayloadTenant1 = createPayloadForRoleCapabilitySets(roleIdForTenant1);
+    var expectedPayloadTenant2 = createPayloadForRoleCapabilitySets(roleIdForTenant2);
 
     // "tenant1" exists in tenant role association so that tenant1 is in PUT request publication,
     // "tenant2" is in POST method publication
-    var expectedPubRequestPut = createPublicationRequest(CONSORTIUM.getRoleValue(), payloadForTenant1, HttpMethod.PUT)
+    var expectedPubRequestPut = createPublicationRequest(CONSORTIUM.getRoleValue(), expectedPayloadTenant1, HttpMethod.PUT)
       .tenants(Set.of(TENANT_ID_1))
       .url("/roles/" + roleIdForTenant1 + "/capability-sets");
-    var expectedPubRequestPost = createPublicationRequest(CONSORTIUM.getRoleValue(), payloadForTenant2, HttpMethod.POST)
+    var expectedPubRequestPost = createPublicationRequest(CONSORTIUM.getRoleValue(), expectedPayloadTenant2, HttpMethod.POST)
       .tenants(Set.of(TENANT_ID_2))
       .url(request.getUrl());
     var expectedSharingRoleEntity = createSharingRoleEntity(roleIdForTenant2, TENANT_ID_2);
@@ -85,6 +86,7 @@ class SharingRoleCapabilitySetServiceTest extends BaseSharingConfigServiceTest{
     when(sharingRoleRepository.findTenantsByRoleNameAndIsCapabilitySetsSharedTrue(request.getRoleName()))
       .thenReturn(tenantSharedRoleAndCapabilitySets);
     when(sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_1)).thenReturn(roleIdForTenant1);
+    when(sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_2)).thenReturn(roleIdForTenant2);
     when(sharingRoleRepository.findByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_2))
       .thenReturn(Optional.of(sharingRoleEntity));
     when(sharingRoleRepository.saveAll(List.of(expectedSharingRoleEntity))).thenReturn(List.of(expectedSharingRoleEntity));

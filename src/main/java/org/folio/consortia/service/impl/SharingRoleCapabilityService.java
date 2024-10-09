@@ -10,9 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
-import feign.FeignException;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.client.RoleCapabilitiesClient;
 import org.folio.consortia.domain.dto.PublicationRequest;
@@ -103,59 +101,10 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
 
   @Override
   protected void syncConfigWithTenants(SharingRoleCapabilityRequest request) {
-    var sharingRoleRequest = new SharingRoleRequest();
-    sharingRoleRequest.setRoleId(request.getRoleId());
-    sharingRoleRequest.setRoleName(request.getRoleName());
-    sharingRoleService.syncConfigWithTenants(sharingRoleRequest);
-
-    log.debug("syncConfigWithTenant:: Trying to syncing sharing role table with role capabilities for role '{}' in tenants'",
-      request.getRoleName());
-
-    syncSharingRoleCapabilityForTenant(request);
-  }
-
-  private void syncSharingRoleCapabilityForTenant(SharingRoleCapabilityRequest request) {
-    findTenantsForConfig(request).stream()
-      .filter(tenantId ->
-        !sharingRoleRepository.existsByRoleNameAndTenantIdAndIsCapabilitiesSharedTrue(request.getRoleName(), tenantId))
-      .forEach(tenantId ->
-        systemUserScopedExecutionService.executeSystemUserScoped(tenantId, () -> {
-          syncSharingRoleCapabilityForTenant(request.getRoleName(), tenantId);
-          return null;
-        }));
-  }
-
-  private void syncSharingRoleCapabilityForTenant(String roleName, String tenantId) {
-    try {
-      var existingRole = sharingRoleRepository.findByRoleNameAndTenantId(roleName, tenantId);
-
-      if (existingRole.isEmpty()) {
-        log.info("syncSharingRoleWithRoleCapabilitiesInTenant:: Role '{}' not found in tenant '{}'" +
-          " and sharing role table, No need to sync", roleName, tenantId);
-        return;
-      }
-
-      var roleIdForTenant = existingRole.get().getRoleId();
-      var capabilities = roleCapabilitiesClient.getRoleCapabilitiesByRoleId(roleName);
-      if (CollectionUtils.isEmpty(capabilities.getCapabilities())) {
-        log.info("syncConfigWithTenant:: No capabilitySets found for role '{}' in tenant '{}'" +
-          "No need to sync", roleIdForTenant, tenantId);
-        return;
-      }
-
-      log.info("syncConfigWithTenant:: Role '{}' and capabilities found in tenant '{}', but not found in sharing role table, " +
-        " creating new record in sharing table", roleIdForTenant, tenantId);
-
-      var entity = getSharingRoleEntity(roleName, tenantId);
-      entity.setIsCapabilitiesShared(true);
-      sharingRoleRepository.save(entity);
-    } catch (FeignException.NotFound e) {
-      log.info("syncSharingRoleWithRoleCapabilitiesInTenant:: Role '{}' and capabilities not found in tenant '{}'" +
-        " and sharing role table, No need to sync", roleName, tenantId);
-    } catch (Exception e) {
-      log.error("syncConfig:: Error while fetching role capabilities", e);
-      throw new IllegalStateException("Error while fetching role capabilities", e);
-    }
+    var sharingRoleRequest = new SharingRoleRequest()
+      .roleId(request.getRoleId())
+      .roleName(request.getRoleName());
+    sharingRoleService.syncSharingRoleWithTenant(sharingRoleRequest, folioExecutionContext.getTenantId());
   }
 
   @Override

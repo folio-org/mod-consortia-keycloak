@@ -2,6 +2,8 @@ package org.folio.consortia.service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import org.folio.consortia.client.RoleCapabilitiesClient;
+import org.folio.consortia.client.RoleCapabilitySetsClient;
 import org.folio.consortia.client.RolesClient;
 import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.dto.Roles;
@@ -52,6 +54,10 @@ class SharingRoleServiceTest extends BaseSharingConfigServiceTest {
   SharingRoleRepository sharingRoleRepository;
   @Mock
   RolesClient rolesClient;
+  @Mock
+  RoleCapabilitiesClient roleCapabilitiesClient;
+  @Mock
+  RoleCapabilitySetsClient roleCapabilitySetsClient;
 
   @Test
   void shouldStartSharingRole() {
