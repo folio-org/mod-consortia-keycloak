@@ -57,6 +57,7 @@
     <sharing_policies.yaml.file>${project.basedir}/src/main/resources/swagger.api/sharing_policies.yaml</sharing_policies.yaml.file>
     <sharing_roles.yaml.file>${project.basedir}/src/main/resources/swagger.api/sharing_roles.yaml</sharing_roles.yaml.file>
 
+    <folio-module-descriptor-validator.version>1.0.0</folio-module-descriptor-validator.version>
 
     <!-- runtime dependencies -->
     <folio-spring-base.version>8.1.2</folio-spring-base.version>
@@ -241,6 +242,19 @@
   <build>
     <plugins>
 
+      <plugin>
+        <groupId>org.folio</groupId>
+        <artifactId>folio-module-descriptor-validator</artifactId>
+        <version>${folio-module-descriptor-validator.version}</version>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <goals>
+              <goal>validate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
