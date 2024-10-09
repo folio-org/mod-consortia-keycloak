@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.folio.consortia.client.RolesClient;
 import org.folio.consortia.domain.dto.PublicationStatus;
-import org.folio.consortia.domain.dto.Role;
 import org.folio.consortia.domain.dto.Roles;
 import org.folio.consortia.domain.dto.SharingRoleRequest;
 import org.folio.consortia.exception.ResourceNotFoundException;
@@ -55,7 +54,7 @@ class SharingRoleServiceTest extends BaseSharingConfigServiceTest {
   RolesClient rolesClient;
 
   @Test
-  void positive_shouldStartSharingRole() {
+  void shouldStartSharingRole() {
     var request = getMockDataObject(SHARING_ROLE_REQUEST_SAMPLE, SharingRoleRequest.class);
     var roleIdForTenant1 = request.getRoleId();
     var roleIdForTenant2 = UUID.randomUUID();

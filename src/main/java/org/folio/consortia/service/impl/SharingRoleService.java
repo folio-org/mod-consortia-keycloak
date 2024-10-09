@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 public class SharingRoleService extends BaseSharingService<SharingRoleRequest, SharingRoleResponse, SharingRoleDeleteResponse, SharingRoleEntity> {
 
   private static final String ID = "id";
+  private static final String NAME = "name";
 
   private final RolesClient rolesClient;
   private final SharingRoleRepository sharingRoleRepository;
@@ -100,52 +101,29 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
 
   @Override
   protected void syncConfigWithTenants(SharingRoleRequest request) {
-//  checkEqualsOfRoleNameWithPayload(request);
-    String roleName = request.getRoleName();
     String centralTenantId = folioExecutionContext.getTenantId();
+    syncSharingRoleWithTenant(request, centralTenantId);
+    updateRoleNamesIfNeed(request, centralTenantId);
+  }
+
+  protected void syncSharingRoleWithTenant(SharingRoleRequest request, String centralTenantId) {
+    String roleName = request.getRoleName();
     log.debug("syncConfig:: Trying to syncing sharing role table with roles table for role '{}' and tenant '{}'",
       request.getRoleName(), centralTenantId);
 
     if (sharingRoleRepository.existsByRoleIdAndTenantId(request.getRoleId(), centralTenantId)) {
-      log.info("syncConfig:: Role '{}' with central tenant '{}' already exists, Syncing with other tenants",
+      log.info("syncConfig:: Role '{}' with central tenant '{}' already sync, Syncing with other tenants",
         request.getRoleName(), centralTenantId);
 
-//      updateRolesIfNeed(request, centralTenantId);
       findTenantsForConfig(request).stream()
         .filter(tenantId -> !tenantId.equals(centralTenantId))
-        .forEach(memberTenantId -> syncSharingRoleWithRoleInTenant(roleName, memberTenantId));
+        .forEach(memberTenantId -> syncSharingRoleWithRoleInTenant(request.getRoleName(), memberTenantId));
       return;
     }
 
     log.info("syncConfig:: Role '{}' not found, trying to sync with only central tenant '{}'" +
-        " because role haven't shared with other tenants yet", request.getRoleId(), centralTenantId);
+      " because role haven't shared with other tenants yet", request.getRoleId(), centralTenantId);
     syncSharingRoleWithRoleInTenant(roleName, centralTenantId);
-  }
-
-  private void checkEqualsOfRoleNameWithPayload(SharingRoleRequest request) {
-    String roleName = request.getRoleName();
-    var payloadNode = objectMapper.convertValue(request.getPayload(), ObjectNode.class);
-    String payloadRoleName = payloadNode.get("name").asText();
-    if (ObjectUtils.notEqual(roleName, payloadRoleName)) {
-      throw new IllegalArgumentException("Mismatch name in payload with roleName");
-    }
-  }
-
-  private void updateRolesIfNeed(SharingRoleRequest request, String centralTenantId) {
-    var existingSharingRole = sharingRoleRepository.findByRoleIdAndTenantId(request.getRoleId(), centralTenantId)
-      .orElseThrow(() -> new ResourceNotFoundException("sharing role, tenant", request.getRoleName() + "," + centralTenantId));
-    if (ObjectUtils.notEqual(existingSharingRole.getRoleName(), request.getRoleName())) {
-      updateSharingRolesForAllTenants(existingSharingRole, request.getRoleName());
-    }
-  }
-
-  private void updateSharingRolesForAllTenants(SharingRoleEntity sharingRole, String newRoleName) {
-    String oldRolName = sharingRole.getRoleName();
-    log.info("updateSharingRolesForAllTenants:: shared role name '{}' is different request, updating to new roleName '{}'",
-      oldRolName, newRoleName);
-    var sharingRoles = sharingRoleRepository.findByRoleName(oldRolName);
-    sharingRoles.forEach(role -> role.setRoleName(newRoleName));
-    saveSharingConfig(sharingRoles);
   }
 
   private void syncSharingRoleWithRoleInTenant(String roleName, String tenantId) {
@@ -162,7 +140,7 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
 
         var roleIdForTenant = roleList.get(0).getId();
         log.info("syncConfig:: Role '{}' is found in tenant '{}' but not found in sharing role table," +
-          " creating new record in sharing table", roleIdForTenant, tenantId);
+          " creating or updating record in sharing table", roleIdForTenant, tenantId);
         var sharingRoleEntity = getOrCreateSharingConfigEntity(roleIdForTenant, roleName, tenantId);
         sharingRoleEntity.setRoleId(roleIdForTenant);
         sharingRoleRepository.save(sharingRoleEntity);
@@ -177,6 +155,34 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   private SharingRoleEntity getOrCreateSharingConfigEntity(UUID roleId, String roleName, String tenantId) {
     var entity = sharingRoleRepository.findByRoleNameAndTenantId(roleName, tenantId);
     return entity.orElseGet(() -> createSharingConfigEntity(roleId, roleName, tenantId));
+  }
+
+  private void updateRoleNamesIfNeed(SharingRoleRequest request, String centralTenantId) {
+    checkEqualsOfRoleNameWithPayload(request);
+    var existingSharingRole = sharingRoleRepository.findByRoleIdAndTenantId(request.getRoleId(), centralTenantId);
+    existingSharingRole.ifPresent(role -> {
+      if (ObjectUtils.notEqual(existingSharingRole.get().getRoleName(), request.getRoleName())) {
+        updateSharingRoleNameForAllTenants(existingSharingRole.get(), request.getRoleName());
+      }
+    });
+  }
+
+  private void checkEqualsOfRoleNameWithPayload(SharingRoleRequest request) {
+    String roleName = request.getRoleName();
+    var payloadNode = objectMapper.convertValue(request.getPayload(), ObjectNode.class);
+    String payloadRoleName = payloadNode.get(NAME).asText();
+    if (ObjectUtils.notEqual(roleName, payloadRoleName)) {
+      throw new IllegalArgumentException("Mismatch name in payload with roleName");
+    }
+  }
+
+  private void updateSharingRoleNameForAllTenants(SharingRoleEntity sharingRole, String newRoleName) {
+    String oldRolName = sharingRole.getRoleName();
+    log.info("updateSharingRoleNameForAllTenants:: shared role name '{}' is different request, updating to new roleName '{}'",
+      oldRolName, newRoleName);
+    var sharingRoles = sharingRoleRepository.findByRoleName(oldRolName);
+    sharingRoles.forEach(role -> role.setRoleName(newRoleName));
+    saveSharingConfig(sharingRoles);
   }
 
   @Override

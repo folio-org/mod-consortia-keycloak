@@ -102,14 +102,13 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
 
   @Override
   protected void syncConfigWithTenants(SharingRoleCapabilitySetRequest request) {
-    var sharingRoleRequest = new SharingRoleRequest();
-    sharingRoleRequest.setRoleId(request.getRoleId());
-    sharingRoleRequest.setRoleName(request.getRoleName());
-    sharingRoleService.syncConfigWithTenants(sharingRoleRequest);
+    var sharingRoleRequest = new SharingRoleRequest()
+      .roleId(request.getRoleId())
+      .roleName(request.getRoleName());
+    sharingRoleService.syncSharingRoleWithTenant(sharingRoleRequest, folioExecutionContext.getTenantId());
 
     log.debug("syncConfigWithTenant:: Trying to syncing sharing role table with role capabilitySets for role '{}' in tenants",
       request.getRoleName());
-
     syncSharingRoleCapabilitySetForTenant(request);
   }
 
@@ -178,10 +177,10 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
                                                                 HttpMethod method) {
     var payload = objectMapper.convertValue(getPayload(request), ObjectNode.class);
     String url = request.getUrl();
+    var tenantRoleId = sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), tenantId);
+    payload.put(ROLE_ID, tenantRoleId.toString());
     if (method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE)) { // roleId will be different for each tenant
-      var tenantRoleId = sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), tenantId);
       url = url.replace("capability-sets", tenantRoleId + "/capability-sets");
-      payload.put(ROLE_ID, tenantRoleId.toString());
       log.info("buildPublicationRequestForTenant:: roleId '{}' was sent to tenant '{}'", tenantRoleId, tenantId);
     }
 
