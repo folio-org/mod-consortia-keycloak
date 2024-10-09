@@ -17,7 +17,7 @@ import org.folio.consortia.domain.dto.UserTenantCollection;
 import org.folio.consortia.domain.entity.TenantEntity;
 import org.folio.consortia.domain.entity.UserTenantEntity;
 import org.folio.consortia.service.ConsortiumService;
-import org.folio.consortia.service.PermissionUserService;
+import org.folio.consortia.service.CapabilitiesUserService;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
 import org.folio.consortia.service.UserTenantService;
@@ -55,7 +55,7 @@ public class UserTenantServiceImpl implements UserTenantService {
   private final ConsortiumService consortiumService;
   private final UserService userService;
   private final FolioModuleMetadata folioModuleMetadata;
-  private final PermissionUserService permissionUserService;
+  private final CapabilitiesUserService capabilitiesUserService;
   private final TenantService tenantService;
   private final SystemUserScopedExecutionService systemUserScopedExecutionService;
 
@@ -293,7 +293,7 @@ public class UserTenantServiceImpl implements UserTenantService {
           TenantContextUtils.prepareContextForTenant(tenantId, folioModuleMetadata, folioExecutionContext))) {
           userService.deleteById(userId.toString());
           log.info("Trying to delete permission user for userId={}", userId.toString());
-          permissionUserService.deletePermissionUser(userId.toString());
+          capabilitiesUserService.deletePermissionUser(userId.toString());
           log.info("Removed shadow user: {} from tenant : {}", userId, tenantId);
         }
       });
