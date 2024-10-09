@@ -100,7 +100,7 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
 
   @Override
   protected void syncConfigWithTenants(SharingRoleRequest request) {
-    checkEqualsOfRoleNameWithPayload(request);
+//  checkEqualsOfRoleNameWithPayload(request);
     String roleName = request.getRoleName();
     String centralTenantId = folioExecutionContext.getTenantId();
     log.debug("syncConfig:: Trying to syncing sharing role table with roles table for role '{}' and tenant '{}'",
@@ -110,7 +110,7 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
       log.info("syncConfig:: Role '{}' with central tenant '{}' already exists, Syncing with other tenants",
         request.getRoleName(), centralTenantId);
 
-      updateRolesIfNeed(request, centralTenantId);
+//      updateRolesIfNeed(request, centralTenantId);
       findTenantsForConfig(request).stream()
         .filter(tenantId -> !tenantId.equals(centralTenantId))
         .forEach(memberTenantId -> syncSharingRoleWithRoleInTenant(roleName, memberTenantId));
