@@ -30,7 +30,6 @@ import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserEvent;
 import org.folio.consortia.domain.dto.UserTenant;
 import org.folio.consortia.domain.dto.UserTenantCollection;
-import org.folio.consortia.domain.entity.ConsortiumEntity;
 import org.folio.consortia.domain.entity.TenantEntity;
 import org.folio.consortia.domain.entity.UserTenantEntity;
 import org.folio.consortia.exception.ConsortiumClientException;
@@ -324,24 +323,7 @@ class UserTenantServiceTest {
   }
 
   @Test
-  void shouldCreateUserWithExistingPermissionSetAndSaveUserTenant() {
-    UserTenant tenant = createUserTenantDtoEntity();
-    UUID associationId = UUID.randomUUID();
-    UUID userId = UUID.randomUUID();
-    String tenantId = String.valueOf(UUID.randomUUID());
-    UserTenantEntity userTenant = createUserTenantEntity(associationId, userId, "testuser", tenantId);
-    userTenant.setIsPrimary(false);
-    when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any())).thenReturn(Optional.of(userTenant));
-    when(userService.getById(any())).thenReturn(createNullUserEntity());
-    when(userService.prepareShadowUser(any(), any())).thenReturn(createNullUserEntity());
-    when(userTenantRepository.save(userTenant)).thenReturn(userTenant);
-    mockOkapiHeaders();
-
-    assertDoesNotThrow(() -> userTenantService.save(UUID.fromString(CONSORTIUM_ID), tenant, false));
-  }
-
-  @Test
-  void shouldCreateUserWithNewPermissionSetAndSaveUserTenant() {
+  void shouldCreateUserWithPermissionSetAndSaveUserTenant() {
     UserTenant tenant = createUserTenantDtoEntity();
     UUID associationId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -568,13 +550,6 @@ class UserTenantServiceTest {
   private UserTenant toDto(UserTenantEntity userTenantEntity) {
     UserTenantConverter tenantConverter = new UserTenantConverter();
     return tenantConverter.convert(userTenantEntity);
-  }
-
-  private ConsortiumEntity createConsortiumEntity() {
-    ConsortiumEntity consortiumEntity = new ConsortiumEntity();
-    consortiumEntity.setId(UUID.fromString(CONSORTIUM_ID));
-    consortiumEntity.setName("TestConsortium");
-    return consortiumEntity;
   }
 
   private UserTenant createUserTenantDtoEntity() {

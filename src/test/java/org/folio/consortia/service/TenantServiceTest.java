@@ -14,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -184,15 +183,13 @@ class TenantServiceTest {
   }
 
   @Test
-  void shouldSaveCentralTenantWithExistingAndPermissions() throws JsonProcessingException {
+  void shouldSaveCentralTenantWithExistingAndPermissions() {
     UUID consortiumId = UUID.fromString(CONSORTIUM_ID);
     TenantDetailsEntity tenantDetailsEntity = createTenantDetailsEntity("ABC1", "TestName1");
     Tenant tenant = createTenant("TestID", "Test", true);
     TenantEntity centralTenant = createTenantEntity(TENANT_ID);
     User user = new User();
     user.setId(UUID.randomUUID().toString());
-    var userCollectionString = getMockDataAsString("mockdata/user_collection.json");
-    UserCollection userCollection = new ObjectMapper().readValue(userCollectionString, UserCollection.class);
 
     when(userService.prepareShadowUser(any(), any())).thenReturn(user);
     when(tenantRepository.existsById(any())).thenReturn(false);
@@ -265,7 +262,6 @@ class TenantServiceTest {
 
   @Test
   void shouldUpdateTenant() {
-    UUID consortiumId = UUID.randomUUID();
     TenantEntity existingTenant = createTenantEntity("TestID", "TestName1");
     Tenant tenant = createTenant("TestID", "TestName2");
 
@@ -389,7 +385,6 @@ class TenantServiceTest {
 
   @Test
   void shouldNotSaveExistingTenant() {
-    UUID consortiumId = UUID.fromString(CONSORTIUM_ID);
     Tenant tenant = createTenant("TestID", "Test");
     TenantEntity existedTenant = createTenantEntity("TestId");
 

@@ -1,7 +1,5 @@
 package org.folio.consortia.controller;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.folio.consortia.support.EntityUtils.createConsortiaConfiguration;
 import static org.folio.consortia.support.EntityUtils.createTenant;
 import static org.folio.consortia.support.EntityUtils.createTenantDetailsEntity;
@@ -26,7 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.util.ArrayList;
@@ -67,7 +64,6 @@ import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.context.ExecutionContextBuilder;
 import org.folio.spring.data.OffsetRequest;
-import org.folio.spring.integration.XOkapiHeaders;
 import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -154,7 +150,6 @@ class TenantControllerTest extends BaseIT {
   @ValueSource(strings = {TENANT_REQUEST_BODY})
   void shouldSaveTenant(String contentString) throws Exception {
     var headers = defaultHeaders();
-    String userId = UUID.randomUUID().toString();
     TenantEntity centralTenant = createTenantEntity(CENTRAL_TENANT_ID, CENTRAL_TENANT_ID, "AAA", true);
     User adminUser = createUser("diku_admin");
     User systemUser = createUser(SYSTEM_USER_NAME);
