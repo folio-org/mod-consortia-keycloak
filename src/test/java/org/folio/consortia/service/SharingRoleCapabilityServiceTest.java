@@ -31,7 +31,6 @@ import static org.folio.consortia.support.EntityUtils.SHARING_ROLE_CAPABILITY_SE
 import static org.folio.consortia.support.EntityUtils.TENANT_ID_1;
 import static org.folio.consortia.support.EntityUtils.TENANT_ID_2;
 import static org.folio.consortia.support.EntityUtils.createPayloadForRoleCapabilities;
-import static org.folio.consortia.support.EntityUtils.createPayloadForRoleCapabilitySets;
 import static org.folio.consortia.support.EntityUtils.createPublicationDetails;
 import static org.folio.consortia.support.EntityUtils.createPublicationRequest;
 import static org.folio.consortia.support.EntityUtils.createPublicationResultCollection;
@@ -68,8 +67,8 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
     var payloadForTenant1 = createPayloadForRoleCapabilities(roleIdForTenant1);
     var payloadForTenant2 = createPayloadForRoleCapabilities(roleIdForTenant2);
 
-    var expectedPayloadTenant1 = createPayloadForRoleCapabilitySets(roleIdForTenant1);
-    var expectedPayloadTenant2 = createPayloadForRoleCapabilitySets(roleIdForTenant2);
+    var expectedPayloadTenant1 = createPayloadForRoleCapabilities(roleIdForTenant1);
+    var expectedPayloadTenant2 = createPayloadForRoleCapabilities(roleIdForTenant2);
 
     // "tenant1" exists in tenant role association so that tenant1 is in PUT request publication,
     // "tenant2" is in POST method publication
