@@ -1,6 +1,5 @@
 package org.folio.consortia.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.folio.consortia.base.BaseIT.asJsonString;
 import static org.mockito.ArgumentMatchers.any;
@@ -21,13 +20,12 @@ import org.folio.common.domain.model.error.ErrorResponse;
 import org.folio.consortia.client.CapabilitySetsClient;
 import org.folio.consortia.client.UserCapabilitiesClient;
 import org.folio.consortia.client.UserCapabilitySetsClient;
-import org.folio.consortia.client.UserPermissionsClient;
+import org.folio.consortia.client.UserRolesClient;
 import org.folio.consortia.domain.dto.CapabilitySet;
 import org.folio.consortia.domain.dto.CapabilitySets;
-import org.folio.consortia.domain.dto.PermissionUser;
 import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserCapabilitySetsRequest;
-import org.folio.consortia.service.impl.CapabilitiesUserService;
+import org.folio.consortia.service.impl.CapabilitiesUserServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -38,11 +36,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
-class CapabilitiesUserServiceTest {
+class CapabilitiesUserServiceImplTest {
   private static final String PERMISSIONS_FILE_PATH = "permissions/test-user-permissions.csv";
   private static final String EMPTY_PERMISSIONS_FILE_PATH = "permissions/test-user--empty-permissions.csv";
   @InjectMocks
-  CapabilitiesUserService capabilitiesUserService;
+  CapabilitiesUserServiceImpl capabilitiesUserService;
   @Mock
   CapabilitySetsClient capabilitySetsClient;
   @Mock
@@ -50,7 +48,7 @@ class CapabilitiesUserServiceTest {
   @Mock
   UserCapabilitySetsClient userCapabilitySetsClient;
   @Mock
-  UserPermissionsClient userPermissionsClient;
+  UserRolesClient userRolesClient;
   @Mock
   ObjectMapper objectMapper;
   @Mock
@@ -64,28 +62,10 @@ class CapabilitiesUserServiceTest {
   }
 
   @Test
-  void createWithEmptyPermissions_notImplemented() {
-    Assertions.assertThrows(java.lang.UnsupportedOperationException.class,
-      () -> capabilitiesUserService.createWithEmptyPermissions(UUID.randomUUID().toString()));
-  }
-
-  @Test
   void shouldDeletePermissionUser() {
     String permissionUserId = UUID.randomUUID().toString();
     capabilitiesUserService.deletePermissionUser(permissionUserId);
     verify(userCapabilitiesClient).deleteUserCapabilities(permissionUserId);
-  }
-
-  @Test
-  void getByUserId_positive() {
-    String userId = UUID.randomUUID().toString();
-    var permissionUser = PermissionUser.of(null, userId, List.of("test.item.get"));
-    when(userPermissionsClient.getPermissionsForUser(userId, false)).thenReturn(permissionUser);
-
-    var actual = capabilitiesUserService.getByUserId(userId);
-
-    assertThat(actual.isPresent()).isTrue();
-    assertThat(actual.get()).isEqualTo(permissionUser);
   }
 
   @Test
