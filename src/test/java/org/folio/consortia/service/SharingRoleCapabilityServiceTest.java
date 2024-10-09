@@ -81,6 +81,7 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
     setupCommonMocksForStart(createPcId, updatePcId, expectedPubRequestPost, expectedPubRequestPut, payloadForTenant1);
     when(objectMapper.convertValue(request.getPayload(), ObjectNode.class))
       .thenReturn(payloadForTenant1)
+      .thenReturn(payloadForTenant1)
       .thenReturn(payloadForTenant2);
     when(objectMapper.convertValue(payloadForTenant1, ObjectNode.class))
       .thenReturn(payloadForTenant1);

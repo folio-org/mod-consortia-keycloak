@@ -80,7 +80,8 @@ class SharingRoleCapabilitySetServiceTest extends BaseSharingConfigServiceTest{
     expectedSharingRoleEntity.setIsCapabilitySetsShared(true);
 
     setupCommonMocksForStart(createPcId, updatePcId, expectedPubRequestPost, expectedPubRequestPut, payloadForTenant1);
-    when(objectMapper.convertValue(any(), eq(ObjectNode.class)))
+    when(objectMapper.convertValue(request.getPayload(), ObjectNode.class))
+      .thenReturn(payloadForTenant1)
       .thenReturn(payloadForTenant1)
       .thenReturn(payloadForTenant2);
     when(sharingRoleRepository.findTenantsByRoleNameAndIsCapabilitySetsSharedTrue(request.getRoleName()))

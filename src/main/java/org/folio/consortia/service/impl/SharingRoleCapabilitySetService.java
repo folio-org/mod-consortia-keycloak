@@ -11,7 +11,6 @@ import com.fasterxml.jackson.databind.node.TextNode;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
-import org.folio.consortia.client.RoleCapabilitySetsClient;
 import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetDeleteResponse;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetRequest;
@@ -38,7 +37,6 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
 
   private static final String ROLE_ID = "roleId";
 
-  private final RoleCapabilitySetsClient roleCapabilitySetsClient;
   private final SharingRoleRepository sharingRoleRepository;
   private final SharingRoleService sharingRoleService;
 
@@ -46,11 +44,10 @@ public class SharingRoleCapabilitySetService extends BaseSharingService<SharingR
                                          SystemUserScopedExecutionService systemUserScopedExecutionService,
                                          PublicationService publicationService,
                                          FolioExecutionContext folioExecutionContext, ObjectMapper parentObjectMapper,
-                                         TaskExecutor asyncTaskExecutor, RoleCapabilitySetsClient roleCapabilitySetsClient,
-                                         SharingRoleRepository sharingRoleRepository, SharingRoleService sharingRoleService) {
+                                         TaskExecutor asyncTaskExecutor, SharingRoleRepository sharingRoleRepository,
+                                         SharingRoleService sharingRoleService) {
     super(tenantService, consortiumService, systemUserScopedExecutionService, publicationService,
       folioExecutionContext, parentObjectMapper, asyncTaskExecutor);
-    this.roleCapabilitySetsClient = roleCapabilitySetsClient;
     this.sharingRoleRepository = sharingRoleRepository;
     this.sharingRoleService = sharingRoleService;
   }
