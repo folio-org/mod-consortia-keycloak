@@ -26,7 +26,7 @@ CREATE TYPE setup_status as ENUM ('IN_PROGRESS', 'COMPLETED', 'COMPLETED_WITH_ER
 CREATE CAST (character varying as setup_status) WITH INOUT AS IMPLICIT;
 
 CREATE TABLE consortium_mod_consortia.tenant (
-  id UUID PRIMARY KEY,
+  id text PRIMARY KEY,
   name text NOT NULL UNIQUE,
   consortium_id UUID NOT NULL,
   code text NOT NULL UNIQUE,

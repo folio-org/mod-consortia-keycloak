@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
+
+  <changeSet id="MODCONSKC-40@@migrate-tenant-data-from-mod_consortia.tenant" author="yaroslavkiriak">
+    <sql>
+      DO
+      '
+      DECLARE
+      BEGIN
+        IF (EXISTS (SELECT 1 FROM information_schema.tables
+          WHERE table_schema = ''${tenantname}_mod_consortia'' AND table_name = ''tenant''))
+        THEN
+          INSERT INTO ${tenantname}_mod_consortia_keycloak.tenant (
+            id, name, consortium_id, code, is_central, created_by, created_date, updated_by, updated_date, setup_status, is_deleted
+          ) SELECT
+            id, name, consortium_id, code, is_central, created_by, created_date, updated_by,
+            COALESCE(updated_date, created_date) as updated_date, setup_status::varchar, is_deleted
+          FROM
+            ${tenantname}_mod_consortia.tenant
+          ON CONFLICT (id) DO NOTHING;
+        END IF;
+      END;
+      '  LANGUAGE plpgsql;
+    </sql>
+  </changeSet>
+
+</databaseChangeLog>
