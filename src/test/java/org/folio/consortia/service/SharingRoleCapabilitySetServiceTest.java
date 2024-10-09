@@ -65,6 +65,7 @@ class SharingRoleCapabilitySetServiceTest extends BaseSharingConfigServiceTest{
     var sharingRoleEntity = createSharingRoleEntity(request.getRoleId(), TENANT_ID_2);
     var payloadForTenant1 = createPayloadForRoleCapabilitySets(roleIdForTenant1);
     var payloadForTenant2 = createPayloadForRoleCapabilitySets(roleIdForTenant2);
+
     var expectedPayloadTenant1 = createPayloadForRoleCapabilitySets(roleIdForTenant1);
     var expectedPayloadTenant2 = createPayloadForRoleCapabilitySets(roleIdForTenant2);
 
@@ -83,6 +84,10 @@ class SharingRoleCapabilitySetServiceTest extends BaseSharingConfigServiceTest{
     when(objectMapper.convertValue(request.getPayload(), ObjectNode.class))
       .thenReturn(payloadForTenant1)
       .thenReturn(payloadForTenant1)
+      .thenReturn(payloadForTenant2);
+    when(objectMapper.convertValue(payloadForTenant1, ObjectNode.class))
+      .thenReturn(payloadForTenant1);
+    when(objectMapper.convertValue(payloadForTenant2, ObjectNode.class))
       .thenReturn(payloadForTenant2);
     when(sharingRoleRepository.findTenantsByRoleNameAndIsCapabilitySetsSharedTrue(request.getRoleName()))
       .thenReturn(tenantSharedRoleAndCapabilitySets);

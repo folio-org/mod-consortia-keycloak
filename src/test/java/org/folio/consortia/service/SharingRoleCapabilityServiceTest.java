@@ -31,6 +31,7 @@ import static org.folio.consortia.support.EntityUtils.SHARING_ROLE_CAPABILITY_SE
 import static org.folio.consortia.support.EntityUtils.TENANT_ID_1;
 import static org.folio.consortia.support.EntityUtils.TENANT_ID_2;
 import static org.folio.consortia.support.EntityUtils.createPayloadForRoleCapabilities;
+import static org.folio.consortia.support.EntityUtils.createPayloadForRoleCapabilitySets;
 import static org.folio.consortia.support.EntityUtils.createPublicationDetails;
 import static org.folio.consortia.support.EntityUtils.createPublicationRequest;
 import static org.folio.consortia.support.EntityUtils.createPublicationResultCollection;
@@ -67,12 +68,15 @@ class SharingRoleCapabilityServiceTest extends BaseSharingConfigServiceTest {
     var payloadForTenant1 = createPayloadForRoleCapabilities(roleIdForTenant1);
     var payloadForTenant2 = createPayloadForRoleCapabilities(roleIdForTenant2);
 
+    var expectedPayloadTenant1 = createPayloadForRoleCapabilitySets(roleIdForTenant1);
+    var expectedPayloadTenant2 = createPayloadForRoleCapabilitySets(roleIdForTenant2);
+
     // "tenant1" exists in tenant role association so that tenant1 is in PUT request publication,
     // "tenant2" is in POST method publication
-    var expectedPubRequestPut = createPublicationRequest(CONSORTIUM.getRoleValue(), payloadForTenant1, HttpMethod.PUT)
+    var expectedPubRequestPut = createPublicationRequest(CONSORTIUM.getRoleValue(), expectedPayloadTenant1, HttpMethod.PUT)
       .tenants(Set.of(TENANT_ID_1))
       .url("/roles/" + roleIdForTenant1 + "/capabilities");
-    var expectedPubRequestPost = createPublicationRequest(CONSORTIUM.getRoleValue(), payloadForTenant2, HttpMethod.POST)
+    var expectedPubRequestPost = createPublicationRequest(CONSORTIUM.getRoleValue(), expectedPayloadTenant2, HttpMethod.POST)
       .tenants(Set.of(TENANT_ID_2))
       .url(request.getUrl());
     var expectedSharingRoleEntity = createSharingRoleEntity(roleIdForTenant2, TENANT_ID_2);

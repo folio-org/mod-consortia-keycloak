@@ -5,7 +5,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.folio.consortia.client.RoleCapabilitiesClient;
 import org.folio.consortia.client.RoleCapabilitySetsClient;
 import org.folio.consortia.client.RolesClient;
+import org.folio.consortia.domain.dto.Capabilities;
+import org.folio.consortia.domain.dto.Capability;
+import org.folio.consortia.domain.dto.CapabilitySet;
+import org.folio.consortia.domain.dto.CapabilitySets;
 import org.folio.consortia.domain.dto.PublicationStatus;
+import org.folio.consortia.domain.dto.Role;
 import org.folio.consortia.domain.dto.Roles;
 import org.folio.consortia.domain.dto.SharingRoleRequest;
 import org.folio.consortia.exception.ResourceNotFoundException;
@@ -20,6 +25,7 @@ import org.springframework.http.HttpMethod;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -97,6 +103,71 @@ class SharingRoleServiceTest extends BaseSharingConfigServiceTest {
 
     verify(publicationService, times(2)).publishRequest(any(), any());
     verify(rolesClient).getRolesByQuery(any());
+  }
+
+  @Test
+  void shouldSyncOnlySharingRole() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    var request = getMockDataObject(SHARING_ROLE_REQUEST_SAMPLE, SharingRoleRequest.class);
+    var roleIdForTenant1 = request.getRoleId();
+    var role = new Role().id(roleIdForTenant1).name(request.getRoleName());
+    var roles = new Roles().roles(List.of(role));
+    var payloadForTenant1 = createPayloadForRole(roleIdForTenant1.toString(), request.getRoleName());
+    var expectedSharingRoleEntity = createSharingRoleEntity(roleIdForTenant1, TENANT_ID_1);
+
+    when(objectMapper.convertValue(any(), eq(ObjectNode.class)))
+      .thenReturn(payloadForTenant1);
+    when(rolesClient.getRolesByQuery(any())).thenReturn(roles);
+    when(roleCapabilitySetsClient.getRoleCapabilitySetsRoleId(any())).thenReturn(new CapabilitySets());
+    when(roleCapabilitiesClient.getRoleCapabilitiesByRoleId(any())).thenReturn(new Capabilities());
+    when(sharingRoleRepository.findByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_1)).thenReturn(Optional.empty());
+    when(sharingRoleRepository.existsByRoleIdAndTenantId(roleIdForTenant1, TENANT_ID_1)).thenReturn(false);
+    // will check that desired sharing role is being saved
+    when(sharingRoleRepository.save(expectedSharingRoleEntity)).thenReturn(expectedSharingRoleEntity);
+
+    // Use reflection to access the protected method in BaseSharingService
+    Method method = SharingRoleService.class.getSuperclass()
+      .getDeclaredMethod("syncConfigWithTenants", Object.class);
+    method.setAccessible(true);
+    method.invoke(sharingRoleService, request);
+
+    verify(rolesClient).getRolesByQuery(any());
+    verify(roleCapabilitiesClient).getRoleCapabilitiesByRoleId(any());
+    verify(roleCapabilitySetsClient).getRoleCapabilitySetsRoleId(any());
+  }
+
+  @Test
+  void shouldSyncSharingRoleCapability() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    var request = getMockDataObject(SHARING_ROLE_REQUEST_SAMPLE, SharingRoleRequest.class);
+    var roleIdForTenant1 = request.getRoleId();
+    var role = new Role().id(roleIdForTenant1).name(request.getRoleName());
+    var roles = new Roles().roles(List.of(role));
+    var capability = new Capability().id(UUID.randomUUID()).name("capability");
+    var capabilities = new Capabilities().capabilities(List.of(capability));
+    var capabilitySet = new CapabilitySet().id(UUID.randomUUID()).name("capabilitySet");
+    var capabilitySets = new CapabilitySets().capabilitySets(List.of(capabilitySet));
+
+    var payloadForTenant1 = createPayloadForRole(roleIdForTenant1.toString(), request.getRoleName());
+    var expectedSharingRoleEntity = createSharingRoleEntity(roleIdForTenant1, TENANT_ID_1);
+
+    when(objectMapper.convertValue(any(), eq(ObjectNode.class)))
+      .thenReturn(payloadForTenant1);
+    when(rolesClient.getRolesByQuery(any())).thenReturn(roles);
+    when(roleCapabilitySetsClient.getRoleCapabilitySetsRoleId(any())).thenReturn(capabilitySets);
+    when(roleCapabilitiesClient.getRoleCapabilitiesByRoleId(any())).thenReturn(capabilities);
+    when(sharingRoleRepository.findByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_1)).thenReturn(Optional.empty());
+    when(sharingRoleRepository.existsByRoleIdAndTenantId(roleIdForTenant1, TENANT_ID_1)).thenReturn(false);
+    // will check that desired sharing role is being saved
+    when(sharingRoleRepository.save(expectedSharingRoleEntity)).thenReturn(expectedSharingRoleEntity);
+
+    // Use reflection to access the protected method in BaseSharingService
+    Method method = SharingRoleService.class.getSuperclass()
+      .getDeclaredMethod("syncConfigWithTenants", Object.class);
+    method.setAccessible(true);
+    method.invoke(sharingRoleService, request);
+
+    verify(rolesClient).getRolesByQuery(any());
+    verify(roleCapabilitiesClient).getRoleCapabilitiesByRoleId(any());
+    verify(roleCapabilitySetsClient).getRoleCapabilitySetsRoleId(any());
   }
 
   @Test
