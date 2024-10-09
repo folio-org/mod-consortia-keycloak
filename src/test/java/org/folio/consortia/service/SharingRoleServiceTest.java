@@ -165,7 +165,7 @@ class SharingRoleServiceTest extends BaseSharingConfigServiceTest {
 
     // Use reflection to access the protected method in BaseSharingService
     Method method = SharingRoleService.class.getSuperclass()
-      .getDeclaredMethod("syncConfigWithTenants", UUID.class, UUID.class, Object.class);
+      .getDeclaredMethod("updateConfigsForFailedTenantsWithRetry", UUID.class, UUID.class, Object.class);
     method.setAccessible(true);
     method.invoke(sharingRoleService, CONSORTIUM_ID, publicationId, request);
 
