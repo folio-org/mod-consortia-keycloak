@@ -218,13 +218,12 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
                                                                 HttpMethod method) {
     var payload = objectMapper.convertValue(getPayload(request), ObjectNode.class);
     String url = request.getUrl();
-    if (method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE)) { // roleId will be different for each tenant
+    if (method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE)) {
       var tenantRoleId = sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), tenantId);
       url += "/" + tenantRoleId;
       payload.put(ID, tenantRoleId.toString());
       log.info("buildPublicationRequestForTenant:: roleId '{}' was set to tenant '{}'", tenantRoleId, tenantId);
     }
-
     return new PublicationRequest()
       .method(method.toString())
       .url(url)

@@ -129,11 +129,10 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
     String url = request.getUrl();
     var tenantRoleId = sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), tenantId);
     payload.put(ROLE_ID, tenantRoleId.toString());
-    if (method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE)) { // roleId will be different for each tenant
+    if (method.equals(HttpMethod.PUT) || method.equals(HttpMethod.DELETE)) {
       url = url.replace("capabilities", tenantRoleId + "/capabilities");
-      log.info("buildPublicationRequestForTenant:: roleId '{}' was sent to tenant '{}'", tenantRoleId, tenantId);
     }
-
+    log.info("buildPublicationRequestForTenant:: roleId '{}' and url '{}' was set to tenant '{}'", tenantRoleId, url, tenantId);
     return new PublicationRequest()
       .method(method.toString())
       .url(url)
