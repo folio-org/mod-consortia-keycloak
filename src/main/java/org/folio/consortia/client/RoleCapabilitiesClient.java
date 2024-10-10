@@ -8,9 +8,9 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "role-capabilities")
+@FeignClient(name = "role-capabilities", url = "roles")
 public interface RoleCapabilitiesClient {
 
-  @GetMapping(value = "/roles/{roleId}/capabilities")
+  @GetMapping(value = "/{roleId}/capabilities")
   Capabilities getRoleCapabilitiesByRoleId(@PathVariable UUID roleId);
 }
