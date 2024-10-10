@@ -1,4 +1,4 @@
-## Version `v1.4.6` (Unreleased)
+## Version `v1.X.X` (Unreleased)
 ### Changes:
 * Rename change-manager permissions (MODCONSKC-37)
 
