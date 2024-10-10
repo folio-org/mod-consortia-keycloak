@@ -24,6 +24,7 @@ public class SharingRoleEntity extends AuditableEntity {
   @Id
   private UUID id;
   private UUID roleId;
+  private String roleName;
   private String tenantId;
   private Boolean isCapabilitySetsShared;
   private Boolean isCapabilitiesShared;

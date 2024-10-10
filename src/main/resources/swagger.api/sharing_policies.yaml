@@ -58,6 +58,8 @@ components:
         application/json:
           schema:
             $ref: "schemas/sharingPolicy.yaml#/SharingPolicyRequest"
+          example:
+            $ref: "examples/requests/sharing_policy_request_for_roles.json"
   responses:
     SharingPolicyResponse:
       description: Returns a sharing policy object response for post operation
@@ -65,12 +67,16 @@ components:
         application/json:
           schema:
             $ref: "schemas/sharingPolicy.yaml#/SharingPolicyResponse"
+          example:
+            $ref: "examples/responses/sharing_policy_response.json"
     SharingPolicyDeleteResponse:
       description: Returns a sharing policy response for delete operation
       content:
         application/json:
           schema:
             $ref: "schemas/sharingPolicy.yaml#/SharingPolicyDeleteResponse"
+          example:
+            $ref: "examples/responses/sharing_policy_delete_response.json"
     NoContent:
       description: No content
     Conflict:

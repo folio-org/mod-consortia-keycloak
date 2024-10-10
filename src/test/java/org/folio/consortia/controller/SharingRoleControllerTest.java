@@ -1,5 +1,9 @@
 package org.folio.consortia.controller;
 
+import static org.folio.consortia.support.EntityUtils.SHARING_ROLE_REQUEST_SAMPLE;
+import static org.folio.consortia.support.EntityUtils.SHARING_ROLE_REQUEST_SAMPLE_WITHOUT_PAYLOAD;
+import static org.folio.consortia.utils.InputOutputTestUtils.getMockDataAsString;
+import static org.hamcrest.Matchers.hasItems;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -7,57 +11,64 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.folio.consortia.base.BaseIT;
 import org.folio.consortia.domain.dto.SharingRoleDeleteResponse;
 import org.folio.consortia.domain.dto.SharingRoleResponse;
 import org.folio.consortia.service.impl.SharingRoleService;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 
 class SharingRoleControllerTest extends BaseIT {
+  private static final String BASE_URL = "/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/sharing/roles";
+
   @MockBean
   SharingRoleService sharingRoleService;
 
-  @ParameterizedTest
-  @ValueSource(strings = {"{\"roleId\":\"2844767a-8367-4926-9999-514c35840399\",\"url\":\"/role\",\"payload\":{\"name\":\"ROLE-NAME\",\"source\":\"local\"}}" })
-  void shouldStartSharingRole(String body) throws Exception {
+  @Test
+  void shouldStartSharingRole() throws Exception {
+    var body = getMockDataAsString(SHARING_ROLE_REQUEST_SAMPLE);
     var headers = defaultHeaders();
-    UUID createRolesPcId = UUID.randomUUID();
-    UUID updateRolesPcId = UUID.randomUUID();
-    SharingRoleResponse sharingRoleResponse = new SharingRoleResponse()
-      .createRolesPCId(createRolesPcId)
-      .updateRolesPCId(updateRolesPcId);
+    var createPcIds = List.of(UUID.randomUUID(), UUID.randomUUID());
+    var updatePcIds = List.of(UUID.randomUUID(), UUID.randomUUID());
+    var sharingRoleResponse = new SharingRoleResponse()
+      .createPCIds(createPcIds)
+      .updatePCIds(updatePcIds);
 
     when(sharingRoleService.start(any(), any())).thenReturn(sharingRoleResponse);
 
     this.mockMvc.perform(
-        post("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/sharing/roles")
+        post(BASE_URL)
           .headers(headers)
           .content(body)
           .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isCreated())
-      .andExpect(jsonPath("$.createRolesPCId").value(String.valueOf(createRolesPcId)))
-      .andExpect(jsonPath("$.updateRolesPCId").value(String.valueOf(updateRolesPcId)));
+      .andExpect(jsonPath("$.createPCIds").isArray())
+      .andExpect(jsonPath("$.createPCIds", hasItems(createPcIds.get(0).toString(), createPcIds.get(1).toString())))
+      .andExpect(jsonPath("$.updatePCIds").isArray())
+      .andExpect(jsonPath("$.updatePCIds", hasItems(updatePcIds.get(0).toString(), updatePcIds.get(1).toString())));
+
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = {"{\"roleId\":\"2844767a-8367-4926-9999-514c35840399\",\"url\":\"/role\"}" })
-  void shouldDeleteSharingRole(String body) throws Exception {
+  @Test
+  void shouldDeleteSharingRole() throws Exception {
+    var body = getMockDataAsString(SHARING_ROLE_REQUEST_SAMPLE_WITHOUT_PAYLOAD);
     var headers = defaultHeaders();
-    UUID pcId = UUID.randomUUID();
-    SharingRoleDeleteResponse sharingRoleDeleteResponse = new SharingRoleDeleteResponse().pcId(pcId);
+    var pcIds = List.of(UUID.randomUUID(), UUID.randomUUID());
+    var sharingRoleDeleteResponse = new SharingRoleDeleteResponse().pcIds(pcIds);
 
     when(sharingRoleService.delete(any(), any(), any())).thenReturn(sharingRoleDeleteResponse);
 
     this.mockMvc.perform(
-        delete("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/sharing/roles/2844767a-8367-4926-9999-514c35840399")
+        delete(BASE_URL + "/3844767a-8367-4926-9999-514c35840399")
           .headers(headers)
           .content(body)
           .contentType(MediaType.APPLICATION_JSON))
-      .andExpect(status().is2xxSuccessful());
+      .andExpect(status().is2xxSuccessful())
+      .andExpect(jsonPath("$.pcIds").isArray())
+      .andExpect(jsonPath("$.pcIds", hasItems(pcIds.get(0).toString(), pcIds.get(1).toString())));
   }
 }
