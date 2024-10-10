@@ -1,7 +1,5 @@
 package org.folio.consortia.controller;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.folio.consortia.support.EntityUtils.createConsortiaConfiguration;
 import static org.folio.consortia.support.EntityUtils.createTenant;
 import static org.folio.consortia.support.EntityUtils.createTenantDetailsEntity;
@@ -26,7 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.util.ArrayList;
@@ -41,15 +38,12 @@ import org.folio.consortia.client.CapabilitySetsClient;
 import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.SyncPrimaryAffiliationClient;
 import org.folio.consortia.client.UserCapabilitySetsClient;
-import org.folio.consortia.client.UserPermissionsClient;
 import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.client.UsersClient;
 import org.folio.consortia.client.UsersKeycloakClient;
 import org.folio.consortia.config.kafka.KafkaService;
 import org.folio.consortia.domain.dto.CapabilitySet;
 import org.folio.consortia.domain.dto.CapabilitySets;
-import org.folio.consortia.domain.dto.PermissionUser;
-import org.folio.consortia.domain.dto.PermissionUserCollection;
 import org.folio.consortia.domain.dto.SyncPrimaryAffiliationBody;
 import org.folio.consortia.domain.dto.SyncUser;
 import org.folio.consortia.domain.dto.Tenant;
@@ -70,7 +64,6 @@ import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.context.ExecutionContextBuilder;
 import org.folio.spring.data.OffsetRequest;
-import org.folio.spring.integration.XOkapiHeaders;
 import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -124,8 +117,6 @@ class TenantControllerTest extends BaseIT {
   @MockBean
   UserCapabilitySetsClient userCapabilitySetsClient;
   @MockBean
-  UserPermissionsClient userPermissionsClient;
-  @MockBean
   UserTenantsClient userTenantsClient;
   @MockBean
   SyncPrimaryAffiliationClient syncPrimaryAffiliationClient;
@@ -159,25 +150,13 @@ class TenantControllerTest extends BaseIT {
   @ValueSource(strings = {TENANT_REQUEST_BODY})
   void shouldSaveTenant(String contentString) throws Exception {
     var headers = defaultHeaders();
-    String userId = UUID.randomUUID().toString();
     TenantEntity centralTenant = createTenantEntity(CENTRAL_TENANT_ID, CENTRAL_TENANT_ID, "AAA", true);
-    PermissionUser permissionUser = new PermissionUser();
-    permissionUser.setUserId(userId);
-    permissionUser.setPermissions(List.of("test.permission"));
-    PermissionUserCollection permissionUserCollection = new PermissionUserCollection();
-    permissionUserCollection.setPermissionUsers(List.of(permissionUser));
     User adminUser = createUser("diku_admin");
     User systemUser = createUser(SYSTEM_USER_NAME);
 
     var tenantDetailsEntity = new TenantDetailsEntity();
     tenantDetailsEntity.setConsortiumId(centralTenant.getConsortiumId());
     tenantDetailsEntity.setId("diku1234");
-
-    wireMockServer.stubFor(
-      WireMock.get(urlPathMatching("https://permissions/users/.*"))
-        .willReturn(aResponse()
-          .withBody(asJsonString(new PermissionUser()))
-          .withHeader(XOkapiHeaders.TOKEN, TOKEN)));
 
     doNothing().when(userTenantsClient).postUserTenant(any());
     when(userService.getByUsername(SYSTEM_USER_NAME)).thenReturn(Optional.of(systemUser));
@@ -329,9 +308,6 @@ class TenantControllerTest extends BaseIT {
 
     // Given a request with invalid input
     UUID consortiumId = UUID.fromString(CONSORTIUM_ID);
-    PermissionUser permissionUser = new PermissionUser();
-    PermissionUserCollection permissionUserCollection = new PermissionUserCollection();
-    permissionUserCollection.setPermissionUsers(List.of(permissionUser));
 
     doReturn(new User()).when(usersKeycloakClient).getUsersByUserId(any());
     when(consortiumRepository.existsById(consortiumId)).thenReturn(true);
