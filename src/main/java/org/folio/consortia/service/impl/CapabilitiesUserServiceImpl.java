@@ -10,10 +10,16 @@ import com.google.common.io.Resources;
 import feign.FeignException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Consumer;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.consortia.client.CapabilitySetsClient;
 import org.folio.consortia.client.UserCapabilitiesClient;
@@ -50,10 +56,27 @@ public class CapabilitiesUserServiceImpl implements CapabilitiesUserService {
 
   @Override
   public void deleteUserCapabilitiesAndRoles(String userId) {
-    userCapabilitiesClient.deleteUserCapabilities(userId);
-    userCapabilitySetsClient.deleteUserCapabilitySets(userId);
-    userRolesClient.deleteUserRoles(userId);
-    log.info("deleteUserCapabilitiesAndRoles:: Deleted user capabilities, capability sets and roles with userId: '{}'", userId);
+    List<String> deletedEntities = new ArrayList<>();
+    deletedEntities.add(deleteUserRelatedEntities(userId, "capabilities", userCapabilitiesClient::deleteUserCapabilities));
+    deletedEntities.add(deleteUserRelatedEntities(userId, "capability sets", userCapabilitySetsClient::deleteUserCapabilitySets));
+    deletedEntities.add(deleteUserRelatedEntities(userId, "roles", userRolesClient::deleteUserRoles));
+    deletedEntities.removeIf(Objects::isNull);
+    if (deletedEntities.isEmpty()) {
+      log.info("deleteUserCapabilitiesAndRoles:: No entities to delete for user '{}'", userId);
+      return;
+    }
+    val entities = String.join(", ", deletedEntities);
+    log.info("deleteUserCapabilitiesAndRoles:: Deleted User {} with userId: '{}'", entities, userId);
+  }
+
+  private String deleteUserRelatedEntities(String userId, String entityName, Consumer<String> deleteEntitiesAction) {
+    try {
+      deleteEntitiesAction.accept(userId);
+      return entityName;
+    } catch (FeignException.NotFound e) {
+      log.info("deleteUserRelatedEntities:: User {} for user '{}' do not exist", entityName, userId);
+      return null;
+    }
   }
 
   private List<String> readAndValidatePermissionSets(String permissionsFilePath) {

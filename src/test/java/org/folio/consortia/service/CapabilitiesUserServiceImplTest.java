@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,7 +39,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 class CapabilitiesUserServiceImplTest {
   private static final String PERMISSIONS_FILE_PATH = "permissions/test-user-permissions.csv";
-  private static final String EMPTY_PERMISSIONS_FILE_PATH = "permissions/test-user--empty-permissions.csv";
+  private static final String EMPTY_PERMISSIONS_FILE_PATH = "permissions/test-user-empty-permissions.csv";
+
   @InjectMocks
   CapabilitiesUserServiceImpl capabilitiesUserService;
   @Mock
@@ -64,6 +66,18 @@ class CapabilitiesUserServiceImplTest {
   @Test
   void shouldDeleteUserCapabilitiesAndRoles() {
     String userId = UUID.randomUUID().toString();
+    capabilitiesUserService.deleteUserCapabilitiesAndRoles(userId);
+    verify(userCapabilitiesClient).deleteUserCapabilities(userId);
+    verify(userCapabilitySetsClient).deleteUserCapabilitySets(userId);
+    verify(userRolesClient).deleteUserRoles(userId);
+  }
+
+  @Test
+  void shouldNotDeleteUserCapabilitiesAndRolesWhenNotFound() {
+    String userId = UUID.randomUUID().toString();
+    doThrow(mock(FeignException.NotFound.class)).when(userCapabilitiesClient).deleteUserCapabilities(userId);
+    doThrow(mock(FeignException.NotFound.class)).when(userCapabilitySetsClient).deleteUserCapabilitySets(userId);
+    doThrow(mock(FeignException.NotFound.class)).when(userRolesClient).deleteUserRoles(userId);
     capabilitiesUserService.deleteUserCapabilitiesAndRoles(userId);
     verify(userCapabilitiesClient).deleteUserCapabilities(userId);
     verify(userCapabilitySetsClient).deleteUserCapabilitySets(userId);
