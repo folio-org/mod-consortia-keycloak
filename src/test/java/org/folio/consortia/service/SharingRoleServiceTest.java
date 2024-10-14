@@ -1,7 +1,17 @@
 package org.folio.consortia.service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import org.folio.consortia.client.RoleCapabilitiesClient;
+import org.folio.consortia.client.RoleCapabilitySetsClient;
+import org.folio.consortia.client.RolesClient;
+import org.folio.consortia.domain.dto.Capabilities;
+import org.folio.consortia.domain.dto.Capability;
+import org.folio.consortia.domain.dto.CapabilitySet;
+import org.folio.consortia.domain.dto.CapabilitySets;
 import org.folio.consortia.domain.dto.PublicationStatus;
+import org.folio.consortia.domain.dto.Role;
+import org.folio.consortia.domain.dto.Roles;
 import org.folio.consortia.domain.dto.SharingRoleRequest;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.SharingRoleRepository;
@@ -14,11 +24,14 @@ import org.springframework.http.HttpMethod;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.folio.consortia.domain.dto.SourceValues.CONSORTIUM;
+import static org.folio.consortia.domain.dto.SourceValues.USER;
 import static org.folio.consortia.support.EntityUtils.CENTRAL_TENANT_ID;
 import static org.folio.consortia.support.EntityUtils.SHARING_ROLE_REQUEST_SAMPLE;
 import static org.folio.consortia.support.EntityUtils.SHARING_ROLE_REQUEST_SAMPLE_WITHOUT_PAYLOAD;
@@ -45,35 +58,116 @@ class SharingRoleServiceTest extends BaseSharingConfigServiceTest {
   SharingRoleService sharingRoleService;
   @Mock
   SharingRoleRepository sharingRoleRepository;
+  @Mock
+  RolesClient rolesClient;
+  @Mock
+  RoleCapabilitiesClient roleCapabilitiesClient;
+  @Mock
+  RoleCapabilitySetsClient roleCapabilitySetsClient;
 
   @Test
   void shouldStartSharingRole() {
+    var request = getMockDataObject(SHARING_ROLE_REQUEST_SAMPLE, SharingRoleRequest.class);
+    var roleIdForTenant1 = request.getRoleId();
+    var roleIdForTenant2 = UUID.randomUUID();
     var createPcId = UUID.randomUUID();
     var updatePcId = UUID.randomUUID();
     var tenantsSharedRole = Set.of(TENANT_ID_1);
-    var request = getMockDataObject(SHARING_ROLE_REQUEST_SAMPLE, SharingRoleRequest.class);
-    var payload = createPayloadForRole();
+
+    var payloadForTenant1 = createPayloadForRole(roleIdForTenant1.toString(), request.getRoleName());
+    var payloadForTenant2 = createPayloadForRole(roleIdForTenant2.toString(), request.getRoleName());
 
     // "tenant1" exists in tenant role association so that tenant1 is in PUT request publication,
     // "tenant2" is in POST method publication
-    var expectedPubRequestPOST = createPublicationRequest(CONSORTIUM.getRoleValue(), payload, HttpMethod.POST)
+    var expectedPuRequestPUT = createPublicationRequest(CONSORTIUM.getRoleValue(), payloadForTenant1, HttpMethod.PUT)
+      .tenants(Set.of(TENANT_ID_1))
+      .url(request.getUrl() + "/" + roleIdForTenant1);
+    var expectedPubRequestPOST = createPublicationRequest(CONSORTIUM.getRoleValue(), payloadForTenant2, HttpMethod.POST)
       .tenants(Set.of(TENANT_ID_2))
       .url(request.getUrl());
-    var expectedPuRequestPUT = createPublicationRequest(CONSORTIUM.getRoleValue(), payload, HttpMethod.PUT)
-      .tenants(Set.of(TENANT_ID_1))
-      .url(request.getUrl() + "/" + request.getRoleId());
-    var expectedSharingRoleEntity = createSharingRoleEntity(request.getRoleId(), TENANT_ID_2);
+    var expectedSharingRoleEntity = createSharingRoleEntity(roleIdForTenant2, TENANT_ID_2);
 
-    setupCommonMocksForStart(createPcId, updatePcId, expectedPubRequestPOST, expectedPuRequestPUT, payload);
-    when(sharingRoleRepository.findTenantsByRoleId(request.getRoleId())).thenReturn(tenantsSharedRole);
+    setupCommonMocksForStart(createPcId, updatePcId, expectedPubRequestPOST, expectedPuRequestPUT, payloadForTenant1);
+    when(objectMapper.convertValue(any(), eq(ObjectNode.class)))
+      .thenReturn(payloadForTenant1)
+      .thenReturn(payloadForTenant2);
+    when(rolesClient.getRolesByQuery(any())).thenReturn(new Roles());
+    when(sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_1)).thenReturn(roleIdForTenant1);
+    when(sharingRoleRepository.findTenantsByRoleName(request.getRoleName())).thenReturn(tenantsSharedRole);
     when(sharingRoleRepository.save(expectedSharingRoleEntity)).thenReturn(expectedSharingRoleEntity);
 
     var actualResponse = sharingRoleService.start(CONSORTIUM_ID, request);
 
-    assertThat(actualResponse.getCreateRolesPCId()).isEqualTo(createPcId);
-    assertThat(actualResponse.getUpdateRolesPCId()).isEqualTo(updatePcId);
+    assertThat(actualResponse.getCreatePCIds()).isEqualTo(List.of(createPcId));
+    assertThat(actualResponse.getUpdatePCIds()).isEqualTo(List.of(updatePcId));
 
     verify(publicationService, times(2)).publishRequest(any(), any());
+    verify(rolesClient).getRolesByQuery(any());
+  }
+
+  @Test
+  void shouldSyncOnlySharingRole() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    var request = getMockDataObject(SHARING_ROLE_REQUEST_SAMPLE, SharingRoleRequest.class);
+    var roleIdForTenant1 = request.getRoleId();
+    var role = new Role().id(roleIdForTenant1).name(request.getRoleName());
+    var roles = new Roles().roles(List.of(role));
+    var payloadForTenant1 = createPayloadForRole(roleIdForTenant1.toString(), request.getRoleName());
+    var expectedSharingRoleEntity = createSharingRoleEntity(roleIdForTenant1, TENANT_ID_1);
+
+    when(objectMapper.convertValue(any(), eq(ObjectNode.class)))
+      .thenReturn(payloadForTenant1);
+    when(rolesClient.getRolesByQuery(any())).thenReturn(roles);
+    when(roleCapabilitySetsClient.getRoleCapabilitySetsRoleId(any())).thenReturn(new CapabilitySets());
+    when(roleCapabilitiesClient.getRoleCapabilitiesByRoleId(any())).thenReturn(new Capabilities());
+    when(sharingRoleRepository.findByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_1)).thenReturn(Optional.empty());
+    when(sharingRoleRepository.existsByRoleIdAndTenantId(roleIdForTenant1, TENANT_ID_1)).thenReturn(false);
+    // will check that desired sharing role is being saved
+    when(sharingRoleRepository.save(expectedSharingRoleEntity)).thenReturn(expectedSharingRoleEntity);
+
+    // Use reflection to access the protected method in BaseSharingService
+    Method method = SharingRoleService.class.getSuperclass()
+      .getDeclaredMethod("syncConfigWithTenants", Object.class);
+    method.setAccessible(true);
+    method.invoke(sharingRoleService, request);
+
+    verify(rolesClient).getRolesByQuery(any());
+    verify(roleCapabilitiesClient).getRoleCapabilitiesByRoleId(any());
+    verify(roleCapabilitySetsClient).getRoleCapabilitySetsRoleId(any());
+  }
+
+  @Test
+  void shouldSyncSharingRoleCapability() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    var request = getMockDataObject(SHARING_ROLE_REQUEST_SAMPLE, SharingRoleRequest.class);
+    var roleIdForTenant1 = request.getRoleId();
+    var role = new Role().id(roleIdForTenant1).name(request.getRoleName());
+    var roles = new Roles().roles(List.of(role));
+    var capability = new Capability().id(UUID.randomUUID()).name("capability");
+    var capabilities = new Capabilities().capabilities(List.of(capability));
+    var capabilitySet = new CapabilitySet().id(UUID.randomUUID()).name("capabilitySet");
+    var capabilitySets = new CapabilitySets().capabilitySets(List.of(capabilitySet));
+
+    var payloadForTenant1 = createPayloadForRole(roleIdForTenant1.toString(), request.getRoleName());
+    var expectedSharingRoleEntity = createSharingRoleEntity(roleIdForTenant1, TENANT_ID_1);
+
+    when(objectMapper.convertValue(any(), eq(ObjectNode.class)))
+      .thenReturn(payloadForTenant1);
+    when(rolesClient.getRolesByQuery(any())).thenReturn(roles);
+    when(roleCapabilitySetsClient.getRoleCapabilitySetsRoleId(any())).thenReturn(capabilitySets);
+    when(roleCapabilitiesClient.getRoleCapabilitiesByRoleId(any())).thenReturn(capabilities);
+    when(sharingRoleRepository.findByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_1)).thenReturn(Optional.empty());
+    when(sharingRoleRepository.existsByRoleIdAndTenantId(roleIdForTenant1, TENANT_ID_1)).thenReturn(false);
+    // will check that desired sharing role is being saved
+    when(sharingRoleRepository.save(expectedSharingRoleEntity)).thenReturn(expectedSharingRoleEntity);
+
+    // Use reflection to access the protected method in BaseSharingService
+    Method method = SharingRoleService.class.getSuperclass()
+      .getDeclaredMethod("syncConfigWithTenants", Object.class);
+    method.setAccessible(true);
+    method.invoke(sharingRoleService, request);
+
+    verify(rolesClient).getRolesByQuery(any());
+    verify(roleCapabilitiesClient).getRoleCapabilitiesByRoleId(any());
+    verify(roleCapabilitySetsClient).getRoleCapabilitySetsRoleId(any());
   }
 
   @Test
@@ -82,46 +176,68 @@ class SharingRoleServiceTest extends BaseSharingConfigServiceTest {
     var roleId = UUID.fromString("3844767a-8367-4926-9999-514c35840399");
     var tenantsSharedRole = Set.of(TENANT_ID_1);
     var request = getMockDataObject(SHARING_ROLE_REQUEST_SAMPLE, SharingRoleRequest.class);
+    var payload = createPayloadForRole(roleId.toString(), request.getRoleName());
 
     // "tenant1" exists in the tenant role association so that tenant1 is in DELETE request publication,
     var expectedPubRequestDELETE = createPublicationRequest(HttpMethod.DELETE)
       .tenants(Set.of(TENANT_ID_1))
       .url(request.getUrl() + "/" + roleId)
-      .payload(request.getPayload());
+      .payload(payload);
 
     setupCommonMocksForDelete(pcId, expectedPubRequestDELETE);
+    when(objectMapper.convertValue(any(), eq(ObjectNode.class))).thenReturn(payload);
+    when(rolesClient.getRolesByQuery(any())).thenReturn(new Roles());
+    when(sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_1)).thenReturn(request.getRoleId());
     when(sharingRoleRepository.existsByRoleId(roleId)).thenReturn(true);
-    when(sharingRoleRepository.findTenantsByRoleId(request.getRoleId())).thenReturn(tenantsSharedRole);
+    when(sharingRoleRepository.findTenantsByRoleName(request.getRoleName())).thenReturn(tenantsSharedRole);
 
     var actualResponse = sharingRoleService.delete(CONSORTIUM_ID, roleId, request);
 
-    assertThat(actualResponse.getPcId()).isEqualTo(pcId);
+    assertThat(actualResponse.getPcIds()).isEqualTo(List.of(pcId));
 
     verify(publicationService, times(1)).publishRequest(any(), any());
+    verify(rolesClient).getRolesByQuery(any());
   }
 
   @Test
   void shouldUpdateFailedTenantRole() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    var publicationId = UUID.randomUUID();
-    var pcId = UUID.randomUUID();
     var request = getMockDataObject(SHARING_ROLE_REQUEST_SAMPLE, SharingRoleRequest.class);
+    var publicationId = UUID.randomUUID();
+    var pcId1 = UUID.randomUUID();
+    var pcId2 = UUID.randomUUID();
     var pubResultCollection = createPublicationResultCollection(CENTRAL_TENANT_ID, TENANT_ID_2);
     var pubDetails = createPublicationDetails(PublicationStatus.ERROR);
-    var payload = createPayloadForRole();
+    var roleIdForTenant1 = request.getRoleId();
+    var roleIdForTenant2 = UUID.randomUUID();
+    var payloadForTenant1 = createPayloadForRole(roleIdForTenant1.toString(), request.getRoleName());
+    var payloadForTenant2 = createPayloadForRole(roleIdForTenant2.toString(), request.getRoleName());
+    var expectedPayloadTenant1 = createPayloadForRole(roleIdForTenant1.toString(), request.getRoleName());
+    var expectedPayloadTenant2 = createPayloadForRole(roleIdForTenant2.toString(), request.getRoleName());
 
     // expected data for publish request
-    var expectedPubRequest = createPublicationRequest(CONSORTIUM.getRoleValue(), payload, HttpMethod.PUT)
-      .tenants(Set.of(CENTRAL_TENANT_ID, TENANT_ID_2))
-      .url(request.getUrl() + "/" + request.getRoleId());
+    var expectedPubRequest1 = createPublicationRequest(USER.getRoleValue(), expectedPayloadTenant1, HttpMethod.PUT)
+      .tenants(Set.of(CENTRAL_TENANT_ID))
+      .url(request.getUrl() + "/" + roleIdForTenant1);
+    var expectedPubRequest2 = createPublicationRequest(USER.getRoleValue(), expectedPayloadTenant2, HttpMethod.PUT)
+      .url(request.getUrl() + "/" + roleIdForTenant2)
+      .tenants(Set.of(TENANT_ID_2));
 
-    setupCommonMocksForDelete(pcId, expectedPubRequest);
+    setupCommonMocksForDelete(pcId1, expectedPubRequest1);
+    setupCommonMocksForDelete(pcId2, expectedPubRequest2);
     when(publicationService.checkPublicationDetailsExists(CONSORTIUM_ID, publicationId))
       .thenReturn(false)
       .thenReturn(false)
       .thenReturn(true);
+    when(objectMapper.convertValue(request.getPayload(), ObjectNode.class))
+      .thenReturn(payloadForTenant1)
+      .thenReturn(payloadForTenant2);
+    when(objectMapper.convertValue(payloadForTenant1, ObjectNode.class)).thenReturn(payloadForTenant1);
+    when(objectMapper.convertValue(payloadForTenant2, ObjectNode.class)).thenReturn(payloadForTenant2);
+
+    when(sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), CENTRAL_TENANT_ID)).thenReturn(roleIdForTenant1);
+    when(sharingRoleRepository.findRoleIdByRoleNameAndTenantId(request.getRoleName(), TENANT_ID_2)).thenReturn(roleIdForTenant2);
     when(publicationService.getPublicationDetails(CONSORTIUM_ID, publicationId)).thenReturn(pubDetails);
     when(publicationService.getPublicationResults(CONSORTIUM_ID, publicationId)).thenReturn(pubResultCollection);
-    when(objectMapper.convertValue(any(), eq(ObjectNode.class))).thenReturn(payload);
 
     // Use reflection to access the protected method in BaseSharingService
     Method method = SharingRoleService.class.getSuperclass()
@@ -132,7 +248,8 @@ class SharingRoleServiceTest extends BaseSharingConfigServiceTest {
     verify(publicationService).getPublicationDetails(CONSORTIUM_ID, publicationId);
     verify(publicationService, times(3))
       .checkPublicationDetailsExists(CONSORTIUM_ID, publicationId);
-    verify(publicationService).publishRequest(CONSORTIUM_ID, expectedPubRequest);
+    verify(publicationService).publishRequest(CONSORTIUM_ID, expectedPubRequest1);
+    verify(publicationService).publishRequest(CONSORTIUM_ID, expectedPubRequest2);
   }
 
   // Negative cases
@@ -140,7 +257,7 @@ class SharingRoleServiceTest extends BaseSharingConfigServiceTest {
   void shouldThrowErrorForNotEqualRoleIdWithPayloadId() {
     var request = getMockDataObject(SHARING_ROLE_REQUEST_SAMPLE, SharingRoleRequest.class);
     request.setRoleId(UUID.randomUUID());
-    var payload = createPayloadForRole();
+    var payload = createPayloadForRole(UUID.randomUUID().toString(), request.getRoleName());
 
     when(objectMapper.convertValue(any(), eq(ObjectNode.class))).thenReturn(payload);
 

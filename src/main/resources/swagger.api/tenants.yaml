@@ -251,7 +251,7 @@ components:
       in: query
       description: Limit the number of elements returned in the response
       schema:
-        default: 10
+        default: 100
         minimum: 0
         maximum: 2147483647
         type: integer

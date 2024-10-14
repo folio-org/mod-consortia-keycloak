@@ -2,6 +2,8 @@ package org.folio.consortia.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import feign.Request;
 import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.PublicationResponse;
 import org.folio.consortia.repository.ConsortiumRepository;
@@ -19,7 +21,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -28,6 +32,7 @@ import java.util.concurrent.Callable;
 import static org.folio.consortia.support.EntityUtils.CENTRAL_TENANT_ID;
 import static org.folio.consortia.support.EntityUtils.TENANT_ID_1;
 import static org.folio.consortia.support.EntityUtils.TENANT_ID_2;
+import static org.folio.consortia.support.EntityUtils.createOkapiHeaders;
 import static org.folio.consortia.support.EntityUtils.createTenant;
 import static org.folio.consortia.support.EntityUtils.createTenantCollection;
 import static org.folio.consortia.support.TestConstants.CONSORTIUM_ID;
@@ -69,6 +74,8 @@ public abstract class BaseSharingConfigServiceTest {
     when(systemUserScopedExecutionService.executeSystemUserScoped(eq(CENTRAL_TENANT_ID), any()))
       .then(this::callSecondArgument);
     when(tenantService.getAll(CONSORTIUM_ID)).thenReturn(tenantCollection);
+    Map<String, Collection<String>> okapiHeaders = createOkapiHeaders();
+    when(folioExecutionContext.getOkapiHeaders()).thenReturn(okapiHeaders);
 
     ReflectionTestUtils.setField(getServiceUnderTest(), "maxTries", 60);
     ReflectionTestUtils.setField(getServiceUnderTest(), "interval", 200);
@@ -89,11 +96,21 @@ public abstract class BaseSharingConfigServiceTest {
   }
 
   protected <T> T callSecondArgument(InvocationOnMock invocation) throws Exception {
-    var headers = Map.<String, Collection<String>>of(XOkapiHeaders.TENANT, List.of("mobius"));
+    var headers = Map.<String, Collection<String>>of(XOkapiHeaders.TENANT, List.of(CENTRAL_TENANT_ID));
     var context = new DefaultFolioExecutionContext(mock(FolioModuleMetadata.class), headers);
     try (var ignored = new FolioExecutionContextSetter(context)) {
       return invocation.<Callable<T>>getArgument(1).call();
     }
+  }
+
+  protected Request buildFeignRequest() {
+    return Request
+      .create(Request.HttpMethod.GET,
+        "/roles",
+        Collections.emptyMap(),
+        null,
+        StandardCharsets.UTF_8,
+        null);
   }
 
   protected abstract Object getServiceUnderTest();
