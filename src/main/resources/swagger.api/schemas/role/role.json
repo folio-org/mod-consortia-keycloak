@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Role schema",
+  "description": "Role",
+  "type": "object",
+  "properties": {
+    "id": {
+      "description": "Role identifier",
+      "type": "string",
+      "format": "uuid"
+    },
+    "name": {
+      "description": "A human-readable name/label for this role",
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

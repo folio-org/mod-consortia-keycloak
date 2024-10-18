@@ -12,7 +12,6 @@ import org.folio.consortia.domain.dto.PublicationResult;
 import org.folio.consortia.domain.dto.PublicationResultCollection;
 import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.dto.SharingInstance;
-import org.folio.consortia.domain.dto.SharingRoleDeleteResponse;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantCollection;
 import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
@@ -308,11 +307,6 @@ public class EntityUtils {
     return entity;
   }
 
-  public static SharingRoleDeleteResponse createSharingRoleResponseForDelete(UUID pcId) {
-    return new SharingRoleDeleteResponse().pcId(pcId);
-  }
-
-
   public static TenantCollection createTenantCollection(List<Tenant> tenants) {
     TenantCollection tenantCollection = new TenantCollection();
     tenantCollection.setTenants(tenants);
@@ -379,27 +373,27 @@ public class EntityUtils {
     return mapper.convertValue(payload, ObjectNode.class);
   }
 
-  public static ObjectNode createPayloadForRole() {
+  public static ObjectNode createPayloadForRole(String roleId, String roleName) {
     Map<String, String> payload = new HashMap<>();
-    payload.put("id", "3844767a-8367-4926-9999-514c35840399");
-    payload.put("name", "role names");
+    payload.put("id", roleId);
+    payload.put("name", roleName);
     payload.put("type", "local");
     ObjectMapper mapper = new ObjectMapper();
     return mapper.convertValue(payload, ObjectNode.class);
   }
 
-  public static ObjectNode createPayloadForRoleCapabilitySets() {
+  public static ObjectNode createPayloadForRoleCapabilitySets(UUID roleId) {
     Map<String, Object> payload = new HashMap<>();
-    payload.put("roleId", "4844767a-8367-4926-9999-514c35840399");
+    payload.put("roleId", roleId);
     payload.put("capabilitySetNames", List.of("account_item.view", "account_item.create"));
     payload.put("type", "local");
     ObjectMapper mapper = new ObjectMapper();
     return mapper.convertValue(payload, ObjectNode.class);
   }
 
-  public static ObjectNode createPayloadForRoleCapabilities() {
+  public static ObjectNode createPayloadForRoleCapabilities(UUID roleId) {
     Map<String, Object> payload = new HashMap<>();
-    payload.put("roleId", "5844767a-8367-4926-9999-514c35840399");
+    payload.put("roleId", roleId);
     payload.put("capabilityNames", List.of("account_item.view", "account_item.create"));
     payload.put("type", "local");
     ObjectMapper mapper = new ObjectMapper();
