@@ -10,27 +10,31 @@ import com.google.common.io.Resources;
 import feign.FeignException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Consumer;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.consortia.client.CapabilitySetsClient;
 import org.folio.consortia.client.UserCapabilitiesClient;
 import org.folio.consortia.client.UserCapabilitySetsClient;
-import org.folio.consortia.client.UserPermissionsClient;
+import org.folio.consortia.client.UserRolesClient;
 import org.folio.consortia.domain.dto.CapabilitySet;
 import org.folio.consortia.domain.dto.CapabilitySets;
-import org.folio.consortia.domain.dto.PermissionUser;
 import org.folio.consortia.domain.dto.UserCapabilitySetsRequest;
-import org.folio.consortia.service.PermissionUserService;
+import org.folio.consortia.service.CapabilitiesUserService;
 import org.springframework.stereotype.Service;
 
 @Service
 @Log4j2
 @RequiredArgsConstructor
-public class CapabilitiesUserService implements PermissionUserService {
+public class CapabilitiesUserServiceImpl implements CapabilitiesUserService {
 
   private static final String CAPABILITIES_UP_TO_DATE_ERROR_MSG =
     "Nothing to update, user-capability relations are not changed";
@@ -40,35 +44,42 @@ public class CapabilitiesUserService implements PermissionUserService {
   private final CapabilitySetsClient capabilitySetsClient;
   private final UserCapabilitiesClient userCapabilitiesClient;
   private final UserCapabilitySetsClient userCapabilitySetsClient;
-  private final UserPermissionsClient userPermissionsClient;
+  private final UserRolesClient userRolesClient;
   private final ObjectMapper objectMapper;
 
   @Override
-  public Optional<PermissionUser> getByUserId(String userId) {
-    return Optional.of(userPermissionsClient.getPermissionsForUser(userId, false));
+  public void createWithPermissionSetsFromFile(String userId, String permissionSetsFilePath) {
+    var perms = readAndValidatePermissionSets(permissionSetsFilePath);
+    log.info("createWithPermissionSetsFromFile:: Assigning permission sets: [{}] to user: '{}'", perms, userId);
+    assignPermissionSets(userId, perms);
   }
 
   @Override
-  public PermissionUser createWithEmptyPermissions(String userId) {
-    throw new UnsupportedOperationException("User cannot be assigned with empty set of capabilities");
+  public void deleteUserCapabilitiesAndRoles(String userId) {
+    List<String> deletedEntities = new ArrayList<>();
+    deletedEntities.add(deleteUserRelatedEntities(userId, "capabilities", userCapabilitiesClient::deleteUserCapabilities));
+    deletedEntities.add(deleteUserRelatedEntities(userId, "capability sets", userCapabilitySetsClient::deleteUserCapabilitySets));
+    deletedEntities.add(deleteUserRelatedEntities(userId, "roles", userRolesClient::deleteUserRoles));
+    deletedEntities.removeIf(Objects::isNull);
+    if (deletedEntities.isEmpty()) {
+      log.info("deleteUserCapabilitiesAndRoles:: No entities to delete for user '{}'", userId);
+      return;
+    }
+    val entities = String.join(", ", deletedEntities);
+    log.info("deleteUserCapabilitiesAndRoles:: Deleted User {} with userId: '{}'", entities, userId);
   }
 
-  @Override
-  public PermissionUser createWithPermissionSetsFromFile(String userId, String permissionSetsFilePath) {
-    var perms = readAndValidatePermissions(permissionSetsFilePath);
-    var permissionUser = PermissionUser.of(UUID.randomUUID().toString(), userId, perms);
-    log.info("Creating permissionUser {}.", permissionUser);
-    assignPermissionSets(permissionUser.getUserId(), perms);
-    return permissionUser;
+  private String deleteUserRelatedEntities(String userId, String entityName, Consumer<String> deleteEntitiesAction) {
+    try {
+      deleteEntitiesAction.accept(userId);
+      return entityName;
+    } catch (FeignException.NotFound e) {
+      log.info("deleteUserRelatedEntities:: User {} for user '{}' do not exist", entityName, userId);
+      return null;
+    }
   }
 
-  @Override
-  public void deletePermissionUser(String userId) {
-    userCapabilitiesClient.deleteUserCapabilities(userId);
-    log.info("deleteUserPermissions:: Deleted capabilities with userId={}", userId);
-  }
-
-  private List<String> readAndValidatePermissions(String permissionsFilePath) {
+  private List<String> readAndValidatePermissionSets(String permissionsFilePath) {
     var permissions = readPermissionsFromResource(permissionsFilePath);
     if (CollectionUtils.isEmpty(permissions)) {
       throw new IllegalStateException("No user permissions found in " + permissionsFilePath);

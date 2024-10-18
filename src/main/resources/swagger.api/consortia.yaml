@@ -131,3 +131,7 @@ components:
       $ref: schemas/capability/user/userCapabilitySetsRequest.json
     capability-sets:
       $ref: schemas/capability/capabilitySets.json
+    capabilities:
+      $ref: schemas/capability/capabilities.json
+    roles:
+      $ref: schemas/role/roles.json

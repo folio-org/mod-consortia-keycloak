@@ -21,16 +21,16 @@ SharingPolicyResponse:
   description: "A JSON schema for the Sharing policies object response for post request"
   type: object
   properties:
-    createPoliciesPCId:
+    createPCId:
       type: string
       format: uuid
-    updatePoliciesPCId:
+    updatePCId:
       type: string
       format: uuid
   additionalProperties: false
   required:
-    - createPoliciesPCId
-    - updatePoliciesPCId
+    - createPCId
+    - updatePCId
 
 SharingPolicyDeleteResponse:
   description: "A JSON schema for the Sharing policies object response for delete request"

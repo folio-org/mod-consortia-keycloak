@@ -3,7 +3,6 @@ package org.folio.consortia.service.impl;
 import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 import static org.folio.consortia.service.impl.CustomFieldServiceImpl.ORIGINAL_TENANT_ID_CUSTOM_FIELD;
 import static org.folio.consortia.service.impl.CustomFieldServiceImpl.ORIGINAL_TENANT_ID_NAME;
-import static org.folio.consortia.utils.Constants.SYSTEM_USER_NAME;
 import static org.folio.consortia.utils.HelperUtils.checkIdenticalOrThrow;
 
 import java.util.List;
@@ -36,7 +35,7 @@ import org.folio.consortia.service.CleanupService;
 import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.CustomFieldService;
 import org.folio.consortia.service.LockService;
-import org.folio.consortia.service.PermissionUserService;
+import org.folio.consortia.service.CapabilitiesUserService;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
 import org.folio.consortia.utils.TenantContextUtils;
@@ -68,7 +67,7 @@ public class TenantServiceImpl implements TenantService {
   private final ConsortiumService consortiumService;
   private final FolioExecutionContext folioExecutionContext;
   private final ConsortiaConfigurationClient configurationClient;
-  private final PermissionUserService permissionUserService;
+  private final CapabilitiesUserService capabilitiesUserService;
   private final UserService userService;
   private final ExecutionContextBuilder contextBuilder;
   private final UserTenantsClient userTenantsClient;
@@ -392,7 +391,7 @@ public class TenantServiceImpl implements TenantService {
     if (Objects.isNull(userOptional.getId())) {
       userOptional = userService.createUser(user);
     }
-    permissionUserService.createWithPermissionSetsFromFile(userOptional.getId(), SHADOW_ADMIN_PERMISSION_SETS_FILE_PATH);
+    capabilitiesUserService.createWithPermissionSetsFromFile(userOptional.getId(), SHADOW_ADMIN_PERMISSION_SETS_FILE_PATH);
   }
 
   private UserTenantEntity createUserTenantEntity(UUID consortiumId, User user, Tenant tenant) {

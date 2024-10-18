@@ -1,6 +1,7 @@
 package org.folio.consortia.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -11,19 +12,31 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface SharingRoleRepository extends JpaRepository<SharingRoleEntity, UUID> {
 
-  List<SharingRoleEntity> findByRoleId(UUID roleId);
+  List<SharingRoleEntity> findByRoleName(String roleName);
 
-  SharingRoleEntity findByRoleIdAndTenantId(UUID roleId, String tenantId);
+  Optional<SharingRoleEntity> findByRoleNameAndTenantId(String roleName, String tenantId);
 
-  @Query("SELECT sr.tenantId FROM SharingRoleEntity sr WHERE sr.roleId = ?1")
-  Set<String> findTenantsByRoleId(UUID roleId);
+  Optional<SharingRoleEntity> findByRoleIdAndTenantId(UUID roleId, String tenantId);
 
-  Set<String> findTenantsByRoleIdAndIsCapabilitySetsSharedTrue(UUID roleId);
+  @Query("SELECT sr.tenantId FROM SharingRoleEntity sr WHERE sr.roleName = ?1")
+  Set<String> findTenantsByRoleName(String roleName);
 
-  Set<String> findTenantsByRoleIdAndIsCapabilitiesSharedTrue(UUID roleId);
+  @Query("SELECT sr.tenantId FROM SharingRoleEntity sr WHERE sr.roleName = ?1 and sr.isCapabilitiesShared = true")
+  Set<String> findTenantsByRoleNameAndIsCapabilitiesSharedTrue(String roleName);
+
+  @Query("SELECT sr.tenantId FROM SharingRoleEntity sr WHERE sr.roleName = ?1 and sr.isCapabilitySetsShared = true")
+  Set<String> findTenantsByRoleNameAndIsCapabilitySetsSharedTrue(String roleName);
+
+  @Query("select s.roleId from SharingRoleEntity s where s.roleName = ?1 and s.tenantId = ?2")
+  UUID findRoleIdByRoleNameAndTenantId(String roleName, String tenantId);
 
   boolean existsByRoleId(UUID roleId);
 
+  boolean existsByRoleIdAndTenantId(UUID roleId, String tenantId);
+
+  boolean existsByRoleNameAndTenantIdAndIsCapabilitiesSharedTrue(String roleName, String tenantId);
+  boolean existsByRoleNameAndTenantIdAndIsCapabilitySetsSharedTrue(String roleName, String tenantId);
+
   @Modifying
-  void deleteByRoleId(UUID roleId);
+  void deleteByRoleName(String roleName);
 }
