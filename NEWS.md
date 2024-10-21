@@ -1,3 +1,7 @@
+## Version `v1.X.X` (Unreleased)
+### Changes:
+* Rename change-manager permissions (MODCONSKC-37)
+
 ## Version `v1.4.5` (25.09.2024)
 ### Changes:
 * Moved custom field creation to save tenant operation (MODCONSKC-32)

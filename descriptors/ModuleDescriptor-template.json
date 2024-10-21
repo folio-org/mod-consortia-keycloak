@@ -307,9 +307,10 @@
           "modulePermissions": [
             "inventory.instances.item.get",
             "inventory.instances.item.post",
-            "change-manager.jobexecutions.get",
+            "change-manager.jobExecutions.item.get",
+            "change-manager.jobExecutions.children.collection.get",
             "change-manager.jobexecutions.post",
-            "change-manager.jobexecutions.put",
+            "change-manager.jobExecutions.item.put",
             "change-manager.records.post",
             "instance-authority-links.instances.collection.get",
             "instance-authority-links.instances.collection.put",
