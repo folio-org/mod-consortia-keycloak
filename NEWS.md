@@ -1,6 +1,7 @@
 ## Version `v1.X.X` (Unreleased)
 ### Changes:
 * Rename change-manager permissions (MODCONSKC-37)
+* Update module permissions in the ModuleDescriptor (MODCONSKC-42)
 
 ## Version `v1.4.5` (25.09.2024)
 ### Changes:

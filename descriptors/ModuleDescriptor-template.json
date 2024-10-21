@@ -618,6 +618,7 @@
       "permissionName": "consortia.inventory.local.sharing-instances.execute",
       "displayName": "Inventory: Share local instance with consortium",
       "description": "Inventory: Share local instance with consortium",
+      "replaces": ["consortia.inventory.share.local.instance"],
       "subPermissions": [
         "consortia.sharing-instances.item.post",
         "consortia.sharing-instances.item.get",
@@ -630,6 +631,7 @@
       "permissionName": "consortia.inventory.update-ownership.item.post",
       "displayName": "Inventory: Update ownership",
       "description": "Inventory: Update ownership",
+      "replaces": ["consortia.inventory.update.ownership"],
       "subPermissions": [
         "inventory.holdings.update-ownership.item.post",
         "inventory.items.update-ownership.item.post"
