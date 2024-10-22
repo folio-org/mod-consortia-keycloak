@@ -2,6 +2,7 @@
 ### Changes:
 * Rename change-manager permissions (MODCONSKC-37)
 * Update module permissions in the ModuleDescriptor (MODCONSKC-42)
+* Fix an issue related to broken release process (1.4.2-SNAPSHOT -> 1.5.0-SNAPSHOT -> 1.4.5-SNAPSHOT) (MODCONSKC-44)
 
 ## Version `v1.4.5` (25.09.2024)
 ### Changes:
