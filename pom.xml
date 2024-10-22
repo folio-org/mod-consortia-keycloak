@@ -70,8 +70,8 @@
     <!-- test dependencies -->
     <wiremock-standalone.version>3.0.1</wiremock-standalone.version>
     <testcontainers.version>1.20.2</testcontainers.version>
-    <snakeyaml.version>2.2</snakeyaml.version>
-    <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
+    <snakeyaml.version>2.3</snakeyaml.version>
+    <maven-checkstyle-plugin.version>3.5.0</maven-checkstyle-plugin.version>
   </properties>
 
   <dependencyManagement>
@@ -266,8 +266,8 @@
       </plugin>
 
       <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
         <version>3.3.1</version>
         <executions>
           <execution>
