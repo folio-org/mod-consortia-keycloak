@@ -639,6 +639,28 @@
       "visible": true
     },
     {
+      "permissionName": "consortia.sharing-roles-all.item.post",
+      "displayName": "Consortia manager: Share roles",
+      "description": "Consortia manager: Share roles",
+      "subPermissions": [
+        "consortia.sharing-roles.item.post",
+        "consortia.sharing-roles-capability-sets.item.post",
+        "consortia.sharing-roles-capabilities.item.post"
+      ],
+      "visible": true
+    },
+    {
+      "permissionName": "consortia.sharing-roles-all.item.delete",
+      "displayName": "Consortia manager: Delete sharing roles",
+      "description": "Consortia manager: Delete sharing roles",
+      "subPermissions": [
+        "consortia.sharing-roles.item.delete",
+        "consortia.sharing-roles-capability-sets.item.delete",
+        "consortia.sharing-roles-capabilities.item.delete"
+      ],
+      "visible": true
+    },
+    {
       "permissionName": "consortia.sharing-instances.item.post",
       "displayName": "create sharing instance",
       "description": "Create sharing instance"
