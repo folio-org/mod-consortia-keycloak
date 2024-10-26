@@ -1,3 +1,7 @@
+## Version `v1.4.6` (26.10.2024)
+### Changes:
+* Fixed migration script for setup_status field (MODCONSKC-40)
+
 ## Version `v1.4.5` (25.09.2024)
 ### Changes:
 * Moved custom field creation to save tenant operation (MODCONSKC-32)
