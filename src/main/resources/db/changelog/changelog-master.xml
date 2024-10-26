@@ -15,4 +15,5 @@
   <include file="changes/migrate-data-from-mod-consortia.xml" relativeToChangelogFile="true"/>
   <include file="changes/create-sharing-policy-table.xml" relativeToChangelogFile="true"/>
   <include file="changes/create-sharing-role-table.xml" relativeToChangelogFile="true"/>
+  <include file="changes/migrate-tenant-data-from-mod-consortia.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>
