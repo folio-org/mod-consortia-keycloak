@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
+
+  <changeSet id="MODCONSKC-40@@migrate-user-tenant-data-from-mod_consortia" author="yaroslavkiriak">
+    <sql>
+      DO
+      '
+      DECLARE
+      BEGIN
+        IF (EXISTS (SELECT 1 FROM information_schema.tables
+          WHERE table_schema = ''${tenantname}_mod_consortia'' AND table_name = ''user_tenant''))
+        THEN
+          INSERT INTO ${tenantname}_mod_consortia_keycloak.user_tenant (
+            id, user_id, username, tenant_id, is_primary, created_by, created_date, updated_by, updated_date
+          ) SELECT
+            id, user_id, username, tenant_id, is_primary, created_by, created_date, updated_by,
+            (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date
+          FROM ${tenantname}_mod_consortia.user_tenant;
+        END IF;
+      END;
+      '  LANGUAGE plpgsql;
+    </sql>
+  </changeSet>
+
+</databaseChangeLog>

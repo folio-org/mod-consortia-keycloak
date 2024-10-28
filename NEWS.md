@@ -1,3 +1,7 @@
+## Version `v1.5.1` (28.10.2024)
+### Changes:
+* fix tenant data migration order to migrate user_tenant (EUREKASUP-8)
+
 ## Version `v1.4.6` (26.10.2024)
 ### Changes:
 * Fixed migration script for setup_status field (MODCONSKC-40)

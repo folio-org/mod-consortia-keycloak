@@ -40,3 +40,17 @@ CREATE TABLE consortium_mod_consortia.tenant (
 );
 INSERT INTO consortium_mod_consortia.tenant (id, name, consortium_id, code, is_central, setup_status, is_deleted)
 VALUES ('e2628d7d-059a-46a1-a5ea-10a5a37b1af2', 'name', '88888888-8888-4888-8888-888888888888', 'code', false, 'IN_PROGRESS', false);
+
+CREATE TABLE consortium_mod_consortia.user_tenant (
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL,
+  username text NOT NULL,
+  tenant_id text NOT NULL,
+  is_primary boolean NOT NULL DEFAULT false,
+  created_by UUID,
+  created_date TIMESTAMP WITHOUT TIME ZONE DEFAULT now() NOT NULL,
+  updated_by UUID,
+  updated_date TIMESTAMP WITHOUT TIME ZONE
+);
+INSERT INTO consortium_mod_consortia.user_tenant (id, user_id, username, tenant_id)
+VALUES ('6ad28dae-7c02-4f89-9320-153c55bf1941', '6ad28dae-7c02-4f89-9320-153c55bf1914', 'name', 'e2628d7d-059a-46a1-a5ea-10a5a37b1af2');
