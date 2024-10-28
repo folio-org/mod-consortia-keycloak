@@ -89,7 +89,12 @@ class ConsortiaMigrationTest {
     var tenantIds = jdbcTemplate.queryForList(
       format("SELECT id FROM %s.%s", TENANT + "_mod_consortia_keycloak", "tenant"), String.class);
     assertThat(tenantIds).hasSize(1);
-    assertThat(ids.iterator().next()).isEqualTo("e2628d7d-059a-46a1-a5ea-10a5a37b1af2");
+    assertThat(tenantIds.iterator().next()).isEqualTo("e2628d7d-059a-46a1-a5ea-10a5a37b1af2");
+
+    var userTenantIds = jdbcTemplate.queryForList(
+      format("SELECT id FROM %s.%s", TENANT + "_mod_consortia_keycloak", "user_tenant"), String.class);
+    assertThat(userTenantIds).hasSize(1);
+    assertThat(userTenantIds.iterator().next()).isEqualTo("6ad28dae-7c02-4f89-9320-153c55bf1941");
   }
 
   @AfterAll
