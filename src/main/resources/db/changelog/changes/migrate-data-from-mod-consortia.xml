@@ -157,6 +157,9 @@
   </changeSet>
 
   <changeSet id="EUREKA-65@@migrate-data-from-mod_consortia.user_tenant" author="yaroslavkiriak">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="1">SELECT 0</sqlCheck>
+    </preConditions>
     <sql>
       DO
       '
