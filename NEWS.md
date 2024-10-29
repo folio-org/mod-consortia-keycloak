@@ -6,8 +6,6 @@ The purpose of this release is to implement sharing features and fixing module p
 
 ### Stories
 * [MODCONSKC-45](https://folio-org.atlassian.net/browse/MODCONSKC-45) - Update libraries of dependant acq modules to the latest versions
-* [MODCONSKC-44](https://folio-org.atlassian.net/browse/MODCONSKC-44) - Fix an issue related to broken release process (1.4.2-SNAPSHOT -> 1.5.0-SNAPSHOT -> 1.4.5-SNAPSHOT)
-* [MODCONSKC-43](https://folio-org.atlassian.net/browse/MODCONSKC-43) - Release mod-consortia-keycloak v1.5.1 Ramsons Release (R2 2024)
 * [MODCONSKC-42](https://folio-org.atlassian.net/browse/MODCONSKC-42) - Update module permissions in the ModuleDescriptor
 * [MODCONSKC-39](https://folio-org.atlassian.net/browse/MODCONSKC-39) - Finish sharing role/policy implementations
 * [MODCONSKC-37](https://folio-org.atlassian.net/browse/MODCONSKC-39) - Rename change-manager permissions
