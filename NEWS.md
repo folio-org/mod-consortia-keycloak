@@ -22,12 +22,8 @@ The purpose of this release is to implement sharing features and fixing module p
 * [MODCON-163](https://folio-org.atlassian.net/browse/MODCON-163) - Add system user permissions to support subject types/subject sources sharing
 * [MODCON-159](https://folio-org.atlassian.net/browse/MODCON-159) - Make default limit param as 100 instead 10 all consortia endpoints
 * [MODCON-158](https://folio-org.atlassian.net/browse/MODCON-158) - Extend "Inventory: Update ownership" permission
-* [EUREKASUP-8](https://folio-org.atlassian.net/browse/EUREKASUP-8) - fix tenant data migration order to migrate user_tenant
 * [EUREKA-65](https://folio-org.atlassian.net/browse/EUREKA-65) - fix tenant data migration order to migrate user_tenant
 * [UICONSET-203](https://folio-org.atlassian.net/browse/UICONSET-203) - Hide sharing action button in case when not all permissions are presented
-
-### Bugfixes
-* [MODCONSKC-40](https://folio-org.atlassian.net/browse/MODCONSKC-40) - DB migration issue
 
 
 ## Version `v1.4.5` (25.09.2024)
