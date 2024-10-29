@@ -12,7 +12,7 @@
   <groupId>org.folio</groupId>
   <artifactId>mod-consortia-keycloak</artifactId>
   <name>mod-consortia-keycloak</name>
-  <version>1.5.1-SNAPSHOT</version>
+  <version>1.6.0-SNAPSHOT</version>
   <description>Business logic to manage consortia in FOLIO</description>
   <packaging>jar</packaging>
 
