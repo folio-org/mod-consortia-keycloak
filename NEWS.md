@@ -1,8 +1,30 @@
-## Version `v1.X.X` (Unreleased)
-### Changes:
-* Rename change-manager permissions (MODCONSKC-37)
-* Update module permissions in the ModuleDescriptor (MODCONSKC-42)
-* Fix an issue related to broken release process (1.4.2-SNAPSHOT -> 1.5.0-SNAPSHOT -> 1.4.5-SNAPSHOT) (MODCONSKC-44)
+## v1.7.0 - Unreleased
+
+## 1.6.0 - Released (Ramsons R2 2024)
+The purpose of this release is to implement sharing features and fixing module permissions
+[Full Changelog](https://github.com/folio-org/mod-consortia/compare/v1.1.0...v1.2.0)
+
+### Stories
+* [MODCONSKC-45](https://folio-org.atlassian.net/browse/MODCONSKC-45) - Update libraries of dependant acq modules to the latest versions
+* [MODCONSKC-42](https://folio-org.atlassian.net/browse/MODCONSKC-42) - Update module permissions in the ModuleDescriptor
+* [MODCONSKC-39](https://folio-org.atlassian.net/browse/MODCONSKC-39) - Finish sharing role/policy implementations
+* [MODCONSKC-37](https://folio-org.atlassian.net/browse/MODCONSKC-39) - Rename change-manager permissions
+* [MODCONSKC-34](https://folio-org.atlassian.net/browse/MODCONSKC-34) - Add support to delete all capability sets/role associations for the shadow user & module cleanup
+* [MODCONSKC-33](https://folio-org.atlassian.net/browse/MODCONSKC-33) - Change list of permissions sets
+* [MODCONSKC-32](https://folio-org.atlassian.net/browse/MODCONSKC-32) - move custom field creation to save tenant operation
+* [MODCONSKC-25](https://folio-org.atlassian.net/browse/MODCONSKC-25) - Sync mod-consortia merged PRs with mod-consortia-keycloak
+* [MODCONSKC-21](https://folio-org.atlassian.net/browse/MODCONSKC-21) - Implement sharing of role capabilities
+* [MODCONSKC-20](https://folio-org.atlassian.net/browse/MODCONSKC-20) - Implement sharing of role capability sets
+* [MODCONSKC-19](https://folio-org.atlassian.net/browse/MODCONSKC-19) - Implement sharing of authorization roles
+* [MODCONSKC-18](https://folio-org.atlassian.net/browse/MODCONSKC-18) - Implement sharing of authorization policies
+* [MODCONSKC-7](https://folio-org.atlassian.net/browse/MODCONSKC-7) - adjust custom fields creation error handling
+* [MODROLESKC-216](https://folio-org.atlassian.net/browse/MODROLESKC-216) - Make all enum values in endpoints response with upper case as stored in DB
+* [MODCON-163](https://folio-org.atlassian.net/browse/MODCON-163) - Add system user permissions to support subject types/subject sources sharing
+* [MODCON-159](https://folio-org.atlassian.net/browse/MODCON-159) - Make default limit param as 100 instead 10 all consortia endpoints
+* [MODCON-158](https://folio-org.atlassian.net/browse/MODCON-158) - Extend "Inventory: Update ownership" permission
+* [EUREKA-65](https://folio-org.atlassian.net/browse/EUREKA-65) - fix tenant data migration order to migrate user_tenant
+* [UICONSET-203](https://folio-org.atlassian.net/browse/UICONSET-203) - Hide sharing action button in case when not all permissions are presented
+
 
 ## Version `v1.4.5` (25.09.2024)
 ### Changes:
