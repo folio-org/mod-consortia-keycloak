@@ -57,13 +57,13 @@
     <sharing_policies.yaml.file>${project.basedir}/src/main/resources/swagger.api/sharing_policies.yaml</sharing_policies.yaml.file>
     <sharing_roles.yaml.file>${project.basedir}/src/main/resources/swagger.api/sharing_roles.yaml</sharing_roles.yaml.file>
 
-    <folio-module-descriptor-validator.version>1.0.0</folio-module-descriptor-validator.version>
+    <folio-module-descriptor-validator.version>1.0.1</folio-module-descriptor-validator.version>
 
     <!-- runtime dependencies -->
     <folio-spring-base.version>8.2.1</folio-spring-base.version>
     <folio-service-tools.version>4.1.1</folio-service-tools.version>
     <openapi-generator.version>7.9.0</openapi-generator.version>
-    <mapstruct.version>1.6.2</mapstruct.version>
+    <mapstruct.version>1.6.3</mapstruct.version>
     <applications-poc-tools.version>2.0.0</applications-poc-tools.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
 
