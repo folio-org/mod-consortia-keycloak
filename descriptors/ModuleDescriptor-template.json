@@ -310,7 +310,7 @@
             "change-manager.jobExecutions.item.get",
             "change-manager.jobExecutions.children.collection.get",
             "change-manager.jobexecutions.post",
-            "change-manager.jobExecutions.item.put",
+            "change-manager.jobExecutions.jobProfile.item.put",
             "change-manager.records.post",
             "instance-authority-links.instances.collection.get",
             "instance-authority-links.instances.collection.put",
