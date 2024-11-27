@@ -1,8 +1,14 @@
-## v1.7.0 - Unreleased
+## 1.6.1 - Released (Ramsons R2 2024)
+The purpose of this release is fixing module permission
+[Full Changelog](https://github.com/folio-org/mod-consortia-keycloak/compare/v1.6.0...v1.6.1)
+
+### Bug Fixes
+* [MODCON-169](https://folio-org.atlassian.net/browse/MODCON-169) - ECS, User with "Share" permission cannot share "Local" MARC bib record from member tenant
+
 
 ## 1.6.0 - Released (Ramsons R2 2024)
 The purpose of this release is to implement sharing features and fixing module permissions
-[Full Changelog](https://github.com/folio-org/mod-consortia/compare/v1.1.0...v1.2.0)
+[Full Changelog](https://github.com/folio-org/mod-consortia-keycloak/compare/v1.5.1...v1.6.0)
 
 ### Stories
 * [MODCONSKC-45](https://folio-org.atlassian.net/browse/MODCONSKC-45) - Update libraries of dependant acq modules to the latest versions
