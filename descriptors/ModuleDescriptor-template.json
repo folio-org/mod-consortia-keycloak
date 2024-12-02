@@ -55,6 +55,86 @@
     {
       "id": "custom-fields",
       "version": "2.1"
+    },
+	{
+      "id": "users-bl",
+      "version": "6.0"
+    },
+	{
+      "id": "pieces",
+      "version": "3.1"
+    },
+	{
+      "id": "call-number-types",
+      "version": "1.0"
+    },
+	{
+      "id": "classification-types ",
+      "version": "1.2"
+    },
+	{
+      "id": "contributor-types",
+      "version": "2.0"
+    },
+	{
+      "id": "electronic-access-relationships",
+      "version": "1.1"
+    },
+	{
+      "id": "holdings-note-types",
+      "version": "1.0"
+    },
+	{
+      "id": "holdings-types",
+      "version": "1.0"
+    },
+	{
+      "id": "identifier-types",
+      "version": "1.2"
+    },
+	{
+      "id": "instance-formats",
+      "version": "2.0"
+    },
+	{
+      "id": "instance-note-types",
+      "version": "1.0"
+    },
+	{
+      "id": "instance-statuses",
+      "version": "1.0"
+    },
+	{
+      "id": "instance-types",
+      "version": "2.0"
+    },
+	{
+      "id": "item-note-types",
+      "version": "1.0"
+    },
+	{
+      "id": "loan-types",
+      "version": "2.3"
+    },
+	{
+      "id": "locations",
+      "version": "3.1"
+    },
+	{
+      "id": "modes-of-issuance",
+      "version": "1.1"
+    },
+	{
+      "id": "nature-of-content-terms",
+      "version": "1.0"
+    },
+	{
+      "id": "subject-sources",
+      "version": "1.0"
+    },
+	{
+      "id": "subject-types",
+      "version": "1.0"
     }
   ],
   "provides": [
