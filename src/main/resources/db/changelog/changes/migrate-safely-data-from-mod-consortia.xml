@@ -4,10 +4,7 @@
                     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
 
-  <changeSet id="EUREKA-65@@migrate-data-from-mod_consortia.consortia_configuration" author="yaroslavkiriak">
-    <preConditions onFail="MARK_RAN">
-      <sqlCheck expectedResult="1">SELECT 0</sqlCheck>
-    </preConditions>
+  <changeSet id="MODCONSKC-52@@migrate-data-from-mod_consortia.consortia_configuration" author="yaroslavkiriak">
     <sql>
       DO
       '
@@ -21,17 +18,16 @@
           ) SELECT
             id, central_tenant_id, created_by, created_date, updated_by,
             (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date
-          FROM ${tenantname}_mod_consortia.consortia_configuration;
+          FROM
+            ${tenantname}_mod_consortia.consortia_configuration
+          ON CONFLICT DO NOTHING;
         END IF;
       END;
       '  LANGUAGE plpgsql;
     </sql>
   </changeSet>
 
-  <changeSet id="EUREKA-65@@migrate-data-from-mod_consortia.consortium" author="yaroslavkiriak">
-    <preConditions onFail="MARK_RAN">
-      <sqlCheck expectedResult="1">SELECT 0</sqlCheck>
-    </preConditions>
+  <changeSet id="MODCONSKC-52@@migrate-data-from-mod_consortia.consortium" author="yaroslavkiriak">
     <sql>
       DO
       '
@@ -45,17 +41,16 @@
           ) SELECT
             id, name, created_by, created_date, updated_by,
             (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date
-          FROM ${tenantname}_mod_consortia.consortium;
+          FROM
+            ${tenantname}_mod_consortia.consortium
+          ON CONFLICT DO NOTHING;
         END IF;
       END;
       '  LANGUAGE plpgsql;
     </sql>
   </changeSet>
 
-  <changeSet id="EUREKA-65@@migrate-data-from-mod_consortia.pc_state" author="yaroslavkiriak">
-    <preConditions onFail="MARK_RAN">
-      <sqlCheck expectedResult="1">SELECT 0</sqlCheck>
-    </preConditions>
+  <changeSet id="MODCONSKC-52@@migrate-data-from-mod_consortia.pc_state" author="yaroslavkiriak">
     <sql>
       DO
       '
@@ -69,17 +64,16 @@
           ) SELECT
             id, status, total_records, created_by, created_date, updated_by,
             (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date
-          FROM ${tenantname}_mod_consortia.pc_state;
+          FROM
+            ${tenantname}_mod_consortia.pc_state
+          ON CONFLICT DO NOTHING;
         END IF;
       END;
       '  LANGUAGE plpgsql;
     </sql>
   </changeSet>
 
-  <changeSet id="EUREKA-65@@migrate-data-from-mod_consortia.pc_tenant_request" author="yaroslavkiriak">
-    <preConditions onFail="MARK_RAN">
-      <sqlCheck expectedResult="1">SELECT 0</sqlCheck>
-    </preConditions>
+  <changeSet id="MODCONSKC-52@@migrate-data-from-mod_consortia.pc_tenant_request" author="yaroslavkiriak">
     <sql>
       DO
       '
@@ -95,17 +89,16 @@
             id, pc_id, tenant_id, status, request_url, request_payload, response, response_status_code,
             completed_date, created_by, created_date, updated_by,
             (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date
-          FROM ${tenantname}_mod_consortia.pc_tenant_request;
+          FROM
+            ${tenantname}_mod_consortia.pc_tenant_request
+          ON CONFLICT DO NOTHING;
         END IF;
       END;
       '  LANGUAGE plpgsql;
     </sql>
   </changeSet>
 
-  <changeSet id="EUREKA-65@@migrate-data-from-mod_consortia.sharing_instance" author="yaroslavkiriak">
-    <preConditions onFail="MARK_RAN">
-      <sqlCheck expectedResult="1">SELECT 0</sqlCheck>
-    </preConditions>
+  <changeSet id="MODCONSKC-52@@migrate-data-from-mod_consortia.sharing_instance" author="yaroslavkiriak">
     <sql>
       DO
       '
@@ -119,17 +112,16 @@
           ) SELECT
             id, instance_id, source_tenant_id, target_tenant_id, status, error, created_by, created_date, updated_by,
             (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date
-          FROM ${tenantname}_mod_consortia.sharing_instance;
+          FROM
+            ${tenantname}_mod_consortia.sharing_instance
+          ON CONFLICT DO NOTHING;
         END IF;
       END;
       '  LANGUAGE plpgsql;
     </sql>
   </changeSet>
 
-  <changeSet id="EUREKA-65@@migrate-data-from-mod_consortia.sharing_setting" author="yaroslavkiriak">
-    <preConditions onFail="MARK_RAN">
-      <sqlCheck expectedResult="1">SELECT 0</sqlCheck>
-    </preConditions>
+  <changeSet id="MODCONSKC-52@@migrate-data-from-mod_consortia.sharing_setting" author="yaroslavkiriak">
     <sql>
       DO
       '
@@ -143,17 +135,17 @@
           ) SELECT
             id, setting_id, tenant_id, created_by, created_date, updated_by,
             (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date
-          FROM ${tenantname}_mod_consortia.sharing_setting;
+          FROM
+            ${tenantname}_mod_consortia.sharing_setting
+          ON CONFLICT DO NOTHING;
         END IF;
       END;
       '  LANGUAGE plpgsql;
     </sql>
   </changeSet>
 
-  <changeSet id="EUREKA-65@@migrate-data-from-mod_consortia.tenant" author="yaroslavkiriak">
-    <preConditions onFail="MARK_RAN">
-      <sqlCheck expectedResult="1">SELECT 0</sqlCheck>
-    </preConditions>
+
+  <changeSet id="MODCONSKC-52@@migrate-tenant-data-from-mod_consortia.tenant" author="yaroslavkiriak">
     <sql>
       DO
       '
@@ -166,18 +158,17 @@
             id, name, consortium_id, code, is_central, created_by, created_date, updated_by, updated_date, setup_status, is_deleted
           ) SELECT
             id, name, consortium_id, code, is_central, created_by, created_date, updated_by,
-            (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date, setup_status::varchar, is_deleted
-          FROM ${tenantname}_mod_consortia.tenant;
+            COALESCE(updated_date, created_date) as updated_date, setup_status::varchar, is_deleted
+          FROM
+            ${tenantname}_mod_consortia.tenant
+          ON CONFLICT DO NOTHING;
         END IF;
       END;
       '  LANGUAGE plpgsql;
     </sql>
   </changeSet>
 
-  <changeSet id="EUREKA-65@@migrate-data-from-mod_consortia.user_tenant" author="yaroslavkiriak">
-    <preConditions onFail="MARK_RAN">
-      <sqlCheck expectedResult="1">SELECT 0</sqlCheck>
-    </preConditions>
+  <changeSet id="MODCONSKC-52@@migrate-user-tenant-data-from-mod_consortia" author="yaroslavkiriak">
     <sql>
       DO
       '
@@ -191,7 +182,9 @@
           ) SELECT
             id, user_id, username, tenant_id, is_primary, created_by, created_date, updated_by,
             (CASE WHEN updated_date IS NULL THEN created_date ELSE updated_date END) as updated_date
-          FROM ${tenantname}_mod_consortia.user_tenant;
+          FROM
+            ${tenantname}_mod_consortia.user_tenant
+          ON CONFLICT DO NOTHING;
         END IF;
       END;
       '  LANGUAGE plpgsql;
