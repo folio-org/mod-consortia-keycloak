@@ -1,3 +1,7 @@
+## Version `v1.6.2` (05.12.2024)
+### Bug Fixes:
+* [MODCONSKC-52](https://folio-org.atlassian.net/browse/MODCONSKC-52) - Fix consortia data migration by adding safe insert for the repeated insertions of the same data
+
 ## 1.6.1 - Released (Ramsons R2 2024)
 The purpose of this release is fixing module permission
 [Full Changelog](https://github.com/folio-org/mod-consortia-keycloak/compare/v1.6.0...v1.6.1)
