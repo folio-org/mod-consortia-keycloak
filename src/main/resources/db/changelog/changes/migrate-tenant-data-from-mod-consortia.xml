@@ -5,6 +5,9 @@
                     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
 
   <changeSet id="MODCONSKC-40@@migrate-tenant-data-from-mod_consortia.tenant" author="yaroslavkiriak">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="1">SELECT 0</sqlCheck>
+    </preConditions>
     <sql>
       DO
       '
