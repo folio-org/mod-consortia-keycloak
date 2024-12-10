@@ -1,3 +1,6 @@
+## Version `v1.6.3` (10.12.2024)
+* Updated module descriptor to properly declare all interface dependencies
+
 ## Version `v1.6.2` (05.12.2024)
 ### Bug Fixes:
 * [MODCONSKC-52](https://folio-org.atlassian.net/browse/MODCONSKC-52) - Fix consortia data migration by adding safe insert for the repeated insertions of the same data
