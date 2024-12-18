@@ -60,11 +60,11 @@
     <folio-module-descriptor-validator.version>1.0.1</folio-module-descriptor-validator.version>
 
     <!-- runtime dependencies -->
-    <folio-spring-base.version>8.2.2</folio-spring-base.version>
+    <folio-spring-base.version>8.3.0-SNAPSHOT</folio-spring-base.version>
     <folio-service-tools.version>4.1.1</folio-service-tools.version>
     <openapi-generator.version>7.10.0</openapi-generator.version>
     <mapstruct.version>1.6.3</mapstruct.version>
-    <applications-poc-tools.version>2.0.0</applications-poc-tools.version>
+    <applications-poc-tools.version>2.2.0-SNAPSHOT</applications-poc-tools.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
 
     <!-- test dependencies -->
