@@ -398,6 +398,7 @@
             "inventory-storage.authorities.collection.get",
             "inventory-storage.instances.item.get",
             "source-storage.records.delete",
+            "source-storage.records.update",
             "inventory-storage.instances.item.post",
             "inventory-storage.instances.item.put"
           ]
