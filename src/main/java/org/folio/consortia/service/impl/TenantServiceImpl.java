@@ -13,7 +13,6 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.apache.commons.lang3.ObjectUtils;
-import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.SyncPrimaryAffiliationClient;
 import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
@@ -32,6 +31,7 @@ import org.folio.consortia.repository.TenantDetailsRepository;
 import org.folio.consortia.repository.TenantRepository;
 import org.folio.consortia.repository.UserTenantRepository;
 import org.folio.consortia.service.CleanupService;
+import org.folio.consortia.service.ConsortiaConfigurationService;
 import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.CustomFieldService;
 import org.folio.consortia.service.LockService;
@@ -66,7 +66,7 @@ public class TenantServiceImpl implements TenantService {
   private final ConversionService converter;
   private final ConsortiumService consortiumService;
   private final FolioExecutionContext folioExecutionContext;
-  private final ConsortiaConfigurationClient configurationClient;
+  private final ConsortiaConfigurationService consortiaConfigurationService;
   private final CapabilitiesUserService capabilitiesUserService;
   private final UserService userService;
   private final ExecutionContextBuilder contextBuilder;
@@ -192,7 +192,7 @@ public class TenantServiceImpl implements TenantService {
     var allHeaders = new CaseInsensitiveMap<>(folioExecutionContext.getOkapiHeaders());
     allHeaders.put("x-okapi-tenant", List.of(tenantDto.getId()));
     try (var ignored = new FolioExecutionContextSetter(folioExecutionContext.getFolioModuleMetadata(), allHeaders)) {
-      configurationClient.saveConfiguration(createConsortiaConfigurationBody(centralTenantId));
+      consortiaConfigurationService.createConfiguration(centralTenantId);
       if (!tenantDto.getIsCentral()) {
         createUserTenantWithDummyUser(tenantDto.getId(), centralTenantId, consortiumId);
         createShadowAdminWithPermissions(finalShadowAdminUser);

@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.SyncPrimaryAffiliationClient;
 import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.domain.dto.Tenant;
@@ -84,7 +83,7 @@ class TenantServiceTest {
   @Mock
   private FolioExecutionContext folioExecutionContext;
   @Mock
-  private ConsortiaConfigurationClient configurationClient;
+  private ConsortiaConfigurationService consortiaConfigurationService;
   @Mock
   private CapabilitiesUserService capabilitiesUserService;
   @Mock
@@ -153,7 +152,7 @@ class TenantServiceTest {
     when(tenantRepository.existsById(any())).thenReturn(false);
     when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(centralTenant));
     when(tenantDetailsRepository.save(any(TenantDetailsEntity.class))).thenReturn(localTenantDetailsEntity);
-    doNothing().when(configurationClient).saveConfiguration(createConsortiaConfiguration(TENANT_ID));
+    when(consortiaConfigurationService.createConfiguration(TENANT_ID)).thenReturn(createConsortiaConfiguration(TENANT_ID));
     doNothing().when(userTenantsClient).postUserTenant(any());
     when(conversionService.convert(localTenantDetailsEntity, Tenant.class)).thenReturn(tenant);
     when(folioExecutionContext.getTenantId()).thenReturn(TENANT_ID);
@@ -168,7 +167,7 @@ class TenantServiceTest {
 
     verify(userService, times(1)).prepareShadowUser(UUID.fromString(adminUser.getId()), "diku");
     verify(userTenantRepository, times(1)).save(any());
-    verify(configurationClient).saveConfiguration(any());
+    verify(consortiaConfigurationService).createConfiguration(any());
     verify(userTenantsClient).postUserTenant(any());
     verify(userService, times(1)).createUser(any());
     verify(lockService).lockTenantSetupWithinTransaction();
@@ -191,7 +190,7 @@ class TenantServiceTest {
     when(tenantRepository.existsById(any())).thenReturn(false);
     when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(centralTenant));
     when(tenantDetailsRepository.save(any(TenantDetailsEntity.class))).thenReturn(tenantDetailsEntity);
-    doNothing().when(configurationClient).saveConfiguration(createConsortiaConfiguration(TENANT_ID));
+    when(consortiaConfigurationService.createConfiguration(TENANT_ID)).thenReturn(createConsortiaConfiguration(TENANT_ID));
     doNothing().when(userTenantsClient).postUserTenant(any());
     when(conversionService.convert(tenantDetailsEntity, Tenant.class)).thenReturn(tenant);
     when(folioExecutionContext.getTenantId()).thenReturn("diku");
@@ -209,7 +208,7 @@ class TenantServiceTest {
 
     var tenant1 = tenantService.save(consortiumId, UUID.randomUUID(), tenant);
 
-    verify(configurationClient).saveConfiguration(any());
+    verify(consortiaConfigurationService).createConfiguration(any());
     verify(lockService).lockTenantSetupWithinTransaction();
 
     verify(userService, never()).prepareShadowUser(any(), any());
@@ -244,7 +243,7 @@ class TenantServiceTest {
 
     var actualTenant = tenantService.save(consortiumId, UUID.randomUUID(), newTenant);
 
-    verifyNoInteractions(configurationClient);
+    verifyNoInteractions(consortiaConfigurationService);
     verifyNoInteractions(lockService);
 
     verifyNoInteractions(userService);
