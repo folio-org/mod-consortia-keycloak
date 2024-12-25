@@ -1,4 +1,4 @@
-package org.folio.consortia.service;
+package org.folio.consortia.service.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.folio.consortia.domain.dto.PublicationHttpResponse;
+import org.folio.consortia.service.HttpRequestService;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.springframework.http.HttpEntity;
