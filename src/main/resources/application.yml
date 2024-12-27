@@ -76,6 +76,8 @@ folio:
   timer:
     publication-records-max-age-in-seconds: 86400
   max-active-threads: 5
+  platform: ${PLATFORM:okapi}
+
 feign:
   client:
     config:
@@ -94,5 +96,3 @@ management:
 logging:
   level:
     liquibase: info
-related-modules:
-  mod-users-id: ${MOD_USERS_ID}
