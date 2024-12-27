@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
   private static final String USER_ID = "userId";
-  public static final EnumSet<UserType> NOT_APPLICABLE_USER_TYPES = EnumSet.of(UserType.PATRON, UserType.DCB, UserType.SHADOW, UserType.SYSTEM);
+  private static final Set<UserType> NOT_APPLICABLE_USER_TYPES = EnumSet.of(UserType.PATRON, UserType.DCB, UserType.SHADOW, UserType.SYSTEM);
 
   private final UsersKeycloakClient usersKeycloakClient;
   private final UsersClient usersClient;
