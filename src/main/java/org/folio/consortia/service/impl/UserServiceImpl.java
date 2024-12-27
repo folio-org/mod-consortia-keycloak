@@ -3,11 +3,14 @@ package org.folio.consortia.service.impl;
 import static org.folio.consortia.utils.TenantContextUtils.prepareContextForTenant;
 
 import feign.FeignException;
+
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.consortia.client.UsersClient;
@@ -29,6 +32,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
   private static final String USER_ID = "userId";
+  public static final EnumSet<UserType> NOT_APPLICABLE_USER_TYPES = EnumSet.of(UserType.PATRON, UserType.DCB, UserType.SHADOW, UserType.SYSTEM);
 
   private final UsersKeycloakClient usersKeycloakClient;
   private final UsersClient usersClient;
@@ -91,6 +95,11 @@ public class UserServiceImpl implements UserService {
       if (Objects.isNull(realUser.getId())) {
         log.warn("Could not find real user with id: {} in his home tenant: {}", userId.toString(), tenantId);
         throw new ResourceNotFoundException(USER_ID, userId.toString());
+      }
+      UserType userType = Optional.ofNullable(realUser.getType()).map(UserType::fromName).orElse(null);
+      if (NOT_APPLICABLE_USER_TYPES.contains(userType)) {
+        log.warn("User with id: {} has type: {} which is not applicable for shadow user creation", userId.toString(), realUser.getType());
+        throw new IllegalStateException("User type is not applicable for shadow user creation");
       }
 
       var shadowUser = new User();
