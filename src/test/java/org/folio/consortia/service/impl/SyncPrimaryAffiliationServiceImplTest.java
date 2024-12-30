@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -51,6 +52,8 @@ import feign.FeignException;
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 @EntityScan(basePackageClasses = UserTenantEntity.class)
 class SyncPrimaryAffiliationServiceImplTest {
+  private static final String CQL_GET_USERS = "(cql.allRecords=1 NOT type=\"patron\" NOT type=\"dcb\" NOT type=\"shadow\" NOT type=\"system\")";
+
   @InjectMocks
   SyncPrimaryAffiliationServiceImpl syncPrimaryAffiliationService;
   @Mock
@@ -96,7 +99,7 @@ class SyncPrimaryAffiliationServiceImplTest {
     when(tenantService.getByTenantId(anyString())).thenReturn(tenantEntity1);
     when(userTenantRepository.findAnyByUserId(any(), any())).thenReturn(new PageImpl<>(Collections.emptyList()));
     when(tenantRepository.findById(anyString())).thenReturn(Optional.of(tenantEntity1));
-    when(userService.getUsersByQuery(anyString(), anyInt(), anyInt())).thenReturn(userCollection);
+    when(userService.getUsersByQuery(eq(CQL_GET_USERS), anyInt(), anyInt())).thenReturn(userCollection);
     when(consortiaConfigurationService.getCentralTenantId(anyString())).thenReturn(tenantId);
 
     syncPrimaryAffiliationService.createPrimaryUserAffiliations(consortiumId, centralTenantId, spab);
@@ -127,7 +130,7 @@ class SyncPrimaryAffiliationServiceImplTest {
     when(tenantService.getByTenantId(anyString())).thenReturn(tenantEntity1);
     when(userTenantRepository.findAnyByUserId(any(), any())).thenReturn(new PageImpl<>(Collections.emptyList()));
     when(tenantRepository.findById(anyString())).thenReturn(Optional.of(tenantEntity1));
-    when(userService.getUsersByQuery(anyString(), anyInt(), anyInt())).thenReturn(userCollection);
+    when(userService.getUsersByQuery(eq(CQL_GET_USERS), anyInt(), anyInt())).thenReturn(userCollection);
     when(consortiaConfigurationService.getCentralTenantId(anyString())).thenReturn(centralTenantId);
 
     syncPrimaryAffiliationService.createPrimaryUserAffiliations(consortiumId, centralTenantId, spab);
@@ -151,7 +154,7 @@ class SyncPrimaryAffiliationServiceImplTest {
     var spab = getSyncBody(tenantId);
 
     // stub collection of 2 users
-    when(userService.getUsersByQuery(anyString(), anyInt(), anyInt())).thenReturn(userCollection);
+    when(userService.getUsersByQuery(eq(CQL_GET_USERS), anyInt(), anyInt())).thenReturn(userCollection);
 
     syncPrimaryAffiliationService.syncPrimaryAffiliations(consortiumId, tenantId, centralTenantId);
 
@@ -171,7 +174,7 @@ class SyncPrimaryAffiliationServiceImplTest {
     var spab = getSyncBody(tenantId);
 
     // stub collection of 2 users
-    when(userService.getUsersByQuery(anyString(), anyInt(), anyInt())).thenReturn(userCollection);
+    when(userService.getUsersByQuery(eq(CQL_GET_USERS), anyInt(), anyInt())).thenReturn(userCollection);
     when(syncClient.savePrimaryAffiliations(spab, String.valueOf(consortiumId), tenantId, centralTenantId))
       .thenThrow(FeignException.FeignClientException.class);
 
@@ -189,7 +192,7 @@ class SyncPrimaryAffiliationServiceImplTest {
     var tenantId = "ABC1";
     var centralTenantId = "diku";
 
-    when(userService.getUsersByQuery(anyString(), anyInt(), anyInt()))
+    when(userService.getUsersByQuery(eq(CQL_GET_USERS), anyInt(), anyInt()))
       .thenThrow(FeignException.FeignClientException.class);
 
     syncPrimaryAffiliationService.syncPrimaryAffiliations(consortiumId, tenantId, centralTenantId);
