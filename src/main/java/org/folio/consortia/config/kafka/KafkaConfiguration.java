@@ -2,7 +2,7 @@ package org.folio.consortia.config.kafka;
 
 import java.util.HashMap;
 import java.util.Map;
-
+import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -20,10 +20,6 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.RequiredArgsConstructor;
 
 @Component
 @Configuration
@@ -47,18 +43,18 @@ public class KafkaConfiguration {
   }
 
   @Bean
-  public <V> ConsumerFactory<String, V> consumerFactory(ObjectMapper objectMapper, FolioModuleMetadata folioModuleMetadata) {
-    Map<String, Object> props = new HashMap<>(kafkaProperties.buildConsumerProperties());
-      props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-      props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-      props.put("folioModuleMetadata", folioModuleMetadata);
-      return new DefaultKafkaConsumerFactory<>(props);
+  public <V> ConsumerFactory<String, V> consumerFactory(FolioModuleMetadata folioModuleMetadata) {
+    Map<String, Object> props = new HashMap<>(kafkaProperties.buildConsumerProperties(null));
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put("folioModuleMetadata", folioModuleMetadata);
+    return new DefaultKafkaConsumerFactory<>(props);
   }
 
   @Bean
   public <V> ProducerFactory<String, V> producerFactory(
       FolioExecutionContext folioExecutionContext) {
-    Map<String, Object> props = new HashMap<>(kafkaProperties.buildProducerProperties());
+    Map<String, Object> props = new HashMap<>(kafkaProperties.buildProducerProperties(null));
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     props.put("folioExecutionContext", folioExecutionContext);
