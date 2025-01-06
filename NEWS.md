@@ -1,3 +1,10 @@
+## 1.6.4 - Released (Ramsons R2 2024)
+The purpose of this release is to skip creating shadow system users
+[Full Changelog](https://github.com/folio-org/mod-consortia-keycloak/compare/v1.6.3...v1.6.4)
+
+### Bug Fixes
+* [MODCONSKC-58](https://folio-org.atlassian.net/browse/MODCONSKC-58) - Prevent creating shadow system users
+
 ## Version `v1.6.3` (10.12.2024)
 * Updated module descriptor to properly declare all interface dependencies
 
