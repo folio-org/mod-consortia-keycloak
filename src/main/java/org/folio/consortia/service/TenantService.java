@@ -1,6 +1,7 @@
 package org.folio.consortia.service;
 
 import org.folio.consortia.domain.dto.User;
+import org.folio.consortia.exception.ResourceAlreadyExistException;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import java.util.List;
 import java.util.UUID;
@@ -106,9 +107,9 @@ public interface TenantService {
 
   /**
    * Checks if tenant with given name exists
-   * @return true if tenant with given name exists, false otherwise
+   * @throws ResourceAlreadyExistException in case if tenant with given name or code already exists
    */
-  boolean tenantWithNameExists(String name, String tenantId);
+  void checkTenantUniqueNameAndCodeOrThrow(Tenant tenant);
 
   /**
    * Check for tenant existence in consortia

@@ -75,7 +75,7 @@ public class TenantManagerImpl implements TenantManager {
     log.info("save:: Trying to save a tenant with id={}, consortiumId={} and isCentral={}", tenantDto.getId(),
       consortiumId, tenantDto.getIsCentral());
     validateConsortiumAndTenantForSaveOperation(consortiumId, tenantDto);
-    validateCodeAndNameUniqueness(tenantDto);
+    tenantService.checkTenantUniqueNameAndCodeOrThrow(tenantDto);
 
     createCustomFieldIfNeeded(tenantDto.getId());
 
@@ -228,15 +228,6 @@ public class TenantManagerImpl implements TenantManager {
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
     if (tenantDto.getIsCentral() && tenantService.centralTenantExists()) {
       throw new ResourceAlreadyExistException("isCentral", "true");
-    }
-  }
-
-  private void validateCodeAndNameUniqueness(Tenant tenant) {
-    if (tenantService.tenantWithNameExists(tenant.getName(), tenant.getId())) {
-      throw new ResourceAlreadyExistException("name", tenant.getName());
-    }
-    if (tenantService.tenantWithNameExists(tenant.getCode(), tenant.getId())) {
-      throw new ResourceAlreadyExistException("code", tenant.getCode());
     }
   }
 

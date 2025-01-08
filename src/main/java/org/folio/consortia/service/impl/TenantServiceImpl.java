@@ -13,6 +13,7 @@ import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.entity.TenantDetailsEntity;
 import org.folio.consortia.domain.entity.TenantEntity;
 import org.folio.consortia.domain.entity.UserTenantEntity;
+import org.folio.consortia.exception.ResourceAlreadyExistException;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.TenantDetailsRepository;
 import org.folio.consortia.repository.TenantRepository;
@@ -88,11 +89,6 @@ public class TenantServiceImpl implements TenantService {
   }
 
   @Override
-  public boolean tenantWithNameExists(String name, String tenantId) {
-    return tenantRepository.existsByNameForOtherTenant(name, tenantId);
-  }
-
-  @Override
   public Tenant saveTenant(TenantEntity tenantEntity) {
     log.debug("saveTenant:: Trying to save tenant with consoritumId={} and tenant with id={}",
       tenantEntity.getConsortiumId(), tenantEntity.getId());
@@ -128,6 +124,16 @@ public class TenantServiceImpl implements TenantService {
       folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext))) {
       tenantDetailsRepository.setSetupStatusByTenantId(setupStatus, tenantId);
       log.info("updateTenantSetupStatus:: tenant id={} status updated to {}", tenantId, setupStatus);
+    }
+  }
+
+  @Override
+  public void checkTenantUniqueNameAndCodeOrThrow(Tenant tenant) {
+    if (tenantRepository.existsByNameForOtherTenant(tenant.getName(), tenant.getId())) {
+      throw new ResourceAlreadyExistException("name", tenant.getName());
+    }
+    if (tenantRepository.existsByCodeForOtherTenant(tenant.getCode(), tenant.getId())) {
+      throw new ResourceAlreadyExistException("code", tenant.getCode());
     }
   }
 
