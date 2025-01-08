@@ -1,5 +1,6 @@
 package org.folio.consortia.service;
 
+import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import java.util.List;
 import java.util.UUID;
@@ -30,28 +31,40 @@ public interface TenantService {
   TenantCollection getAll(UUID consortiumId);
 
   /**
-   * Inserts single tenant based on consortiumId.
-   * Method checks whether requesting tenant is soft deleted or new tenant.
-   * For re-adding soft deleted tenant,
-   *   tenant is_deleted flag will be changed to false and dummy user will be created in mod_users.user-tenants table
-   * For new tenant, all necessary actions will be done.
+   * Inserts single tenant
    *
-   * @param consortiumId  the consortiumId
-   * @param tenantDto  the tenantDto
-   * @param adminUserId the id of admin_user
+   * @param tenantEntity the tenant entity
    * @return tenantDto
    */
-  Tenant save(UUID consortiumId, UUID adminUserId, Tenant tenantDto);
+  Tenant saveTenant(TenantEntity tenantEntity);
 
   /**
-   * Updates single tenant based on consortiumId.
+   * Inserts single tenant based on consortiumId
    *
    * @param consortiumId  the consortiumId
-   * @param tenantId the tenantId
    * @param tenantDto  the tenantDto
    * @return tenantDto
    */
-  Tenant update(UUID consortiumId, String tenantId, Tenant tenantDto);
+  Tenant saveTenant(UUID consortiumId, Tenant tenantDto);
+
+  /**
+   * Inserts single tenant based on consortiumId and setup status
+   *
+   * @param consortiumId  the consortiumId
+   * @param tenantDto  the tenantDto
+   * @param setupStatus  the setup status
+   * @return tenantDto
+   */
+  Tenant saveTenantDetails(UUID consortiumId, Tenant tenantDto, TenantDetails.SetupStatusEnum setupStatus);
+
+  /**
+   * Inserts single user tenant based on consortiumId
+   *
+   * @param consortiumId  the consortiumId
+   * @param user  the user
+   * @param tenantDto  the tenantDto
+   */
+  void saveUserTenant(UUID consortiumId, User user, Tenant tenantDto);
 
   /**
    * Updates tenant's setup status.
@@ -61,13 +74,6 @@ public interface TenantService {
    * @param setupStatus  the setup status
    */
   void updateTenantSetupStatus(String tenantId, String centralTenantId, SetupStatusEnum setupStatus);
-
-  /**
-   * Deletes single tenant based on consortiumId.
-   * @param consortiumId the consortiumId
-   * @param tenantId the tenantId
-   */
-  void delete(UUID consortiumId, String tenantId);
 
   /**
    * Gets tenant entity based on tenantId.
@@ -91,6 +97,18 @@ public interface TenantService {
    * @return central tenant id
    */
   String getCentralTenantId();
+
+  /**
+   * Checks if central tenant exists
+   * @return true if central tenant exists, false otherwise
+   */
+  boolean centralTenantExists();
+
+  /**
+   * Checks if tenant with given name exists
+   * @return true if tenant with given name exists, false otherwise
+   */
+  boolean tenantWithNameExists(String name, String tenantId);
 
   /**
    * Check for tenant existence in consortia
