@@ -8,7 +8,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -35,6 +35,7 @@ import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
 import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserCollection;
 import org.folio.spring.FolioExecutionContext;
+import org.folio.spring.data.OffsetRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -164,13 +165,18 @@ class SyncPrimaryAffiliationServiceImplTest {
 
     var spab = getSyncBody(tenantId);
 
+    doNothing().when(tenantService).updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.COMPLETED);
     // stub collection of 2 users
     when(userService.getUsersByQuery(eq(CQL_GET_USERS), anyInt(), anyInt())).thenReturn(userCollection);
+    // stub userTenantRepository to return page with 1 element for each user to skip affiliation creation
+    userCollection.forEach(user ->
+      when(userTenantRepository.findAnyByUserId(UUID.fromString(user.getId()), OffsetRequest.of(0, 1)))
+        .thenReturn(new PageImpl<>(Collections.singletonList(new UserTenantEntity()))));
 
     syncPrimaryAffiliationService.syncPrimaryAffiliationsInternal(consortiumId, tenantId, centralTenantId);
 
     verify(syncPrimaryAffiliationService, timeout(2000)).createPrimaryUserAffiliationsInternal(consortiumId, centralTenantId, spab);
-    verify(tenantService, never()).updateTenantSetupStatus(any(), any(), any());
+    verify(tenantService).updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.COMPLETED);
   }
 
   @Test
