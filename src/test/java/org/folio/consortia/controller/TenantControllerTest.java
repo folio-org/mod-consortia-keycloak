@@ -97,9 +97,7 @@ class TenantControllerTest extends BaseIT {
   @MockBean
   UserTenantRepository userTenantRepository;
   @MockBean
-  ConsortiaConfigurationServiceImpl configurationService;
-  @MockBean
-  ConsortiaConfigurationService consortiaConfigurationService;
+  ConsortiaConfigurationService configurationService;
   @MockBean
   KafkaService kafkaService;
   @MockBean
@@ -171,7 +169,7 @@ class TenantControllerTest extends BaseIT {
     when(tenantDetailsRepository.save(any(TenantDetailsEntity.class))).thenReturn(tenantDetailsEntity);
     when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(centralTenant));
     doNothing().when(syncPrimaryAffiliationService).syncPrimaryAffiliations(any(UUID.class), anyString(), anyString());
-    when(consortiaConfigurationService.createConfiguration(CENTRAL_TENANT_ID)).thenReturn(createConsortiaConfiguration(CENTRAL_TENANT_ID));
+    when(configurationService.createConfiguration(CENTRAL_TENANT_ID)).thenReturn(createConsortiaConfiguration(CENTRAL_TENANT_ID));
 
     this.mockMvc.perform(
         post("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/tenants?adminUserId=" + adminUser.getId())
@@ -274,7 +272,7 @@ class TenantControllerTest extends BaseIT {
 
     doReturn(new User()).when(usersKeycloakClient).getUsersByUserId(any());
     when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(centralTenant));
-    when(consortiaConfigurationService.createConfiguration(CENTRAL_TENANT_ID)).thenReturn(createConsortiaConfiguration(CENTRAL_TENANT_ID));
+    when(configurationService.createConfiguration(CENTRAL_TENANT_ID)).thenReturn(createConsortiaConfiguration(CENTRAL_TENANT_ID));
 
     this.mockMvc.perform(post("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/tenants?adminUserId=111841e3-e6fb-4191-9fd8-5674a5107c34")
         .headers(headers).content(contentString))
@@ -313,7 +311,7 @@ class TenantControllerTest extends BaseIT {
     when(consortiumRepository.existsById(consortiumId)).thenReturn(true);
     when(tenantRepository.existsById(any(String.class))).thenReturn(false);
     when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(centralTenant));
-    when(consortiaConfigurationService.createConfiguration(CENTRAL_TENANT_ID)).thenReturn(createConsortiaConfiguration(CENTRAL_TENANT_ID));
+    when(configurationService.createConfiguration(CENTRAL_TENANT_ID)).thenReturn(createConsortiaConfiguration(CENTRAL_TENANT_ID));
 
     Set<ConstraintViolation<?>> constraintViolations = new HashSet<>();
     constraintViolations.add(mock(ConstraintViolation.class));
