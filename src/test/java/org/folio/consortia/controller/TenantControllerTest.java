@@ -35,7 +35,6 @@ import java.util.Set;
 import java.util.UUID;
 import org.folio.consortia.base.BaseIT;
 import org.folio.consortia.client.CapabilitySetsClient;
-import org.folio.consortia.client.SyncPrimaryAffiliationClient;
 import org.folio.consortia.client.UserCapabilitySetsClient;
 import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.client.UsersClient;
@@ -56,6 +55,7 @@ import org.folio.consortia.repository.TenantDetailsRepository;
 import org.folio.consortia.repository.TenantRepository;
 import org.folio.consortia.repository.UserTenantRepository;
 import org.folio.consortia.service.ConsortiaConfigurationService;
+import org.folio.consortia.service.SyncPrimaryAffiliationService;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
 import org.folio.consortia.service.UserTenantService;
@@ -119,7 +119,7 @@ class TenantControllerTest extends BaseIT {
   @MockBean
   UserTenantsClient userTenantsClient;
   @MockBean
-  SyncPrimaryAffiliationClient syncPrimaryAffiliationClient;
+  SyncPrimaryAffiliationService syncPrimaryAffiliationService;
   @MockBean
   UsersKeycloakClient usersKeycloakClient;
   @MockBean
@@ -170,7 +170,7 @@ class TenantControllerTest extends BaseIT {
     when(tenantRepository.existsById(any())).thenReturn(false);
     when(tenantDetailsRepository.save(any(TenantDetailsEntity.class))).thenReturn(tenantDetailsEntity);
     when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(centralTenant));
-    doNothing().when(syncPrimaryAffiliationClient).syncPrimaryAffiliations(anyString(), anyString(), anyString());
+    doNothing().when(syncPrimaryAffiliationService).syncPrimaryAffiliations(any(UUID.class), anyString(), anyString());
     when(consortiaConfigurationService.createConfiguration(CENTRAL_TENANT_ID)).thenReturn(createConsortiaConfiguration(CENTRAL_TENANT_ID));
 
     this.mockMvc.perform(

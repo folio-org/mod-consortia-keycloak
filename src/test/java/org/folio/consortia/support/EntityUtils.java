@@ -28,6 +28,9 @@ import org.folio.consortia.domain.entity.SharingSettingEntity;
 import org.folio.consortia.domain.entity.TenantDetailsEntity;
 import org.folio.consortia.domain.entity.TenantEntity;
 import org.folio.consortia.domain.entity.UserTenantEntity;
+import org.folio.spring.DefaultFolioExecutionContext;
+import org.folio.spring.FolioExecutionContext;
+import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.springframework.http.HttpMethod;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
@@ -445,5 +448,17 @@ public class EntityUtils {
     map.put(TOKEN, List.of(TOKEN));
     map.put(XOkapiHeaders.USER_ID, List.of(UUID.randomUUID().toString()));
     return map;
+  }
+
+  public static FolioExecutionContext getFolioExecutionContext() {
+    return new DefaultFolioExecutionContext(new FolioModuleMetadata() {
+      public String getModuleName() {
+        return "mod-consortia-keycloak";
+      }
+
+      public String getDBSchemaName(String tenantId) {
+        return "mod_consortia_keycloak";
+      }
+    }, createOkapiHeaders());
   }
 }

@@ -8,6 +8,7 @@ import static org.folio.consortia.support.EntityUtils.createTenant;
 import static org.folio.consortia.support.EntityUtils.createTenantDetailsEntity;
 import static org.folio.consortia.support.EntityUtils.createTenantEntity;
 import static org.folio.consortia.support.EntityUtils.createUser;
+import static org.folio.consortia.support.EntityUtils.getFolioExecutionContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -32,7 +33,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import org.folio.consortia.client.SyncPrimaryAffiliationClient;
 import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantDetails;
@@ -44,6 +44,7 @@ import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.TenantDetailsRepository;
 import org.folio.consortia.repository.TenantRepository;
 import org.folio.consortia.repository.UserTenantRepository;
+import org.folio.consortia.service.impl.TenantManagerImpl;
 import org.folio.consortia.service.impl.TenantServiceImpl;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.context.ExecutionContextBuilder;
@@ -51,9 +52,10 @@ import org.folio.spring.data.OffsetRequest;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -64,12 +66,10 @@ import org.springframework.data.domain.PageImpl;
 @SpringBootTest
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 @EntityScan(basePackageClasses = TenantEntity.class)
-class TenantServiceTest {
+class TenantManagerTest {
 
   private final static String CONSORTIUM_ID = "7698e46-c3e3-11ed-afa1-0242ac120002";
 
-  @InjectMocks
-  private TenantServiceImpl tenantService;
   @Mock
   private TenantRepository tenantRepository;
   @Mock
@@ -80,8 +80,8 @@ class TenantServiceTest {
   private ConversionService conversionService;
   @Mock
   private ConsortiumService consortiumService;
-  @Mock
-  private FolioExecutionContext folioExecutionContext;
+  @Spy
+  private FolioExecutionContext folioExecutionContext = getFolioExecutionContext();
   @Mock
   private ConsortiaConfigurationService consortiaConfigurationService;
   @Mock
@@ -93,7 +93,7 @@ class TenantServiceTest {
   @Mock
   private UserTenantsClient userTenantsClient;
   @Mock
-  private SyncPrimaryAffiliationClient syncPrimaryAffiliationClient;
+  private SyncPrimaryAffiliationService syncPrimaryAffiliationService;
   @Mock
   private CleanupService cleanupService;
   @Mock
@@ -102,6 +102,16 @@ class TenantServiceTest {
   private SystemUserScopedExecutionService systemUserScopedExecutionService;
   @Mock
   private CustomFieldService customFieldService;
+
+  private TenantManager tenantManager;
+  private TenantService tenantService;
+
+  @BeforeEach
+  void setUp() {
+    tenantService = new TenantServiceImpl(tenantRepository, userTenantRepository, tenantDetailsRepository, conversionService, consortiumService, folioExecutionContext);
+    tenantManager = new TenantManagerImpl(tenantService, consortiumService, consortiaConfigurationService, syncPrimaryAffiliationService, userService, capabilitiesUserService,
+      customFieldService, cleanupService, lockService, userTenantsClient, systemUserScopedExecutionService, executionContextBuilder, folioExecutionContext);
+  }
 
   @Test
   void shouldGetTenantList() {
@@ -163,7 +173,7 @@ class TenantServiceTest {
         return action.call();
       });
 
-    var tenant1 = tenantService.save(consortiumId, UUID.fromString(adminUser.getId()), tenant);
+    var tenant1 = tenantManager.save(consortiumId, UUID.fromString(adminUser.getId()), tenant);
 
     verify(userService, times(1)).prepareShadowUser(UUID.fromString(adminUser.getId()), "diku");
     verify(userTenantRepository, times(1)).save(any());
@@ -206,7 +216,7 @@ class TenantServiceTest {
         return action.call();
       });
 
-    var tenant1 = tenantService.save(consortiumId, UUID.randomUUID(), tenant);
+    var tenant1 = tenantManager.save(consortiumId, UUID.randomUUID(), tenant);
 
     verify(consortiaConfigurationService).createConfiguration(any());
     verify(lockService).lockTenantSetupWithinTransaction();
@@ -241,7 +251,7 @@ class TenantServiceTest {
     doReturn(folioExecutionContext).when(executionContextBuilder).buildContext(anyString());
     mockOkapiHeaders();
 
-    var actualTenant = tenantService.save(consortiumId, UUID.randomUUID(), newTenant);
+    var actualTenant = tenantManager.save(consortiumId, UUID.randomUUID(), newTenant);
 
     verifyNoInteractions(consortiaConfigurationService);
     verifyNoInteractions(lockService);
@@ -265,7 +275,7 @@ class TenantServiceTest {
     when(conversionService.convert(existingTenant, Tenant.class)).thenReturn(tenant);
     mockOkapiHeaders();
 
-    var tenant1 = tenantService.update(UUID.fromString(CONSORTIUM_ID), tenant.getId(), tenant);
+    var tenant1 = tenantManager.update(UUID.fromString(CONSORTIUM_ID), tenant.getId(), tenant);
     Assertions.assertEquals(tenant.getId(), tenant1.getId());
     Assertions.assertEquals("TestName2", tenant1.getName());
   }
@@ -284,7 +294,7 @@ class TenantServiceTest {
     doReturn(folioExecutionContext).when(executionContextBuilder).buildContext(anyString());
     mockOkapiHeaders();
 
-    tenantService.delete(consortiumId, TENANT_ID);
+    tenantManager.delete(consortiumId, TENANT_ID);
 
     // Assert
     verify(consortiumService).checkConsortiumExistsOrThrow(consortiumId);
@@ -304,7 +314,7 @@ class TenantServiceTest {
 
     // Call the method
     assertThrows(ResourceNotFoundException.class, () ->
-      tenantService.delete(consortiumId, tenantId));
+      tenantManager.delete(consortiumId, tenantId));
   }
 
   @Test
@@ -320,7 +330,7 @@ class TenantServiceTest {
 
     // Assert
     assertThrows(java.lang.IllegalArgumentException.class, () ->
-      tenantService.delete(consortiumId, TENANT_ID));
+      tenantManager.delete(consortiumId, TENANT_ID));
 
     verify(consortiumService).checkConsortiumExistsOrThrow(consortiumId);
     verify(tenantRepository).findById(TENANT_ID);
@@ -334,26 +344,20 @@ class TenantServiceTest {
     TenantDetailsEntity tenantDetailsEntity = createTenantDetailsEntity("TestID", "TestName1");
     Tenant tenant = createTenant("TestID", "TestName2");
 
-    when(tenantRepository.existsById(any())).thenReturn(false);
     when(tenantDetailsRepository.save(any(TenantDetailsEntity.class))).thenReturn(tenantDetailsEntity);
-    when(conversionService.convert(tenantDetailsEntity, Tenant.class)).thenReturn(tenant);
 
     assertThrows(java.lang.IllegalArgumentException.class, () ->
-      tenantService.save(UUID.fromString(CONSORTIUM_ID), null, tenant));
+      tenantManager.save(UUID.fromString(CONSORTIUM_ID), null, tenant));
   }
 
   @Test
   void shouldThrowExceptionWhileSavingWithDuplicateCodeOrName() {
-    TenantEntity tenantEntity1 = createTenantEntity("TestID", "TestName1");
     Tenant tenant = createTenant("TestID", "TestName2");
 
-    when(tenantRepository.existsById(any())).thenReturn(false);
-    when(tenantRepository.save(any(TenantEntity.class))).thenReturn(tenantEntity1);
     when(tenantRepository.existsByCodeForOtherTenant(anyString(), anyString())).thenReturn(true);
-    when(conversionService.convert(tenantEntity1, Tenant.class)).thenReturn(tenant);
 
     assertThrows(ResourceAlreadyExistException.class, () ->
-      tenantService.save(UUID.fromString(CONSORTIUM_ID), UUID.randomUUID(), tenant));
+      tenantManager.save(UUID.fromString(CONSORTIUM_ID), UUID.randomUUID(), tenant));
   }
 
   @Test
@@ -364,7 +368,7 @@ class TenantServiceTest {
     when(tenantRepository.findById(tenant.getId() + "1234")).thenReturn(Optional.of(existingTenant));
 
     assertThrows(java.lang.IllegalArgumentException.class, () ->
-      tenantService.update(UUID.fromString(CONSORTIUM_ID), tenant.getId() + "1234", tenant));
+      tenantManager.update(UUID.fromString(CONSORTIUM_ID), tenant.getId() + "1234", tenant));
   }
 
   @Test
@@ -375,7 +379,7 @@ class TenantServiceTest {
     when(conversionService.convert(tenantEntity1, Tenant.class)).thenReturn(tenant);
 
     assertThrows(ResourceNotFoundException.class, () ->
-      tenantService.update(UUID.fromString(CONSORTIUM_ID), tenant.getId() + "1234", tenant));
+      tenantManager.update(UUID.fromString(CONSORTIUM_ID), tenant.getId() + "1234", tenant));
   }
 
   @Test
@@ -386,7 +390,7 @@ class TenantServiceTest {
     when(tenantRepository.findById(tenant.getId())).thenReturn(Optional.of(existedTenant));
 
     assertThrows(ResourceAlreadyExistException.class,
-      () -> tenantService.save(UUID.fromString(CONSORTIUM_ID), null, tenant));
+      () -> tenantManager.save(UUID.fromString(CONSORTIUM_ID), null, tenant));
   }
 
   @Test
@@ -397,7 +401,7 @@ class TenantServiceTest {
     mockOkapiHeaders();
 
     assertThrows(ResourceAlreadyExistException.class, () ->
-      tenantService.save(UUID.fromString(CONSORTIUM_ID), null, tenant));
+      tenantManager.save(UUID.fromString(CONSORTIUM_ID), null, tenant));
   }
 
   @Test
@@ -452,7 +456,7 @@ class TenantServiceTest {
       });
     doThrow(new RuntimeException("Error")).when(customFieldService).createCustomField(ORIGINAL_TENANT_ID_CUSTOM_FIELD);
 
-    assertThrows(RuntimeException.class, () -> tenantService.save(consortiumId, UUID.fromString(adminUser.getId()), tenant));
+    assertThrows(RuntimeException.class, () -> tenantManager.save(consortiumId, UUID.fromString(adminUser.getId()), tenant));
   }
 
   private void mockOkapiHeaders() {
