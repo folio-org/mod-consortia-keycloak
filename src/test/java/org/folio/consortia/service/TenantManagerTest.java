@@ -68,7 +68,7 @@ import org.springframework.data.domain.PageImpl;
 @EntityScan(basePackageClasses = TenantEntity.class)
 class TenantManagerTest {
 
-  private final static String CONSORTIUM_ID = "7698e46-c3e3-11ed-afa1-0242ac120002";
+  private static final UUID CONSORTIUM_ID = UUID.fromString("7698e46-c3e3-11ed-afa1-0242ac120002");
 
   @Mock
   private TenantRepository tenantRepository;
@@ -150,7 +150,6 @@ class TenantManagerTest {
 
   @Test
   void shouldSaveNotCentralTenantWithNewUserAndPermissions() {
-    UUID consortiumId = UUID.fromString(CONSORTIUM_ID);
     TenantDetailsEntity localTenantDetailsEntity = createTenantDetailsEntity("ABC1", "TestName1");
     Tenant tenant = createTenant("TestID", "Test");
     TenantEntity centralTenant = createTenantEntity("diku", "diku");
@@ -173,7 +172,7 @@ class TenantManagerTest {
         return action.call();
       });
 
-    var tenant1 = tenantManager.save(consortiumId, UUID.fromString(adminUser.getId()), tenant);
+    var tenant1 = tenantManager.save(CONSORTIUM_ID, UUID.fromString(adminUser.getId()), tenant);
 
     verify(userService, times(1)).prepareShadowUser(UUID.fromString(adminUser.getId()), "diku");
     verify(userTenantRepository, times(1)).save(any());
@@ -189,7 +188,6 @@ class TenantManagerTest {
 
   @Test
   void shouldSaveCentralTenantWithExistingAndPermissions() {
-    UUID consortiumId = UUID.fromString(CONSORTIUM_ID);
     TenantDetailsEntity tenantDetailsEntity = createTenantDetailsEntity("ABC1", "TestName1");
     Tenant tenant = createTenant("TestID", "Test", true);
     TenantEntity centralTenant = createTenantEntity(TENANT_ID);
@@ -216,7 +214,7 @@ class TenantManagerTest {
         return action.call();
       });
 
-    var tenant1 = tenantManager.save(consortiumId, UUID.randomUUID(), tenant);
+    var tenant1 = tenantManager.save(CONSORTIUM_ID, UUID.randomUUID(), tenant);
 
     verify(consortiaConfigurationService).createConfiguration(any());
     verify(lockService).lockTenantSetupWithinTransaction();
@@ -234,7 +232,6 @@ class TenantManagerTest {
 
   @Test
   void shouldReAddSoftDeletedTenant() {
-    UUID consortiumId = UUID.fromString(CONSORTIUM_ID);
     Tenant newTenant = createTenant("TestID", "Test", false);
     TenantEntity existedTenant = createTenantEntity("TestID");
     existedTenant.setIsDeleted(true);
@@ -251,7 +248,7 @@ class TenantManagerTest {
     doReturn(folioExecutionContext).when(executionContextBuilder).buildContext(anyString());
     mockOkapiHeaders();
 
-    var actualTenant = tenantManager.save(consortiumId, UUID.randomUUID(), newTenant);
+    var actualTenant = tenantManager.save(CONSORTIUM_ID, UUID.randomUUID(), newTenant);
 
     verifyNoInteractions(consortiaConfigurationService);
     verifyNoInteractions(lockService);
@@ -275,7 +272,7 @@ class TenantManagerTest {
     when(conversionService.convert(existingTenant, Tenant.class)).thenReturn(tenant);
     mockOkapiHeaders();
 
-    var tenant1 = tenantManager.update(UUID.fromString(CONSORTIUM_ID), tenant.getId(), tenant);
+    var tenant1 = tenantManager.update(CONSORTIUM_ID, tenant.getId(), tenant);
     Assertions.assertEquals(tenant.getId(), tenant1.getId());
     Assertions.assertEquals("TestName2", tenant1.getName());
   }
@@ -347,7 +344,7 @@ class TenantManagerTest {
     when(tenantDetailsRepository.save(any(TenantDetailsEntity.class))).thenReturn(tenantDetailsEntity);
 
     assertThrows(java.lang.IllegalArgumentException.class, () ->
-      tenantManager.save(UUID.fromString(CONSORTIUM_ID), null, tenant));
+      tenantManager.save(CONSORTIUM_ID, null, tenant));
   }
 
   @Test
@@ -356,8 +353,9 @@ class TenantManagerTest {
 
     when(tenantRepository.existsByCodeForOtherTenant(anyString(), anyString())).thenReturn(true);
 
+    var adminUserId = UUID.randomUUID();
     assertThrows(ResourceAlreadyExistException.class, () ->
-      tenantManager.save(UUID.fromString(CONSORTIUM_ID), UUID.randomUUID(), tenant));
+      tenantManager.save(CONSORTIUM_ID, adminUserId, tenant));
   }
 
   @Test
@@ -367,8 +365,9 @@ class TenantManagerTest {
 
     when(tenantRepository.findById(tenant.getId() + "1234")).thenReturn(Optional.of(existingTenant));
 
+    var tenantId = tenant.getId() + "1234";
     assertThrows(java.lang.IllegalArgumentException.class, () ->
-      tenantManager.update(UUID.fromString(CONSORTIUM_ID), tenant.getId() + "1234", tenant));
+      tenantManager.update(CONSORTIUM_ID, tenantId, tenant));
   }
 
   @Test
@@ -378,8 +377,9 @@ class TenantManagerTest {
 
     when(conversionService.convert(tenantEntity1, Tenant.class)).thenReturn(tenant);
 
+    var tenantId = tenant.getId() + "1234";
     assertThrows(ResourceNotFoundException.class, () ->
-      tenantManager.update(UUID.fromString(CONSORTIUM_ID), tenant.getId() + "1234", tenant));
+      tenantManager.update(CONSORTIUM_ID, tenantId, tenant));
   }
 
   @Test
@@ -390,7 +390,7 @@ class TenantManagerTest {
     when(tenantRepository.findById(tenant.getId())).thenReturn(Optional.of(existedTenant));
 
     assertThrows(ResourceAlreadyExistException.class,
-      () -> tenantManager.save(UUID.fromString(CONSORTIUM_ID), null, tenant));
+      () -> tenantManager.save(CONSORTIUM_ID, null, tenant));
   }
 
   @Test
@@ -401,7 +401,7 @@ class TenantManagerTest {
     mockOkapiHeaders();
 
     assertThrows(ResourceAlreadyExistException.class, () ->
-      tenantManager.save(UUID.fromString(CONSORTIUM_ID), null, tenant));
+      tenantManager.save(CONSORTIUM_ID, null, tenant));
   }
 
   @Test
@@ -456,7 +456,8 @@ class TenantManagerTest {
       });
     doThrow(new RuntimeException("Error")).when(customFieldService).createCustomField(ORIGINAL_TENANT_ID_CUSTOM_FIELD);
 
-    assertThrows(RuntimeException.class, () -> tenantManager.save(consortiumId, UUID.fromString(adminUser.getId()), tenant));
+    var adminUserId = UUID.fromString(adminUser.getId());
+    assertThrows(RuntimeException.class, () -> tenantManager.save(consortiumId, adminUserId, tenant));
   }
 
   private void mockOkapiHeaders() {

@@ -117,7 +117,7 @@ public class SyncPrimaryAffiliationServiceImpl implements SyncPrimaryAffiliation
   }
 
   @Transactional
-  void createPrimaryUserAffiliationsInternal(UUID consortiumId, String centralTenantId, SyncPrimaryAffiliationBody syncPrimaryAffiliationBody) {
+  public void createPrimaryUserAffiliationsInternal(UUID consortiumId, String centralTenantId, SyncPrimaryAffiliationBody syncPrimaryAffiliationBody) {
     try {
       log.info("Start creating user primary affiliation for tenant {}", syncPrimaryAffiliationBody.getTenantId());
       lockService.lockTenantSetupWithinTransaction();
