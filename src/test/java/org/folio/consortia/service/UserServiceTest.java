@@ -21,6 +21,8 @@ import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -87,6 +89,24 @@ class UserServiceTest {
     assertEquals("Test@mail.com", shadow.getPersonal().getEmail());
     assertEquals("email", shadow.getPersonal().getPreferredContactTypeId());
     assertNull(shadow.getBarcode());
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = UserType.class, names = {"PATRON", "DCB", "SHADOW", "SYSTEM"})
+  void shouldThrowIllegalStateExceptionForNotApplicableUserType(UserType userType) {
+    String tenantId = "diku";
+    when(folioExecutionContext.getTenantId()).thenReturn(tenantId);
+    Map<String, Collection<String>> okapiHeaders = createOkapiHeaders();
+    when(folioExecutionContext.getOkapiHeaders()).thenReturn(okapiHeaders);
+
+    UUID userId = UUID.randomUUID();
+    User realUser = createUserEntity(true);
+    realUser.setType(userType.getName());
+
+    when(usersKeycloakClient.getUsersByUserId(userId.toString())).thenReturn(realUser);
+
+    IllegalStateException exception = assertThrows(IllegalStateException.class, () -> userService.prepareShadowUser(userId, tenantId));
+    assertEquals("User type is not applicable for shadow user creation", exception.getMessage());
   }
 
   private void mockOkapiHeaders() {
