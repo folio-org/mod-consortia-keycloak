@@ -1,6 +1,8 @@
 package org.folio.consortia.service.impl;
 
 import java.util.List;
+import java.util.function.Supplier;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
@@ -37,8 +39,22 @@ public class ConsortiaConfigurationServiceImpl implements ConsortiaConfiguration
   }
 
   @Override
-  public ConsortiaConfiguration createConfiguration(String centralTenantId) {
-    checkAnyConsortiaConfigurationNotExistsOrThrow();
+  public ConsortiaConfiguration createConfiguration(String centralTenantId) throws ResourceAlreadyExistException {
+    return createConfiguration(centralTenantId, () -> {
+      throw new ResourceAlreadyExistException(CONSORTIA_CONFIGURATION_EXIST_MSG_TEMPLATE);
+    });
+  }
+
+  @Override
+  public void createConfigurationIfNeeded(String centralTenantId) {
+    createConfiguration(centralTenantId, this::getConsortiaConfiguration);
+  }
+
+  private ConsortiaConfiguration createConfiguration(String centralTenantId, Supplier<ConsortiaConfiguration> supplierIfConfigExists) {
+    if (configurationRepository.count() > 0) {
+      log.info("createConfiguration:: Configuration already exists for central tenant: '{}'", centralTenantId);
+      return supplierIfConfigExists.get();
+    }
     ConsortiaConfigurationEntity configuration = new ConsortiaConfigurationEntity();
     configuration.setCentralTenantId(centralTenantId);
     return converter.convert(configurationRepository.save(configuration), ConsortiaConfiguration.class);
@@ -51,16 +67,6 @@ public class ConsortiaConfigurationServiceImpl implements ConsortiaConfiguration
     }
     log.info("getConfiguration:: configuration with centralTenantId={} is retrieved", configList.get(0).getCentralTenantId());
     return configList.get(0);
-  }
-
-  public boolean isCentralTenantConfigurationExists() {
-    return configurationRepository.count() > 0;
-  }
-
-  private void checkAnyConsortiaConfigurationNotExistsOrThrow() {
-    if (configurationRepository.count() > 0) {
-      throw new ResourceAlreadyExistException(CONSORTIA_CONFIGURATION_EXIST_MSG_TEMPLATE);
-    }
   }
 
 }

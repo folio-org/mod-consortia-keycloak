@@ -1,6 +1,7 @@
 package org.folio.consortia.service;
 
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
+import org.folio.consortia.exception.ResourceAlreadyExistException;
 
 public interface ConsortiaConfigurationService {
   /**
@@ -24,12 +25,16 @@ public interface ConsortiaConfigurationService {
    * This configuration will be stored in requested tenant schema
    *
    * @param centralTenantId id of central tenant for requested tenant
+   * @throws ResourceAlreadyExistException if configuration already exists
    */
-  ConsortiaConfiguration createConfiguration(String centralTenantId);
+  ConsortiaConfiguration createConfiguration(String centralTenantId) throws ResourceAlreadyExistException;
 
   /**
-   * Check if there is any central tenant
-   * @return boolean value based one whether central tenant configuration exists or not
+   * Check if there exists a central tenant configuration;
+   * if not then save new configuration with central tenant id as value.
+   * This configuration will be stored in requested tenant schema
+   *
+   * @param centralTenantId id of central tenant for requested tenant
    */
-  boolean isCentralTenantConfigurationExists();
+  void createConfigurationIfNeeded(String centralTenantId);
 }

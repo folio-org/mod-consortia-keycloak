@@ -138,8 +138,10 @@ public class TenantManagerImpl implements TenantManager {
 
     String centralTenantId = tenantService.getCentralTenantId();
     try (var ignored = new FolioExecutionContextSetter(contextBuilder.buildContext(tenantDto.getId()))) {
-      createUserTenantWithDummyUser(tenantDto.getId(), centralTenantId, consortiumId);
-      log.info("reAddSoftDeletedTenant:: Dummy user re-created in user-tenants table");
+      if (isUserTenantsEmpty()) {
+        createUserTenantWithDummyUser(tenantDto.getId(), centralTenantId, consortiumId);
+        log.info("reAddSoftDeletedTenant:: Dummy user re-created in user-tenants table");
+      }
     } catch (Exception e) {
       log.error("Failed to create dummy user with centralTenantId: {}, tenant: {}" +
         " and error message: {}", centralTenantId, tenantDto.getId(), e.getMessage(), e);
@@ -173,8 +175,8 @@ public class TenantManagerImpl implements TenantManager {
     var allHeaders = new CaseInsensitiveMap<>(folioExecutionContext.getOkapiHeaders());
     allHeaders.put("x-okapi-tenant", List.of(tenantDto.getId()));
     try (var ignored = new FolioExecutionContextSetter(folioExecutionContext.getFolioModuleMetadata(), allHeaders)) {
-      consortiaConfigurationService.createConfiguration(centralTenantId);
-      if (!tenantDto.getIsCentral()) {
+      consortiaConfigurationService.createConfigurationIfNeeded(centralTenantId);
+      if (!tenantDto.getIsCentral() && isUserTenantsEmpty()) {
         createUserTenantWithDummyUser(tenantDto.getId(), centralTenantId, consortiumId);
         createShadowAdminWithPermissions(finalShadowAdminUser);
         log.info("save:: shadow admin user '{}' with permissions was created in tenant '{}'", finalShadowAdminUser.getId(), tenantDto.getId());
@@ -192,6 +194,10 @@ public class TenantManagerImpl implements TenantManager {
       throw new ResourceNotFoundException("id", tenantId);
     }
     return tenant;
+  }
+
+  private boolean isUserTenantsEmpty() {
+    return userTenantsClient.getUserTenants().getTotalRecords().equals(0);
   }
 
   /**
