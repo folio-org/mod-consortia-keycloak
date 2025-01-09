@@ -1,6 +1,7 @@
 package org.folio.consortia.service;
 
 import static org.folio.consortia.service.impl.CustomFieldServiceImpl.ORIGINAL_TENANT_ID_CUSTOM_FIELD;
+import static org.folio.consortia.support.EntityUtils.CENTRAL_TENANT_ID;
 import static org.folio.consortia.support.EntityUtils.TENANT_ID;
 import static org.folio.consortia.support.EntityUtils.createOkapiHeaders;
 import static org.folio.consortia.support.EntityUtils.createTenant;
@@ -470,9 +471,9 @@ class TenantManagerTest {
 
   @Test
   void testAddNewTenantWithExistentUserTenant() {
-    Tenant tenant = createTenant("TestID", "Test");
-    TenantDetailsEntity tenantDetailsEntity = createTenantDetailsEntity("TestID", "Test");
-    TenantEntity centralTenant = createTenantEntity("diku", "diku");
+    Tenant tenant = createTenant(TENANT_ID);
+    TenantDetailsEntity tenantDetailsEntity = createTenantDetailsEntity(tenant.getId(), tenant.getName());
+    TenantEntity centralTenant = createTenantEntity(CENTRAL_TENANT_ID);
     User adminUser = createUser("diku_admin");
 
     when(tenantRepository.findById(tenant.getId())).thenReturn(Optional.empty());
@@ -502,21 +503,23 @@ class TenantManagerTest {
 
   @Test
   void testReAddSoftDeletedTenantWithExistentUserTenant() {
-    Tenant tenant = createTenant("TestID", "Test");
-    TenantDetailsEntity tenantDetailsEntity = createTenantDetailsEntity("TestID", "Test");
-    TenantEntity centralTenant = createTenantEntity("diku", "diku");
+    Tenant tenant = createTenant(TENANT_ID);
+    TenantEntity tenantEntity = createTenantEntity(TENANT_ID);
+    tenantEntity.setIsDeleted(true);
+    TenantDetailsEntity tenantDetailsEntity = createTenantDetailsEntity(tenant.getId(), tenant.getName());
+    TenantEntity centralTenant = createTenantEntity(CENTRAL_TENANT_ID);
     User adminUser = createUser("diku_admin");
 
-    when(tenantRepository.findById(tenant.getId())).thenReturn(Optional.empty());
+    when(tenantRepository.findById(tenant.getId())).thenReturn(Optional.of(tenantEntity));
     when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(centralTenant));
     when(tenantDetailsRepository.save(any(TenantDetailsEntity.class))).thenReturn(tenantDetailsEntity);
     when(conversionService.convert(tenantDetailsEntity, Tenant.class)).thenReturn(tenant);
+    when(executionContextBuilder.buildContext(anyString())).thenReturn(folioExecutionContext);
 
     when(userTenantsClient.getUserTenants()).thenReturn(new UserTenantCollection(List.of(), 1));
 
     var tenant1 = tenantManager.save(CONSORTIUM_ID, UUID.fromString(adminUser.getId()), tenant);
 
-    verify(lockService).lockTenantSetupWithinTransaction();
     verify(userTenantsClient, never()).postUserTenant(any());
     verify(customFieldService, never()).createCustomField(any());
 

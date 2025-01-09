@@ -46,6 +46,7 @@ import org.folio.consortia.domain.dto.SyncPrimaryAffiliationBody;
 import org.folio.consortia.domain.dto.SyncUser;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.User;
+import org.folio.consortia.domain.dto.UserTenantCollection;
 import org.folio.consortia.domain.entity.TenantDetailsEntity;
 import org.folio.consortia.domain.entity.TenantEntity;
 import org.folio.consortia.domain.entity.UserTenantEntity;
@@ -156,6 +157,7 @@ class TenantControllerTest extends BaseIT {
     tenantDetailsEntity.setId("diku1234");
 
     doNothing().when(userTenantsClient).postUserTenant(any());
+    when(userTenantsClient.getUserTenants()).thenReturn(new UserTenantCollection().totalRecords(0));
     when(userService.getByUsername(SYSTEM_USER_NAME)).thenReturn(Optional.of(systemUser));
     when(userService.prepareShadowUser(UUID.fromString(adminUser.getId()), TENANT)).thenReturn(adminUser);
     when(userService.prepareShadowUser(UUID.fromString(systemUser.getId()), TENANT)).thenReturn(systemUser);
