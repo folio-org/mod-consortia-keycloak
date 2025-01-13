@@ -76,8 +76,6 @@ folio:
   timer:
     publication-records-max-age-in-seconds: 86400
   max-active-threads: 5
-  platform: ${PLATFORM:okapi}
-
 feign:
   client:
     config:
