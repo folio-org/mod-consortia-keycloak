@@ -41,8 +41,6 @@ management:
 logging:
   level:
     org.springframework.web: debug
-related-modules:
-  mod-users-id: mod-users-id
 custom-fields:
   backoff-delay: 1000
   max-attempts: 5
