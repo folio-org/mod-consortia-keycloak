@@ -31,13 +31,9 @@ public class ModuleTenantServiceImpl implements ModuleTenantService {
   @Override
   @Cacheable(cacheNames = "modUsersModuleIds")
   public String getModUsersModuleId() {
-    var moduleId = getModUsersModuleIdForEureka();
-    return moduleId.orElseThrow(() -> new NotFoundException(MOD_USERS_NOT_FOUND_ERROR));
-  }
-
-  private Optional<String> getModUsersModuleIdForEureka() {
     var modules = eurekaProxyTenantsClient.getModules(URI.create(URL_PREFIX), folioExecutionContext.getTenantId());
-    return filterModUsersModuleId(modules);
+    var moduleId = filterModUsersModuleId(modules);
+    return moduleId.orElseThrow(() -> new NotFoundException(MOD_USERS_NOT_FOUND_ERROR));
   }
 
   private Optional<String> filterModUsersModuleId(List<ModuleForTenant> modules) {
