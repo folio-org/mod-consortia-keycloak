@@ -275,7 +275,7 @@ public class PublicationServiceImpl implements PublicationService {
     log.info("updatePublicationsStatus:: updated publication record {} with status {}", publicationStatusEntity.getId(), publicationStatusEntity.getStatus());
   }
 
-  private void validatePublicationRequest(UUID consortiumId, PublicationRequest publication, FolioExecutionContext context) {
+  protected void validatePublicationRequest(UUID consortiumId, PublicationRequest publication, FolioExecutionContext context) {
     if (CollectionUtils.isEmpty(publication.getTenants())) {
       throw new PublicationException(PublicationException.TENANT_LIST_EMPTY);
     }

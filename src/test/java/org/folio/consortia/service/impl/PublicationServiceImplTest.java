@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -15,7 +16,6 @@ import java.util.Set;
 import org.folio.consortia.domain.dto.PublicationHttpResponse;
 import org.folio.consortia.domain.entity.PublicationStatusEntity;
 import org.folio.consortia.domain.entity.PublicationTenantRequestEntity;
-import org.folio.consortia.exception.PublicationException;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.PublicationStatusRepository;
 import org.folio.consortia.repository.PublicationTenantRequestRepository;
@@ -30,6 +30,7 @@ import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserTenantService;
 import org.folio.consortia.base.BaseUnitTest;
+import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -206,17 +207,19 @@ class PublicationServiceImplTest extends BaseUnitTest {
   }
 
   @Test
-  void publishRequest_negative_systemUserContextWithoutUserId() {
-    var consortiumId = UUID.randomUUID();
-
-    var publicationRequest = new PublicationRequest();
+  void validatePublicationRequest_skipsPrimaryAffiliationCheckForSystemUser() {
+    UUID consortiumId = UUID.randomUUID();
+    PublicationRequest publicationRequest = new PublicationRequest();
     publicationRequest.setTenants(Set.of(CENTRAL_TENANT_NAME));
-    doNothing().when(tenantService).checkTenantsAndConsortiumExistsOrThrow(eq(consortiumId), any());
-    when(userTenantService.userHasPrimaryAffiliationByUsernameAndTenantId(anyString(), eq(CENTRAL_TENANT_NAME))).thenReturn(false);
-    when(folioExecutionContext.getUserId()).thenReturn(null);
-    when(folioExecutionContext.getInstance()).thenReturn(folioExecutionContext);
 
-    assertThrows(PublicationException.class, () ->
-      publicationService.publishRequest(consortiumId, publicationRequest));
+    FolioExecutionContext mockFolioExecutionContext = Mockito.mock(FolioExecutionContext.class);
+    when(mockFolioExecutionContext.getUserId()).thenReturn(null);
+    ReflectionTestUtils.setField(publicationService, "folioExecutionContext", mockFolioExecutionContext);
+
+    doNothing().when(tenantService).checkTenantsAndConsortiumExistsOrThrow(eq(consortiumId), any());
+
+    publicationService.validatePublicationRequest(consortiumId, publicationRequest, mockFolioExecutionContext);
+
+    verify(userTenantService, never()).checkUserIfHasPrimaryAffiliationByUserId(any(), anyString());
   }
 }
