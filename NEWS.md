@@ -1,3 +1,11 @@
+## 1.6.5 - Released (Ramsons R2 2024)
+The purpose of this release is to Remove unnecessary validation for checking primary affiliation for system user
+[Full Changelog](https://github.com/folio-org/mod-consortia-keycloak/compare/v1.6.4...v1.6.5)
+
+### Bug Fixes
+* [MODCONSKC-58](https://folio-org.atlassian.net/browse/MODCONSKC-58) - Remove unnecessary validation for checking primary affiliation for system user
+
+
 ## 1.6.4 - Released (Ramsons R2 2024)
 The purpose of this release is to skip creating shadow system users
 [Full Changelog](https://github.com/folio-org/mod-consortia-keycloak/compare/v1.6.3...v1.6.4)
