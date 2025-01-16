@@ -1,5 +1,6 @@
 package org.folio.consortia.service.impl;
 
+import static org.folio.consortia.utils.Constants.SYSTEM_USER_NAME;
 import static org.folio.spring.scope.FolioExecutionScopeExecutionContextManager.getRunnableWithCurrentFolioContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -275,7 +276,7 @@ public class PublicationServiceImpl implements PublicationService {
     log.info("updatePublicationsStatus:: updated publication record {} with status {}", publicationStatusEntity.getId(), publicationStatusEntity.getStatus());
   }
 
-  protected void validatePublicationRequest(UUID consortiumId, PublicationRequest publication, FolioExecutionContext context) {
+  private void validatePublicationRequest(UUID consortiumId, PublicationRequest publication, FolioExecutionContext context) {
     if (CollectionUtils.isEmpty(publication.getTenants())) {
       throw new PublicationException(PublicationException.TENANT_LIST_EMPTY);
     }
@@ -283,7 +284,10 @@ public class PublicationServiceImpl implements PublicationService {
 
     // condition to support eureka system user approach
     if (context.getUserId() == null) {
-      log.info("validatePublicationRequest:: skipping validating primary user affiliation for system user");
+      var userExists = userTenantService.userHasPrimaryAffiliationByUsernameAndTenantId(SYSTEM_USER_NAME, context.getTenantId());
+      if (!userExists) {
+        throw new PublicationException(PublicationException.PRIMARY_AFFILIATION_NOT_EXISTS);
+      }
       return;
     }
 
