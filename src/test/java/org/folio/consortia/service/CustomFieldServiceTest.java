@@ -7,7 +7,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import org.folio.consortia.client.CustomFieldsClient;
-import org.folio.consortia.config.property.RelatedModulesProperties;
 import org.folio.consortia.domain.dto.CustomField;
 import org.folio.consortia.domain.dto.CustomFieldCollection;
 import org.folio.consortia.domain.dto.CustomFieldType;
@@ -32,7 +31,7 @@ class CustomFieldServiceTest {
   @Mock
   CustomFieldsClient customFieldsClient;
   @Mock
-  RelatedModulesProperties relatedModulesProperties;
+  ModuleTenantService moduleTenantService;
   @Mock
   FolioExecutionContext folioExecutionContext;
 
@@ -48,12 +47,12 @@ class CustomFieldServiceTest {
   void shouldCreateCustomField() {
     CustomField customField = CustomField.builder().build();
     when(folioExecutionContext.getTenantId()).thenReturn(CENTRAL_TENANT_ID);
-    when(relatedModulesProperties.getModUsersId()).thenReturn("USERS");
+    when(moduleTenantService.getModUsersModuleId()).thenReturn("USERS");
     Mockito.doNothing().when(customFieldsClient).postCustomFields(any(), eq(customField));
     customFieldService.createCustomField(customField);
 
     Mockito.verify(customFieldsClient).postCustomFields(any(), any());
-    Mockito.verify(relatedModulesProperties, times(1)).getModUsersId();
+    Mockito.verify(moduleTenantService, times(1)).getModUsersModuleId();
   }
 
   @Test
@@ -62,12 +61,12 @@ class CustomFieldServiceTest {
     customFieldCollection.setCustomFields(List.of(ORIGINAL_TENANT_ID_CUSTOM_FIELD));
     customFieldCollection.setTotalRecords(1);
     when(folioExecutionContext.getTenantId()).thenReturn(CENTRAL_TENANT_ID);
-    when(relatedModulesProperties.getModUsersId()).thenReturn("USERS");
+    when(moduleTenantService.getModUsersModuleId()).thenReturn("USERS");
     when(customFieldsClient.getByQuery(any(), eq("name==originalTenantId"))).thenReturn(customFieldCollection);
     var customFields = customFieldService.getCustomFieldByName("originalTenantId");
 
     Assertions.assertEquals("originalTenantId", customFields.getName());
     Mockito.verify(customFieldsClient, times(1)).getByQuery(any(), any());
-    Mockito.verify(relatedModulesProperties, times(1)).getModUsersId();
+    Mockito.verify(moduleTenantService, times(1)).getModUsersModuleId();
   }
 }

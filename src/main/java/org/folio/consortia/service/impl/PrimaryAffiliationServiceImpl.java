@@ -7,14 +7,27 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.config.kafka.KafkaService;
 import org.folio.consortia.domain.dto.PrimaryAffiliationEvent;
+import org.folio.consortia.domain.dto.PublicationHttpResponse;
 import org.folio.consortia.domain.dto.UserTenant;
 import org.folio.consortia.domain.entity.TenantEntity;
+import org.folio.consortia.service.HttpRequestService;
 import org.folio.consortia.service.PrimaryAffiliationService;
 import org.folio.consortia.service.UserTenantService;
+import org.folio.spring.FolioExecutionContext;
+import org.folio.spring.integration.XOkapiHeaders;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -64,5 +77,42 @@ public class PrimaryAffiliationServiceImpl implements PrimaryAffiliationService 
     userTenant.setUserId(userId);
     userTenant.setUsername(username);
     return userTenant;
+  }
+
+  @Service
+  @RequiredArgsConstructor
+  @Log4j2
+  public static class HttpRequestServiceImpl implements HttpRequestService {
+    private final RestTemplate restTemplate;
+    private final FolioExecutionContext folioExecutionContext;
+    private final ObjectMapper objectMapper;
+
+    @SneakyThrows
+    @Override
+    public PublicationHttpResponse performRequest(String url, HttpMethod httpMethod, Object payload) {
+      var headers = convertHeadersToMultiMap(folioExecutionContext.getOkapiHeaders());
+      headers.setAccept(Collections.singletonList(MediaType.ALL));
+      headers.setContentType(MediaType.APPLICATION_JSON);
+
+      HttpEntity<Object> httpEntity = new HttpEntity<>(payload, headers);
+      var absUrl = folioExecutionContext.getOkapiUrl() + url;
+      log.debug("performRequest:: folio context header TENANT = {}", folioExecutionContext.getOkapiHeaders().get(XOkapiHeaders.TENANT).iterator().next());
+
+      var responseEntity = switch (httpMethod.toString()) {
+        case "GET", "POST", "PUT" -> restTemplate.exchange(absUrl, httpMethod, httpEntity, Object.class);
+        case "DELETE" -> restTemplate.exchange(absUrl, httpMethod, httpEntity, String.class);
+        default -> throw new IllegalStateException("Unexpected HTTP method value: " + httpMethod);
+      };
+
+      return new PublicationHttpResponse(objectMapper.writeValueAsString(responseEntity.getBody()), responseEntity.getStatusCode());
+    }
+
+    private HttpHeaders convertHeadersToMultiMap(Map<String, Collection<String>> contextHeaders) {
+      HttpHeaders multimapHeaders = new HttpHeaders();
+      contextHeaders.forEach((key, value) -> multimapHeaders.put(key, new ArrayList<>(value)));
+
+      return multimapHeaders;
+    }
+
   }
 }

@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import org.folio.consortia.base.BaseUnitTest;
+import org.folio.consortia.service.impl.PrimaryAffiliationServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -25,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 class HttpRequestServiceImplTest extends BaseUnitTest {
 
   @InjectMocks
-  HttpRequestServiceImpl httpRequestService;
+  PrimaryAffiliationServiceImpl.HttpRequestServiceImpl httpRequestService;
   @Mock
   RestTemplate restTemplate;
   @Mock
