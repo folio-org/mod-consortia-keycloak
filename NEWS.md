@@ -1,3 +1,7 @@
+## Version `v1.5.2` (20.01.2025)
+### Changes:
+* Spring Boot 3.3.7, edge-api-utils 1.5.0 fixing vulns ([MODCONSKC-59](https://folio-org.atlassian.net/browse/MODCONSKC-59))
+
 ## Version `v1.5.1` (28.10.2024)
 ### Changes:
 * fix tenant data migration order to migrate user_tenant (EUREKASUP-8)
