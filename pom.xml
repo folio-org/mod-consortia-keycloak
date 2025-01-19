@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.3.5</version>
+    <version>3.4.1</version>
     <relativePath />
   </parent>
 
@@ -60,16 +60,16 @@
     <folio-module-descriptor-validator.version>1.0.1</folio-module-descriptor-validator.version>
 
     <!-- runtime dependencies -->
-    <folio-spring-base.version>8.2.1</folio-spring-base.version>
+    <folio-spring-base.version>8.2.2</folio-spring-base.version>
     <folio-service-tools.version>4.1.1</folio-service-tools.version>
-    <openapi-generator.version>7.9.0</openapi-generator.version>
+    <openapi-generator.version>7.10.0</openapi-generator.version>
     <mapstruct.version>1.6.3</mapstruct.version>
-    <applications-poc-tools.version>2.0.0</applications-poc-tools.version>
+    <applications-poc-tools.version>2.1.0</applications-poc-tools.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
 
     <!-- test dependencies -->
     <wiremock-standalone.version>3.0.1</wiremock-standalone.version>
-    <testcontainers.version>1.20.3</testcontainers.version>
+    <testcontainers.version>1.20.4</testcontainers.version>
     <snakeyaml.version>2.3</snakeyaml.version>
     <maven-checkstyle-plugin.version>3.5.0</maven-checkstyle-plugin.version>
   </properties>
