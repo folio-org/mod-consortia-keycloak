@@ -24,6 +24,7 @@ public interface TenantRepository extends JpaRepository<TenantEntity, String> {
   Optional<TenantEntity> findCentralTenant();
 
   boolean existsByIsCentralTrue();
+
   @Query("SELECT CASE WHEN COUNT(t) > 0 THEN TRUE ELSE FALSE END FROM TenantEntity t " +
     "WHERE t.code = ?1 AND t.id != ?2")
   boolean existsByCodeForOtherTenant(String name, String tenantId);

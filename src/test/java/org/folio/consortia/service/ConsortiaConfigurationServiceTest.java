@@ -25,7 +25,9 @@ import java.util.Map;
 
 import static org.folio.consortia.support.EntityUtils.createConsortiaConfiguration;
 import static org.folio.consortia.support.EntityUtils.createConsortiaConfigurationEntity;
+import static org.folio.consortia.support.EntityUtils.createOkapiHeaders;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -84,6 +86,19 @@ class ConsortiaConfigurationServiceTest {
     configurationService.createConfiguration(CENTRAL_TENANT_ID);
 
     verify(configurationRepository, times(1)).save(any());
+  }
+
+  @Test
+  void shouldReturnConfigValueWhenSavingIfExists() {
+    ConsortiaConfigurationEntity configuration = createConsortiaConfigurationEntity(CENTRAL_TENANT_ID);
+
+    when(folioExecutionContext.getOkapiHeaders()).thenReturn(createOkapiHeaders());
+    when(configurationRepository.findAll()).thenReturn(List.of(configuration));
+    when(configurationRepository.count()).thenReturn(1L);
+
+    configurationService.createConfigurationIfNeeded(CENTRAL_TENANT_ID);
+
+    verify(configurationRepository, never()).save(configuration);
   }
 
   @Test
