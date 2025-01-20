@@ -1,3 +1,11 @@
+## 1.6.6 - Released (Ramsons R2 2024)
+The purpose of this release is to add required interfaces
+[Full Changelog](https://github.com/folio-org/mod-consortia-keycloak/compare/v1.6.5...v1.6.6)
+
+### Bug Fixes
+* [MODCONSKC-60](https://folio-org.atlassian.net/browse/MODCONSKC-60) - Add missing required interfaces into Module descriptor
+
+
 ## 1.6.5 - Released (Ramsons R2 2024)
 The purpose of this release is to Remove unnecessary validation for checking primary affiliation for system user
 [Full Changelog](https://github.com/folio-org/mod-consortia-keycloak/compare/v1.6.4...v1.6.5)
