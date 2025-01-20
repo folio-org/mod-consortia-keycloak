@@ -6,7 +6,6 @@ import static org.folio.consortia.support.EntityUtils.createTenantDetailsEntity;
 import static org.folio.consortia.support.EntityUtils.createTenantEntity;
 import static org.folio.consortia.support.EntityUtils.createUser;
 import static org.folio.consortia.support.EntityUtils.createUserTenantEntity;
-import static org.folio.consortia.utils.Constants.SYSTEM_USER_NAME;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -150,7 +149,7 @@ class TenantControllerTest extends BaseIT {
     var headers = defaultHeaders();
     TenantEntity centralTenant = createTenantEntity(CENTRAL_TENANT_ID, CENTRAL_TENANT_ID, "AAA", true);
     User adminUser = createUser("diku_admin");
-    User systemUser = createUser(SYSTEM_USER_NAME);
+    User systemUser = createUser("mod-consortia-keycloak");
 
     var tenantDetailsEntity = new TenantDetailsEntity();
     tenantDetailsEntity.setConsortiumId(centralTenant.getConsortiumId());
@@ -158,7 +157,7 @@ class TenantControllerTest extends BaseIT {
 
     doNothing().when(userTenantsClient).postUserTenant(any());
     when(userTenantsClient.getUserTenants()).thenReturn(new UserTenantCollection().totalRecords(0));
-    when(userService.getByUsername(SYSTEM_USER_NAME)).thenReturn(Optional.of(systemUser));
+    when(userService.getByUsername("mod-consortia-keycloak")).thenReturn(Optional.of(systemUser));
     when(userService.prepareShadowUser(UUID.fromString(adminUser.getId()), TENANT)).thenReturn(adminUser);
     when(userService.prepareShadowUser(UUID.fromString(systemUser.getId()), TENANT)).thenReturn(systemUser);
     when(userService.getById(any())).thenReturn(adminUser);
