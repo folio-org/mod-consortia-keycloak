@@ -1,5 +1,8 @@
 package org.folio.consortia.service.impl;
 
+import static org.folio.spring.scope.FolioExecutionScopeExecutionContextManager.getRunnableWithCurrentFolioContext;
+import static org.folio.spring.scope.FolioExecutionScopeExecutionContextManager.getRunnableWithFolioContext;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -8,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.consortia.client.SyncPrimaryAffiliationClient;
 import org.folio.consortia.domain.dto.Personal;
 import org.folio.consortia.domain.dto.PrimaryAffiliationEvent;
 import org.folio.consortia.domain.dto.SyncPrimaryAffiliationBody;
@@ -23,7 +25,12 @@ import org.folio.consortia.service.PrimaryAffiliationService;
 import org.folio.consortia.service.SyncPrimaryAffiliationService;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
+import org.folio.consortia.utils.TenantContextUtils;
+import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.data.OffsetRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,12 +42,25 @@ public class SyncPrimaryAffiliationServiceImpl implements SyncPrimaryAffiliation
   private final UserService userService;
   private final TenantService tenantService;
   private final UserTenantRepository userTenantRepository;
-  private final SyncPrimaryAffiliationClient syncPrimaryAffiliationClient;
   private final LockService lockService;
   private final PrimaryAffiliationService createPrimaryAffiliationService;
+  private final FolioExecutionContext folioExecutionContext;
+  private final AsyncTaskExecutor asyncTaskExecutor;
+
+  // Self reference to enable @Transactional method calls
+  private SyncPrimaryAffiliationServiceImpl self;
+  @Autowired
+  public void setSyncPrimaryAffiliationService(@Lazy SyncPrimaryAffiliationServiceImpl self) {
+    this.self = self;
+  }
 
   @Override
   public void syncPrimaryAffiliations(UUID consortiumId, String tenantId, String centralTenantId) {
+    asyncTaskExecutor.execute(getRunnableWithCurrentFolioContext(
+      () -> syncPrimaryAffiliationsInternal(consortiumId, tenantId, centralTenantId)));
+  }
+
+  void syncPrimaryAffiliationsInternal(UUID consortiumId, String tenantId, String centralTenantId) {
     log.info("Start syncing user primary affiliations for tenant {}", tenantId);
     List<User> users = new ArrayList<>();
     try {
@@ -50,15 +70,14 @@ public class SyncPrimaryAffiliationServiceImpl implements SyncPrimaryAffiliation
       tenantService.updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.FAILED);
     }
 
-    try {
-      if (CollectionUtils.isNotEmpty(users)) {
-        SyncPrimaryAffiliationBody spab = buildSyncPrimaryAffiliationBody(tenantId, users);
-        syncPrimaryAffiliationClient.savePrimaryAffiliations(spab, consortiumId.toString(), tenantId, centralTenantId);
+    if (CollectionUtils.isNotEmpty(users)) {
+      try {
+          self.createPrimaryUserAffiliations(consortiumId, centralTenantId,  buildSyncPrimaryAffiliationBody(tenantId, users));
+      } catch (Exception e) {
+        log.error("syncPrimaryAffiliations:: error syncing user primary affiliations", e);
+        tenantService.updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.FAILED);
+        throw e;
       }
-    } catch (Exception e) {
-      log.error("syncPrimaryAffiliations:: error syncing user primary affiliations", e);
-      tenantService.updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.FAILED);
-      throw e;
     }
   }
 
@@ -90,10 +109,15 @@ public class SyncPrimaryAffiliationServiceImpl implements SyncPrimaryAffiliation
     return syncUser;
   }
 
-  @Transactional
   @Override
-  public void createPrimaryUserAffiliations(UUID consortiumId, String centralTenantId,
-    SyncPrimaryAffiliationBody syncPrimaryAffiliationBody) {
+  public void createPrimaryUserAffiliations(UUID consortiumId, String centralTenantId, SyncPrimaryAffiliationBody syncPrimaryAffiliationBody) {
+    var context = TenantContextUtils.prepareContextForTenant(centralTenantId, folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext);
+    asyncTaskExecutor.execute(getRunnableWithFolioContext(context,
+      () -> self.createPrimaryUserAffiliationsInternal(consortiumId, centralTenantId, syncPrimaryAffiliationBody)));
+  }
+
+  @Transactional
+  public void createPrimaryUserAffiliationsInternal(UUID consortiumId, String centralTenantId, SyncPrimaryAffiliationBody syncPrimaryAffiliationBody) {
     try {
       log.info("Start creating user primary affiliation for tenant {}", syncPrimaryAffiliationBody.getTenantId());
       lockService.lockTenantSetupWithinTransaction();
