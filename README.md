@@ -101,5 +101,4 @@ requires and provides, the permissions, and the additional module metadata.
 | KAFKA_SSL_TRUSTSTORE_LOCATION     |           -           | The location of the Kafka trust store file.                                                                                                                |
 | KAFKA_SSL_TRUSTSTORE_PASSWORD     |           -           | The password for the Kafka trust store file. If a password is not set, trust store file configured will still be used, but integrity checking is disabled. |
 | ENV                               |         folio         | Logical name of the deployment, must be set if Kafka/Elasticsearch are shared for environments, `a-z (any case)`, `0-9`, `-`, `_` symbols only allowed     |
-| MOD_USERS_ID                      |           -           | ID of `mod-users` module that is used for `custom-fields` interface                                                                                        |
 | OKAPI_URL                         |  http://sidecar:8081  | Okapi url                                                                                                                                                  | |

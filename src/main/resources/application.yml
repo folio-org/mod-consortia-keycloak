@@ -94,5 +94,3 @@ management:
 logging:
   level:
     liquibase: info
-related-modules:
-  mod-users-id: ${MOD_USERS_ID}
