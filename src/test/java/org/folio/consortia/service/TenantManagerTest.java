@@ -33,7 +33,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.UserTenantsClient;
+import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantDetails;
 import org.folio.consortia.domain.dto.User;
@@ -85,7 +87,7 @@ class TenantManagerTest {
   @Spy
   private FolioExecutionContext folioExecutionContext = getFolioExecutionContext();
   @Mock
-  private ConsortiaConfigurationService consortiaConfigurationService;
+  private ConsortiaConfigurationClient consortiaConfigurationClient;
   @Mock
   private CapabilitiesUserService capabilitiesUserService;
   @Mock
@@ -111,7 +113,7 @@ class TenantManagerTest {
   @BeforeEach
   void setUp() {
     tenantService = new TenantServiceImpl(tenantRepository, userTenantRepository, tenantDetailsRepository, conversionService, consortiumService, folioExecutionContext);
-    tenantManager = new TenantManagerImpl(tenantService, consortiumService, consortiaConfigurationService, syncPrimaryAffiliationService, userService, capabilitiesUserService,
+    tenantManager = new TenantManagerImpl(tenantService, consortiumService, consortiaConfigurationClient, syncPrimaryAffiliationService, userService, capabilitiesUserService,
       customFieldService, cleanupService, lockService, userTenantsClient, systemUserScopedExecutionService, executionContextBuilder, folioExecutionContext);
   }
 
@@ -163,7 +165,7 @@ class TenantManagerTest {
     when(tenantRepository.existsById(any())).thenReturn(false);
     when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(centralTenant));
     when(tenantDetailsRepository.save(any(TenantDetailsEntity.class))).thenReturn(localTenantDetailsEntity);
-    doNothing().when(consortiaConfigurationService).createConfigurationIfNeeded(TENANT_ID);
+    doNothing().when(consortiaConfigurationClient).saveConfiguration(any(ConsortiaConfiguration.class));
     doNothing().when(userTenantsClient).postUserTenant(any());
     when(userTenantsClient.getUserTenants()).thenReturn(new UserTenantCollection(List.of(), 0));
     when(conversionService.convert(localTenantDetailsEntity, Tenant.class)).thenReturn(tenant);
@@ -179,7 +181,7 @@ class TenantManagerTest {
 
     verify(userService, times(1)).prepareShadowUser(UUID.fromString(adminUser.getId()), "diku");
     verify(userTenantRepository, times(1)).save(any());
-    verify(consortiaConfigurationService).createConfigurationIfNeeded(any());
+    verify(consortiaConfigurationClient).saveConfiguration(any());
     verify(userTenantsClient).postUserTenant(any());
     verify(userService, times(1)).createUser(any());
     verify(lockService).lockTenantSetupWithinTransaction();
@@ -201,7 +203,7 @@ class TenantManagerTest {
     when(tenantRepository.existsById(any())).thenReturn(false);
     when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(centralTenant));
     when(tenantDetailsRepository.save(any(TenantDetailsEntity.class))).thenReturn(tenantDetailsEntity);
-    doNothing().when(consortiaConfigurationService).createConfigurationIfNeeded(TENANT_ID);
+    doNothing().when(consortiaConfigurationClient).saveConfiguration(any());
     doNothing().when(userTenantsClient).postUserTenant(any());
     when(conversionService.convert(tenantDetailsEntity, Tenant.class)).thenReturn(tenant);
     when(folioExecutionContext.getTenantId()).thenReturn("diku");
@@ -219,7 +221,7 @@ class TenantManagerTest {
 
     var tenant1 = tenantManager.save(CONSORTIUM_ID, UUID.randomUUID(), tenant);
 
-    verify(consortiaConfigurationService).createConfigurationIfNeeded(any());
+    verify(consortiaConfigurationClient).saveConfiguration(any());
     verify(lockService).lockTenantSetupWithinTransaction();
 
     verify(userService, never()).prepareShadowUser(any(), any());
@@ -253,7 +255,7 @@ class TenantManagerTest {
 
     var actualTenant = tenantManager.save(CONSORTIUM_ID, UUID.randomUUID(), newTenant);
 
-    verifyNoInteractions(consortiaConfigurationService);
+    verifyNoInteractions(consortiaConfigurationClient);
     verifyNoInteractions(lockService);
 
     verifyNoInteractions(userService);
@@ -483,14 +485,14 @@ class TenantManagerTest {
     when(userService.prepareShadowUser(any(UUID.class), anyString())).thenReturn(adminUser);
     when(userTenantRepository.save(any(UserTenantEntity.class))).thenReturn(new UserTenantEntity());
 
-    doNothing().when(consortiaConfigurationService).createConfigurationIfNeeded(TENANT_ID);
+    doNothing().when(consortiaConfigurationClient).saveConfiguration(any());
     when(userTenantsClient.getUserTenants()).thenReturn(new UserTenantCollection(List.of(), 1));
 
     var tenant1 = tenantManager.save(CONSORTIUM_ID, UUID.fromString(adminUser.getId()), tenant);
 
     verify(userService, times(1)).prepareShadowUser(UUID.fromString(adminUser.getId()), "diku");
     verify(userTenantRepository, times(1)).save(any());
-    verify(consortiaConfigurationService).createConfigurationIfNeeded(any());
+    verify(consortiaConfigurationClient).saveConfiguration(any());
     verify(lockService).lockTenantSetupWithinTransaction();
     verify(userTenantsClient, never()).postUserTenant(any());
     verify(userService, never()).getById(any());

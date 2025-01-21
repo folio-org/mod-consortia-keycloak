@@ -1,13 +1,11 @@
 package org.folio.consortia.service.impl;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.domain.entity.ConsortiaConfigurationEntity;
-import org.folio.consortia.exception.ResourceAlreadyExistException;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.ConsortiaConfigurationRepository;
 import org.folio.consortia.service.ConsortiaConfigurationService;
@@ -20,8 +18,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class ConsortiaConfigurationServiceImpl implements ConsortiaConfigurationService {
-  private static final String CONSORTIA_CONFIGURATION_EXIST_MSG_TEMPLATE =
-    "System can not have more than one configuration record";
   private final ConsortiaConfigurationRepository configurationRepository;
   private final ConversionService converter;
   private final FolioExecutionContext folioExecutionContext;
@@ -39,21 +35,9 @@ public class ConsortiaConfigurationServiceImpl implements ConsortiaConfiguration
   }
 
   @Override
-  public ConsortiaConfiguration createConfiguration(String centralTenantId) throws ResourceAlreadyExistException {
-    return createConfiguration(centralTenantId, () -> {
-      throw new ResourceAlreadyExistException(CONSORTIA_CONFIGURATION_EXIST_MSG_TEMPLATE);
-    });
-  }
-
-  @Override
-  public void createConfigurationIfNeeded(String centralTenantId) {
-    createConfiguration(centralTenantId, this::getConsortiaConfiguration);
-  }
-
-  private ConsortiaConfiguration createConfiguration(String centralTenantId, Supplier<ConsortiaConfiguration> supplierIfConfigExists) {
+  public ConsortiaConfiguration createConfiguration(String centralTenantId) {
     if (configurationRepository.count() > 0) {
-      log.info("createConfiguration:: Configuration already exists for central tenant: '{}'", centralTenantId);
-      return supplierIfConfigExists.get();
+      log.info("createConfiguration:: Override existing consortia configuration with centralTenantId: '{}'", centralTenantId);
     }
     ConsortiaConfigurationEntity configuration = new ConsortiaConfigurationEntity();
     configuration.setCentralTenantId(centralTenantId);
