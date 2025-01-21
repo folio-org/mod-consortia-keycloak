@@ -5,13 +5,13 @@ import static org.folio.consortia.service.impl.CustomFieldServiceImpl.ORIGINAL_T
 import static org.folio.consortia.service.impl.CustomFieldServiceImpl.ORIGINAL_TENANT_ID_NAME;
 import static org.folio.consortia.utils.HelperUtils.checkIdenticalOrThrow;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.apache.commons.lang3.ObjectUtils;
+import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.UserTenantsClient;
+import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantCollection;
 import org.folio.consortia.domain.dto.TenantDetails;
@@ -30,6 +30,7 @@ import org.folio.consortia.service.SyncPrimaryAffiliationService;
 import org.folio.consortia.service.TenantManager;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
+import org.folio.consortia.utils.TenantContextUtils;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.context.ExecutionContextBuilder;
 import org.folio.spring.scope.FolioExecutionContextSetter;
@@ -52,7 +53,7 @@ public class TenantManagerImpl implements TenantManager {
 
   private final TenantService tenantService;
   private final ConsortiumService consortiumService;
-  private final ConsortiaConfigurationService consortiaConfigurationService;
+  private final ConsortiaConfigurationClient configurationClient;
   private final SyncPrimaryAffiliationService syncPrimaryAffiliationService;
   private final UserService userService;
   private final CapabilitiesUserService capabilitiesUserService;
@@ -171,11 +172,12 @@ public class TenantManagerImpl implements TenantManager {
 
     var finalShadowAdminUser = shadowAdminUser;
     // switch to context of the desired tenant and apply all necessary setup
-
-    var allHeaders = new CaseInsensitiveMap<>(folioExecutionContext.getOkapiHeaders());
-    allHeaders.put("x-okapi-tenant", List.of(tenantDto.getId()));
-    try (var ignored = new FolioExecutionContextSetter(folioExecutionContext.getFolioModuleMetadata(), allHeaders)) {
-      consortiaConfigurationService.createConfigurationIfNeeded(centralTenantId);
+    try (var ignored = new FolioExecutionContextSetter(TenantContextUtils.prepareContextForTenant(tenantDto.getId(),
+      folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext))) {
+      // Use self-invocation to avoid making calls to other DB schemas and prevent issues
+      // with SQL connections tied to the original tenant gathered from connection pool, which would prevent tenant switching
+      configurationClient.saveConfiguration(createConsortiaConfigurationBody(centralTenantId));
+      log.info("save:: consortia configuration was created in tenant '{}'", tenantDto.getId());
       if (!tenantDto.getIsCentral() && isUserTenantsEmpty()) {
         createUserTenantWithDummyUser(tenantDto.getId(), centralTenantId, consortiumId);
         createShadowAdminWithPermissions(finalShadowAdminUser);
@@ -265,6 +267,12 @@ public class TenantManagerImpl implements TenantManager {
       userOptional = userService.createUser(user);
     }
     capabilitiesUserService.createWithPermissionSetsFromFile(userOptional.getId(), SHADOW_ADMIN_PERMISSION_SETS_FILE_PATH);
+  }
+
+  private ConsortiaConfiguration createConsortiaConfigurationBody(String tenantId) {
+    ConsortiaConfiguration configuration = new ConsortiaConfiguration();
+    configuration.setCentralTenantId(tenantId);
+    return configuration;
   }
 
 }

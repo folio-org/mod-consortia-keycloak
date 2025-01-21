@@ -1,7 +1,6 @@
 package org.folio.consortia.service;
 
 import org.folio.consortia.domain.entity.ConsortiaConfigurationEntity;
-import org.folio.consortia.exception.ResourceAlreadyExistException;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.ConsortiaConfigurationRepository;
 import org.folio.consortia.service.impl.ConsortiaConfigurationServiceImpl;
@@ -27,7 +26,6 @@ import static org.folio.consortia.support.EntityUtils.createConsortiaConfigurati
 import static org.folio.consortia.support.EntityUtils.createConsortiaConfigurationEntity;
 import static org.folio.consortia.support.EntityUtils.createOkapiHeaders;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -82,6 +80,8 @@ class ConsortiaConfigurationServiceTest {
 
     when(configurationRepository.save(any())).thenReturn(configuration);
     when(configurationRepository.count()).thenReturn(0L);
+    when(conversionService.convert(configuration, ConsortiaConfiguration.class))
+      .thenReturn(createConsortiaConfiguration(CENTRAL_TENANT_ID));
 
     configurationService.createConfiguration(CENTRAL_TENANT_ID);
 
@@ -89,30 +89,18 @@ class ConsortiaConfigurationServiceTest {
   }
 
   @Test
-  void shouldReturnConfigValueWhenSavingIfExists() {
+  void shouldReSaveConfigValueWhenItExistsAlready() {
     ConsortiaConfigurationEntity configuration = createConsortiaConfigurationEntity(CENTRAL_TENANT_ID);
 
     when(folioExecutionContext.getOkapiHeaders()).thenReturn(createOkapiHeaders());
     when(configurationRepository.findAll()).thenReturn(List.of(configuration));
     when(configurationRepository.count()).thenReturn(1L);
+    when(conversionService.convert(configuration, ConsortiaConfiguration.class))
+      .thenReturn(createConsortiaConfiguration(CENTRAL_TENANT_ID));
 
-    configurationService.createConfigurationIfNeeded(CENTRAL_TENANT_ID);
+    configurationService.createConfiguration(CENTRAL_TENANT_ID);
 
-    verify(configurationRepository, never()).save(configuration);
-  }
-
-  @Test
-  void shouldThrowResourceAlreadyExistExceptionErrorWhileSavingConfigValue() {
-    ConsortiaConfigurationEntity configuration = createConsortiaConfigurationEntity(CENTRAL_TENANT_ID);
-
-    when(configurationRepository.save(any())).thenReturn(configuration);
-    when(configurationRepository.count()).thenReturn(1L);
-
-    Assertions.assertThrows(ResourceAlreadyExistException.class,
-      () -> configurationService.createConfiguration(CENTRAL_TENANT_ID));
-
-    verify(configurationRepository, times(0)).save(any());
-
+    verify(configurationRepository, times(1)).save(any());
   }
 
   @Test

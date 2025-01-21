@@ -22,19 +22,10 @@ public interface ConsortiaConfigurationService {
 
   /**
    * Save new configuration with central tenant id as value.
-   * This configuration will be stored in requested tenant schema
-   *
-   * @param centralTenantId id of central tenant for requested tenant
-   * @throws ResourceAlreadyExistException if configuration already exists
-   */
-  ConsortiaConfiguration createConfiguration(String centralTenantId) throws ResourceAlreadyExistException;
-
-  /**
-   * Check if there exists a central tenant configuration;
-   * if not then save new configuration with central tenant id as value.
-   * This configuration will be stored in requested tenant schema
+   * This configuration will be stored in requested tenant schema.
+   * Will override configuration if already exists.
    *
    * @param centralTenantId id of central tenant for requested tenant
    */
-  void createConfigurationIfNeeded(String centralTenantId);
+  ConsortiaConfiguration createConfiguration(String centralTenantId);
 }

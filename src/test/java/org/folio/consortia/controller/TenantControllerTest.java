@@ -1,6 +1,5 @@
 package org.folio.consortia.controller;
 
-import static org.folio.consortia.support.EntityUtils.createConsortiaConfiguration;
 import static org.folio.consortia.support.EntityUtils.createTenant;
 import static org.folio.consortia.support.EntityUtils.createTenantDetailsEntity;
 import static org.folio.consortia.support.EntityUtils.createTenantEntity;
@@ -34,6 +33,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.folio.consortia.base.BaseIT;
 import org.folio.consortia.client.CapabilitySetsClient;
+import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.UserCapabilitySetsClient;
 import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.client.UsersClient;
@@ -54,7 +54,6 @@ import org.folio.consortia.repository.ConsortiumRepository;
 import org.folio.consortia.repository.TenantDetailsRepository;
 import org.folio.consortia.repository.TenantRepository;
 import org.folio.consortia.repository.UserTenantRepository;
-import org.folio.consortia.service.ConsortiaConfigurationService;
 import org.folio.consortia.service.SyncPrimaryAffiliationService;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
@@ -96,7 +95,7 @@ class TenantControllerTest extends BaseIT {
   @MockBean
   UserTenantRepository userTenantRepository;
   @MockBean
-  ConsortiaConfigurationService configurationService;
+  ConsortiaConfigurationClient consortiaConfigurationClient;
   @MockBean
   KafkaService kafkaService;
   @MockBean
@@ -169,7 +168,7 @@ class TenantControllerTest extends BaseIT {
     when(tenantDetailsRepository.save(any(TenantDetailsEntity.class))).thenReturn(tenantDetailsEntity);
     when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(centralTenant));
     doNothing().when(syncPrimaryAffiliationService).syncPrimaryAffiliations(any(UUID.class), anyString(), anyString());
-    when(configurationService.createConfiguration(CENTRAL_TENANT_ID)).thenReturn(createConsortiaConfiguration(CENTRAL_TENANT_ID));
+    doNothing().when(consortiaConfigurationClient).saveConfiguration(any());
 
     this.mockMvc.perform(
         post("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/tenants?adminUserId=" + adminUser.getId())
@@ -272,7 +271,7 @@ class TenantControllerTest extends BaseIT {
 
     doReturn(new User()).when(usersKeycloakClient).getUsersByUserId(any());
     when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(centralTenant));
-    when(configurationService.createConfiguration(CENTRAL_TENANT_ID)).thenReturn(createConsortiaConfiguration(CENTRAL_TENANT_ID));
+    doNothing().when(consortiaConfigurationClient).saveConfiguration(any());
 
     this.mockMvc.perform(post("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/tenants?adminUserId=111841e3-e6fb-4191-9fd8-5674a5107c34")
         .headers(headers).content(contentString))
@@ -311,7 +310,7 @@ class TenantControllerTest extends BaseIT {
     when(consortiumRepository.existsById(consortiumId)).thenReturn(true);
     when(tenantRepository.existsById(any(String.class))).thenReturn(false);
     when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(centralTenant));
-    when(configurationService.createConfiguration(CENTRAL_TENANT_ID)).thenReturn(createConsortiaConfiguration(CENTRAL_TENANT_ID));
+    doNothing().when(consortiaConfigurationClient).saveConfiguration(any());
 
     Set<ConstraintViolation<?>> constraintViolations = new HashSet<>();
     constraintViolations.add(mock(ConstraintViolation.class));
