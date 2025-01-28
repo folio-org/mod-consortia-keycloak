@@ -5,14 +5,14 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.3.4</version>
+    <version>3.3.7</version>
     <relativePath />
   </parent>
 
   <groupId>org.folio</groupId>
   <artifactId>mod-consortia-keycloak</artifactId>
   <name>mod-consortia-keycloak</name>
-  <version>1.5.2-SNAPSHOT</version>
+  <version>1.5.3-SNAPSHOT</version>
   <description>Business logic to manage consortia in FOLIO</description>
   <packaging>jar</packaging>
 
@@ -61,6 +61,7 @@
     <!-- runtime dependencies -->
     <folio-spring-base.version>8.1.2</folio-spring-base.version>
     <folio-service-tools.version>4.0.1</folio-service-tools.version>
+    <edge-api-utils.version>1.5.0</edge-api-utils.version>
     <openapi-generator.version>7.8.0</openapi-generator.version>
     <mapstruct.version>1.6.2</mapstruct.version>
     <applications-poc-tools.version>1.5.7</applications-poc-tools.version>
@@ -104,6 +105,11 @@
       <groupId>org.folio</groupId>
       <artifactId>folio-backend-common</artifactId>
       <version>${applications-poc-tools.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.folio</groupId>
+      <artifactId>edge-api-utils</artifactId>
+      <version>${edge-api-utils.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
