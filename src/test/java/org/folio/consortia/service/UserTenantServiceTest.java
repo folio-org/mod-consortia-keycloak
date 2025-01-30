@@ -209,7 +209,7 @@ class UserTenantServiceTest {
     // In first call it return primary User, in second call it return shadow user.
     when(userService.getById(userId)).thenReturn(primaryUser).thenReturn(shadowUser);
     doNothing().when(userService).updateUser(updatedShadowUser);
-    userTenantService.updateShadowUsersFirstAndLastNames(userId, tenantId);
+    userTenantService.updateShadowUsersNameAndEmail(userId, tenantId);
 
     verify(userService, times(2)).getById(userId);
     verify(userService, times(1)).updateUser(updatedShadowUser);
@@ -227,7 +227,7 @@ class UserTenantServiceTest {
 
     // Returned object when expected parameter passed
     when(userTenantRepository.getByUserIdAndIsPrimaryFalse(userId)).thenReturn(emptyListOfUserTenantEntities);
-    userTenantService.updateShadowUsersFirstAndLastNames(userId, tenantId);
+    userTenantService.updateShadowUsersNameAndEmail(userId, tenantId);
 
     verify(userService, times(0)).updateUser(any());
     verify(userService, times(0)).getById(any());
