@@ -189,7 +189,7 @@ class UserTenantServiceTest {
   }
 
   @Test
-  void shouldUpdateFirstAndLastNames() {
+  void shouldUpdateEmailAndName() {
     UUID userId = USER_ID;
     String tenantId = "diku";
     UUID associationId = UUID.randomUUID();
@@ -197,6 +197,7 @@ class UserTenantServiceTest {
     User shadowUser = createUserEntity(userId);
     shadowUser.getPersonal().setFirstName("notUpdatedFirstName");
     shadowUser.getPersonal().setFirstName("notUpdatedLastName");
+    shadowUser.getPersonal().setEmail("notUpdatedEmail");
     User updatedShadowUser = createUserEntity(userId);
     UserTenantEntity userTenant = createUserTenantEntity(associationId, userId, "user", "shadowTenantId");
     userTenant.setIsPrimary(false);
