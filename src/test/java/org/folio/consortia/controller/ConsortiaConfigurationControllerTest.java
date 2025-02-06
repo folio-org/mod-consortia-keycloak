@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.folio.consortia.domain.entity.ConsortiaConfigurationEntity;
 import org.folio.consortia.repository.ConsortiaConfigurationRepository;
 import java.util.List;
-import java.util.UUID;
 
 import org.folio.consortia.base.BaseIT;
 import org.folio.spring.integration.XOkapiHeaders;
