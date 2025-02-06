@@ -45,9 +45,7 @@ class ConsortiaConfigurationControllerTest extends BaseIT {
   @ValueSource(strings = {"{\"centralTenantId\":\"diku\"}"})
   void shouldSaveConsortiumConfiguration(String contentString) throws Exception {
     var header = defaultHeaders();
-    ConsortiaConfigurationEntity configuration = new ConsortiaConfigurationEntity();
-    configuration.setId(UUID.randomUUID());
-    configuration.setCentralTenantId("diku");
+    var configuration = createConsortiaConfigurationEntity("diku");
 
     when(configurationRepository.count()).thenReturn(0L);
     when(configurationRepository.save(any(ConsortiaConfigurationEntity.class))).thenReturn(configuration);

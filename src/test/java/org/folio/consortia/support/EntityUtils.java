@@ -207,10 +207,10 @@ public class EntityUtils {
   }
 
   public static ConsortiaConfigurationEntity createConsortiaConfigurationEntity(String centralTenantId) {
-    ConsortiaConfigurationEntity configuration = new ConsortiaConfigurationEntity();
-    configuration.setId(UUID.randomUUID());
-    configuration.setCentralTenantId(centralTenantId);
-    return configuration;
+    return ConsortiaConfigurationEntity.builder()
+      .id(UUID.randomUUID())
+      .centralTenantId(centralTenantId)
+      .build();
   }
 
   public static ConsortiaConfiguration createConsortiaConfiguration(String centralTenantId) {
