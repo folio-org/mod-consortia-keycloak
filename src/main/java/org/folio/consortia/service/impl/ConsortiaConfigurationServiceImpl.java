@@ -40,13 +40,21 @@ public class ConsortiaConfigurationServiceImpl implements ConsortiaConfiguration
   @Override
   @Transactional
   public ConsortiaConfiguration createConfiguration(String centralTenantId) {
-    val existingConfigurations = configurationRepository.findAll();
-    if (!existingConfigurations.isEmpty()) {
-      log.info("createConfiguration:: Overriding existing consortia configuration with centralTenantId: '{}'", centralTenantId);
-      configurationRepository.deleteAll(existingConfigurations);
-    }
+    this.deleteConfiguration();
+    log.info("createConfiguration:: Saving new consortia configuration with centralTenantId: '{}'", centralTenantId);
     val configuration = ConsortiaConfigurationEntity.builder().centralTenantId(centralTenantId).build();
     return converter.convert(configurationRepository.save(configuration), ConsortiaConfiguration.class);
+  }
+
+  @Override
+  public void deleteConfiguration() {
+    val existingConfigurations = configurationRepository.findAll();
+    if (!existingConfigurations.isEmpty()) {
+      log.info("createConfiguration:: Deleting existing configuration with centralTenantId: '{}'", existingConfigurations.get(0).getCentralTenantId());
+      configurationRepository.deleteAll();
+    } else {
+      log.info("createConfiguration:: No existing configuration found to delete");
+    }
   }
 
   private ConsortiaConfigurationEntity getConfiguration(String requestTenantId) {
