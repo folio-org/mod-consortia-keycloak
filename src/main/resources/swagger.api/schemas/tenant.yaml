@@ -47,3 +47,20 @@ TenantCollection:
   required:
     - tenants
     - totalRecords
+
+TenantDeleteRequest:
+    type: object
+    properties:
+      deleteType:
+        type: string
+        enum: [ "HARD", "SOFT" ]
+      deleteOptions:
+        type: object
+        properties:
+          deleteInternalData:
+            type: boolean
+          deleteRelatedShadowUsers:
+            type: boolean
+    additionalProperties: false
+    required:
+        - deleteOptions

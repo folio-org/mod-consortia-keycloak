@@ -1,5 +1,6 @@
 package org.folio.consortia.service;
 
+import org.folio.consortia.domain.dto.TenantDeleteRequest;
 import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.exception.ResourceAlreadyExistException;
 import org.folio.consortia.exception.ResourceNotFoundException;
@@ -121,4 +122,10 @@ public interface TenantService {
    * Check whether tenant exists or throw ResourceNotFound exception
    */
   void checkTenantExistsOrThrow(String tenantId);
+
+  /**
+   * Deletes single tenant based on deleteType.
+   * If deleteType is HARD, tenant will be deleted with all related data permanently.
+   */
+  void deleteTenant(TenantEntity tenant, TenantDeleteRequest.DeleteTypeEnum deleteType);
 }

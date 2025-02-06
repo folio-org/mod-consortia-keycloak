@@ -14,6 +14,8 @@ import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantCollection;
+import org.folio.consortia.domain.dto.TenantDeleteRequest;
+import org.folio.consortia.domain.dto.TenantDeleteRequest.DeleteTypeEnum;
 import org.folio.consortia.domain.dto.TenantDetails;
 import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserTenant;
@@ -22,7 +24,6 @@ import org.folio.consortia.exception.ResourceAlreadyExistException;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.service.CapabilitiesUserService;
 import org.folio.consortia.service.CleanupService;
-import org.folio.consortia.service.ConsortiaConfigurationService;
 import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.CustomFieldService;
 import org.folio.consortia.service.LockService;
@@ -102,17 +103,26 @@ public class TenantManagerImpl implements TenantManager {
 
   @Override
   @Transactional
-  public void delete(UUID consortiumId, String tenantId) {
+  public void delete(UUID consortiumId, String tenantId, TenantDeleteRequest tenantDeleteRequest) {
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
     var tenant = getTenantById(tenantId);
     validateTenantForDeleteOperation(tenant);
 
-		tenant.setIsDeleted(true);
-    // clean publish coordinator tables first, because after tenant removal it will be ignored by cleanup service
+    var isHardDelete = tenantDeleteRequest.getDeleteType().equals(DeleteTypeEnum.HARD);
+    var deleteInternalData = isHardDelete && Boolean.TRUE.equals(tenantDeleteRequest.getDeleteOptions().getDeleteInternalData());
+
+    // Clean publish coordinator tables first, because after tenant removal it will be ignored by cleanup service
     cleanupService.clearPublicationTables();
-    tenantService.saveTenant(tenant);
+    // Clean sharing tables or shadow users if needed
+    if (deleteInternalData) {
+      cleanupService.clearSharingTables(tenantId);
+    }
+    tenantService.deleteTenant(tenant, tenantDeleteRequest.getDeleteType());
 
     try (var ignored = new FolioExecutionContextSetter(contextBuilder.buildContext(tenantId))) {
+      if (deleteInternalData) {
+        configurationClient.deleteConfiguration();
+      }
       userTenantsClient.deleteUserTenants();
     }
   }

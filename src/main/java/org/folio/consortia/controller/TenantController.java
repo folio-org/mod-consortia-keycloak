@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.folio.consortia.domain.dto.SyncPrimaryAffiliationBody;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantCollection;
+import org.folio.consortia.domain.dto.TenantDeleteRequest;
 import org.folio.consortia.domain.dto.TenantDetails;
 import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
 import org.folio.consortia.rest.resource.TenantsApi;
@@ -50,8 +51,8 @@ public class TenantController implements TenantsApi {
   }
 
   @Override
-  public ResponseEntity<Void> deleteTenantById(UUID consortiumId, String tenantId) {
-    tenantManager.delete(consortiumId, tenantId);
+  public ResponseEntity<Void> deleteTenantById(UUID consortiumId, String tenantId, TenantDeleteRequest tenantDeleteRequest) {
+    tenantManager.delete(consortiumId, tenantId, tenantDeleteRequest);
     return ResponseEntity.status(NO_CONTENT).build();
   }
 

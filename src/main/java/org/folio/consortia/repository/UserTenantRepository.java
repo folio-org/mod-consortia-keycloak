@@ -56,4 +56,8 @@ public interface UserTenantRepository extends JpaRepository<UserTenantEntity, UU
   void deleteOrphansByUserIdAndIsPrimaryFalse(UUID userId);
 
   boolean existsByUsernameAndTenantIdAndIsPrimaryTrue(String username, String tenantId);
+
+  @Modifying
+  @Query("DELETE FROM UserTenantEntity ut WHERE ut.tenant.id= ?1")
+  void deleteUserTenantsByTenantId(String id);
 }
