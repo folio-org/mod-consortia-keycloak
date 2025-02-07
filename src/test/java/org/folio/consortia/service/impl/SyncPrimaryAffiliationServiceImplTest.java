@@ -11,6 +11,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -34,8 +35,6 @@ import org.folio.consortia.domain.dto.SyncUser;
 import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
 import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserCollection;
-import org.folio.spring.FolioExecutionContext;
-import org.folio.spring.data.OffsetRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -48,7 +47,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.data.domain.PageImpl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -76,8 +74,6 @@ class SyncPrimaryAffiliationServiceImplTest {
   @Mock
   private LockService lockService;
   @Spy
-  private FolioExecutionContext folioExecutionContext = getFolioExecutionContext();
-  @Spy
   private AsyncTaskExecutor asyncTaskExecutor = new SimpleAsyncTaskExecutor();
 
   private SyncPrimaryAffiliationServiceImpl syncPrimaryAffiliationService;
@@ -85,7 +81,7 @@ class SyncPrimaryAffiliationServiceImplTest {
   @BeforeEach
   void setUp() {
     syncPrimaryAffiliationService = spy(new SyncPrimaryAffiliationServiceImpl(userService, tenantService, userTenantRepository,
-      lockService, primaryAffiliationService, folioExecutionContext, asyncTaskExecutor));
+      lockService, primaryAffiliationService, getFolioExecutionContext(), asyncTaskExecutor));
     syncPrimaryAffiliationService.setSyncPrimaryAffiliationService(syncPrimaryAffiliationService);
   }
 
@@ -109,7 +105,7 @@ class SyncPrimaryAffiliationServiceImplTest {
 
     // stub collection of 2 users
     when(tenantService.getByTenantId(anyString())).thenReturn(tenantEntity1);
-    when(userTenantRepository.findAnyByUserId(any(), any())).thenReturn(new PageImpl<>(Collections.emptyList()));
+    when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any())).thenReturn(Optional.empty());
     when(tenantRepository.findById(anyString())).thenReturn(Optional.of(tenantEntity1));
     when(userService.getUsersByQuery(eq(CQL_GET_USERS), anyInt(), anyInt())).thenReturn(userCollection);
     when(consortiaConfigurationService.getCentralTenantId(anyString())).thenReturn(tenantId);
@@ -140,7 +136,7 @@ class SyncPrimaryAffiliationServiceImplTest {
 
     // stub collection of 2 users
     when(tenantService.getByTenantId(anyString())).thenReturn(tenantEntity1);
-    when(userTenantRepository.findAnyByUserId(any(), any())).thenReturn(new PageImpl<>(Collections.emptyList()));
+    when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any())).thenReturn(Optional.empty());
     when(tenantRepository.findById(anyString())).thenReturn(Optional.of(tenantEntity1));
     when(userService.getUsersByQuery(eq(CQL_GET_USERS), anyInt(), anyInt())).thenReturn(userCollection);
     when(consortiaConfigurationService.getCentralTenantId(anyString())).thenReturn(centralTenantId);
@@ -163,19 +159,15 @@ class SyncPrimaryAffiliationServiceImplTest {
     var userCollectionString = getMockDataAsString("mockdata/user_collection.json");
     List<User> userCollection = new ObjectMapper().readValue(userCollectionString, UserCollection.class).getUsers();
 
-    var spab = getSyncBody(tenantId);
-
     doNothing().when(tenantService).updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.COMPLETED);
     // stub collection of 2 users
     when(userService.getUsersByQuery(eq(CQL_GET_USERS), anyInt(), anyInt())).thenReturn(userCollection);
-    // stub userTenantRepository to return page with 1 element for each user to skip affiliation creation
-    userCollection.forEach(user ->
-      when(userTenantRepository.findAnyByUserId(UUID.fromString(user.getId()), OffsetRequest.of(0, 1)))
-        .thenReturn(new PageImpl<>(Collections.singletonList(new UserTenantEntity()))));
+    // stub userTenantRepository to return record for each user to skip affiliation creation
+    when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any(UUID.class))).thenReturn(Optional.of(new UserTenantEntity()));
 
     syncPrimaryAffiliationService.syncPrimaryAffiliationsInternal(consortiumId, tenantId, centralTenantId);
 
-    verify(syncPrimaryAffiliationService, timeout(2000)).createPrimaryUserAffiliationsInternal(consortiumId, centralTenantId, spab);
+    verify(syncPrimaryAffiliationService, timeout(2000)).createPrimaryUserAffiliationsInternal(consortiumId, centralTenantId, getSyncBody(tenantId));
     verify(tenantService).updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.COMPLETED);
   }
 
@@ -230,12 +222,14 @@ class SyncPrimaryAffiliationServiceImplTest {
       .users(List.of(syncUser, syncUser2))
       .tenantId(tenantId);
 
-    when(tenantService.getByTenantId(anyString())).thenReturn(tenantEntity1)
+    when(tenantService.getByTenantId(anyString())).thenReturn(tenantEntity1);
+    when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any()))
+      .thenReturn(Optional.empty())
       .thenThrow(DataAccessResourceFailureException.class);
 
     syncPrimaryAffiliationService.createPrimaryUserAffiliationsInternal(consortiumId, centralTenantId, spab);
 
-    verifyNoInteractions(primaryAffiliationService);
+    verify(primaryAffiliationService, times(1)).createPrimaryAffiliationInNewTransaction(any(), anyString(), any(), any());
     verify(tenantService).updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.COMPLETED_WITH_ERRORS);
     verify(lockService).lockTenantSetupWithinTransaction();
   }

@@ -1,11 +1,11 @@
 package org.folio.consortia.service.impl;
 
-import static org.folio.spring.scope.FolioExecutionScopeExecutionContextManager.getRunnableWithCurrentFolioContext;
 import static org.folio.spring.scope.FolioExecutionScopeExecutionContextManager.getRunnableWithFolioContext;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -27,11 +27,9 @@ import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
 import org.folio.consortia.utils.TenantContextUtils;
 import org.folio.spring.FolioExecutionContext;
-import org.folio.spring.data.OffsetRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.task.AsyncTaskExecutor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,7 +54,8 @@ public class SyncPrimaryAffiliationServiceImpl implements SyncPrimaryAffiliation
 
   @Override
   public void syncPrimaryAffiliations(UUID consortiumId, String tenantId, String centralTenantId) {
-    asyncTaskExecutor.execute(getRunnableWithCurrentFolioContext(
+    var context = TenantContextUtils.prepareContextForTenant(tenantId, folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext);
+    asyncTaskExecutor.execute(getRunnableWithFolioContext(context,
       () -> syncPrimaryAffiliationsInternal(consortiumId, tenantId, centralTenantId)));
   }
 
@@ -72,7 +71,7 @@ public class SyncPrimaryAffiliationServiceImpl implements SyncPrimaryAffiliation
 
     if (CollectionUtils.isNotEmpty(users)) {
       try {
-          self.createPrimaryUserAffiliations(consortiumId, centralTenantId,  buildSyncPrimaryAffiliationBody(tenantId, users));
+        this.createPrimaryUserAffiliations(consortiumId, centralTenantId,  buildSyncPrimaryAffiliationBody(tenantId, users));
       } catch (Exception e) {
         log.error("syncPrimaryAffiliations:: error syncing user primary affiliations", e);
         tenantService.updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.FAILED);
@@ -140,11 +139,10 @@ public class SyncPrimaryAffiliationServiceImpl implements SyncPrimaryAffiliation
       var user = userList.get(idx);
       try {
         log.info("createPrimaryUserAffiliations:: Processing users: {} of {}", idx + 1, userList.size());
-        Page<UserTenantEntity> userTenantPage = userTenantRepository.findAnyByUserId(UUID.fromString(user.getId()), OffsetRequest.of(0, 1));
+        Optional<UserTenantEntity> userTenant = userTenantRepository.findByUserIdAndIsPrimaryTrue(UUID.fromString(user.getId()));
 
-        if (userTenantPage.getTotalElements() > 0) {
-          log.info("createPrimaryUserAffiliations:: Primary affiliation already exists for tenant/user: {}/{}",
-            tenantId, user.getUsername());
+        if (userTenant.isPresent()) {
+          log.info("createPrimaryUserAffiliations:: Primary affiliation already exists for tenant/user: {}/{}", tenantId, user.getUsername());
         } else {
           PrimaryAffiliationEvent primaryAffiliationEvent = createPrimaryAffiliationEvent(user, tenantId, centralTenantId, consortiumId);
           createPrimaryAffiliationService.createPrimaryAffiliationInNewTransaction(consortiumId, centralTenantId, tenantEntity, primaryAffiliationEvent);
