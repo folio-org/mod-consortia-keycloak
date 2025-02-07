@@ -5,6 +5,7 @@ import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.ConsortiaConfigurationRepository;
 import org.folio.consortia.service.impl.ConsortiaConfigurationServiceImpl;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
+import org.folio.consortia.support.CopilotGenerated;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.junit.jupiter.api.Assertions;
@@ -26,12 +27,14 @@ import static org.folio.consortia.support.EntityUtils.createConsortiaConfigurati
 import static org.folio.consortia.support.EntityUtils.createConsortiaConfigurationEntity;
 import static org.folio.consortia.support.EntityUtils.createOkapiHeaders;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
+@CopilotGenerated(partiallyGenerated = true)
 class ConsortiaConfigurationServiceTest {
   private static final String CENTRAL_TENANT_ID = "diku";
   private static final String TENANT_ID = "testtenant1";
@@ -79,7 +82,7 @@ class ConsortiaConfigurationServiceTest {
     ConsortiaConfigurationEntity configuration = createConsortiaConfigurationEntity(CENTRAL_TENANT_ID);
 
     when(configurationRepository.save(any())).thenReturn(configuration);
-    when(configurationRepository.count()).thenReturn(0L);
+    when(configurationRepository.findAll()).thenReturn(List.of());
     when(conversionService.convert(configuration, ConsortiaConfiguration.class))
       .thenReturn(createConsortiaConfiguration(CENTRAL_TENANT_ID));
 
@@ -94,13 +97,38 @@ class ConsortiaConfigurationServiceTest {
 
     when(folioExecutionContext.getOkapiHeaders()).thenReturn(createOkapiHeaders());
     when(configurationRepository.findAll()).thenReturn(List.of(configuration));
-    when(configurationRepository.count()).thenReturn(1L);
+    doNothing().when(configurationRepository).deleteAll();
+    when(configurationRepository.save(any())).thenReturn(configuration);
     when(conversionService.convert(configuration, ConsortiaConfiguration.class))
       .thenReturn(createConsortiaConfiguration(CENTRAL_TENANT_ID));
 
     configurationService.createConfiguration(CENTRAL_TENANT_ID);
 
     verify(configurationRepository, times(1)).save(any());
+    verify(configurationRepository, times(1)).deleteAll();
+    verify(configurationRepository, times(1)).findAll();
+  }
+
+  @Test
+  void shouldDeleteConfigValue() {
+    ConsortiaConfigurationEntity configuration = createConsortiaConfigurationEntity(CENTRAL_TENANT_ID);
+
+    when(configurationRepository.findAll()).thenReturn(List.of(configuration));
+    doNothing().when(configurationRepository).deleteAll();
+
+    configurationService.deleteConfiguration();
+
+    verify(configurationRepository, times(1)).deleteAll();
+    verify(configurationRepository, times(1)).findAll();
+  }
+
+  @Test
+  void shouldNotDeleteConfigValueWhenConfigValueDoesNotExist() {
+    when(configurationRepository.findAll()).thenReturn(List.of());
+
+    configurationService.deleteConfiguration();
+
+    verify(configurationRepository, times(1)).findAll();
   }
 
   @Test
