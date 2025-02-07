@@ -41,6 +41,6 @@ public interface SharingRoleRepository extends JpaRepository<SharingRoleEntity, 
   void deleteByRoleName(String roleName);
 
   @Modifying
-  @Query("DELETE FROM SharingRoleEntity sr WHERE sr.sourceTenantId = ?1 OR sr.targetTenantId = ?1")
+  @Query("DELETE FROM SharingRoleEntity sr WHERE sr.tenantId = ?1")
   int deleteRolesForTenant(String tenantId);
 }

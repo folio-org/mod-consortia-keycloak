@@ -24,6 +24,6 @@ public interface SharingPolicyRepository extends JpaRepository<SharingPolicyEnti
   void deleteByPolicyId(UUID policyId);
 
   @Modifying
-  @Query("DELETE FROM SharingPolicyEntity sp WHERE sp.sourceTenantId = ?1 OR sp.targetTenantId = ?1")
+  @Query("DELETE FROM SharingPolicyEntity sp WHERE sp.tenantId = ?1")
   int deletePoliciesForTenant(String tenantId);
 }

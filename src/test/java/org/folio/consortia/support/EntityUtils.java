@@ -14,6 +14,8 @@ import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.dto.SharingInstance;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantCollection;
+import org.folio.consortia.domain.dto.TenantDeleteRequest;
+import org.folio.consortia.domain.dto.TenantDeleteRequestDeleteOptions;
 import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
 import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserTenant;
@@ -184,6 +186,14 @@ public class EntityUtils {
     tenant.setIsDeleted(false);
     tenant.setCode("ABC");
     return tenant;
+  }
+
+  public static TenantDeleteRequest createTenantDeleteRequest(TenantDeleteRequest.DeleteTypeEnum deleteType, boolean deleteInternalData) {
+    return new TenantDeleteRequest()
+      .deleteType(deleteType)
+      .deleteOptions(new TenantDeleteRequestDeleteOptions()
+        .deleteInternalData(deleteInternalData)
+        .deleteRelatedShadowUsers(false));
   }
 
   public static UserTenant createUserTenant(UUID associationId) {

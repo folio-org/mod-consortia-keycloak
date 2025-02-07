@@ -106,10 +106,13 @@ public class TenantManagerImpl implements TenantManager {
   public void delete(UUID consortiumId, String tenantId, TenantDeleteRequest tenantDeleteRequest) {
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
     var tenant = getTenantById(tenantId);
-    validateTenantForDeleteOperation(tenant);
-
     var isHardDelete = tenantDeleteRequest.getDeleteType().equals(DeleteTypeEnum.HARD);
     var deleteInternalData = isHardDelete && Boolean.TRUE.equals(tenantDeleteRequest.getDeleteOptions().getDeleteInternalData());
+
+    // During soft delete central or already deleted tenant cannot proceed
+    if (!isHardDelete) {
+      validateTenantForDeleteOperation(tenant);
+    }
 
     // Clean publish coordinator tables first, because after tenant removal it will be ignored by cleanup service
     cleanupService.clearPublicationTables();

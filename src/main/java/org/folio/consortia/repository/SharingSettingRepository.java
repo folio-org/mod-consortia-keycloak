@@ -21,6 +21,6 @@ public interface SharingSettingRepository  extends JpaRepository<SharingSettingE
   void deleteBySettingId(UUID settingId);
 
   @Modifying
-  @Query("DELETE FROM SharingSettingEntity st WHERE st.sourceTenantId = ?1 OR st.targetTenantId = ?1")
+  @Query("DELETE FROM SharingSettingEntity st WHERE st.tenantId = ?1")
   int deleteRolesForTenant(String tenantId);
 }
