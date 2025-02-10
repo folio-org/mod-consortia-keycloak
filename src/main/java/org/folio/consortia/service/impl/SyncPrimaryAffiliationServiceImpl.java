@@ -5,58 +5,48 @@ import static org.folio.spring.scope.FolioExecutionScopeExecutionContextManager.
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.consortia.domain.dto.Personal;
-import org.folio.consortia.domain.dto.PrimaryAffiliationEvent;
 import org.folio.consortia.domain.dto.SyncPrimaryAffiliationBody;
 import org.folio.consortia.domain.dto.SyncUser;
 import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
 import org.folio.consortia.domain.dto.User;
-import org.folio.consortia.domain.entity.TenantEntity;
-import org.folio.consortia.domain.entity.UserTenantEntity;
-import org.folio.consortia.repository.UserTenantRepository;
-import org.folio.consortia.service.LockService;
-import org.folio.consortia.service.PrimaryAffiliationService;
+import org.folio.consortia.service.CreatePrimaryAffiliationService;
 import org.folio.consortia.service.SyncPrimaryAffiliationService;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
 import org.folio.consortia.utils.TenantContextUtils;
 import org.folio.spring.FolioExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Log4j2
 @RequiredArgsConstructor
 public class SyncPrimaryAffiliationServiceImpl implements SyncPrimaryAffiliationService {
+
   private final UserService userService;
   private final TenantService tenantService;
-  private final UserTenantRepository userTenantRepository;
-  private final LockService lockService;
-  private final PrimaryAffiliationService createPrimaryAffiliationService;
+  private final CreatePrimaryAffiliationService createPrimaryAffiliationService;
   private final FolioExecutionContext folioExecutionContext;
   private final AsyncTaskExecutor asyncTaskExecutor;
-
-  // Self reference to enable @Transactional method calls
-  private SyncPrimaryAffiliationServiceImpl self;
-  @Autowired
-  public void setSyncPrimaryAffiliationService(@Lazy SyncPrimaryAffiliationServiceImpl self) {
-    this.self = self;
-  }
 
   @Override
   public void syncPrimaryAffiliations(UUID consortiumId, String tenantId, String centralTenantId) {
     var context = TenantContextUtils.prepareContextForTenant(tenantId, folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext);
     asyncTaskExecutor.execute(getRunnableWithFolioContext(context,
       () -> syncPrimaryAffiliationsInternal(consortiumId, tenantId, centralTenantId)));
+  }
+
+  @Override
+  public void syncPrimaryUserAffiliations(UUID consortiumId, String centralTenantId, SyncPrimaryAffiliationBody syncPrimaryAffiliationBody) {
+    var context = TenantContextUtils.prepareContextForTenant(centralTenantId, folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext);
+    asyncTaskExecutor.execute(getRunnableWithFolioContext(context,
+      () -> createPrimaryAffiliationService.createPrimaryUserAffiliations(consortiumId, centralTenantId, syncPrimaryAffiliationBody.getTenantId(), syncPrimaryAffiliationBody.getUsers())));
   }
 
   void syncPrimaryAffiliationsInternal(UUID consortiumId, String tenantId, String centralTenantId) {
@@ -71,7 +61,7 @@ public class SyncPrimaryAffiliationServiceImpl implements SyncPrimaryAffiliation
 
     if (CollectionUtils.isNotEmpty(users)) {
       try {
-        this.createPrimaryUserAffiliations(consortiumId, centralTenantId,  buildSyncPrimaryAffiliationBody(tenantId, users));
+        this.syncPrimaryUserAffiliations(consortiumId, centralTenantId,  buildSyncPrimaryAffiliationBody(tenantId, users));
       } catch (Exception e) {
         log.error("syncPrimaryAffiliations:: error syncing user primary affiliations", e);
         tenantService.updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.FAILED);
@@ -108,74 +98,4 @@ public class SyncPrimaryAffiliationServiceImpl implements SyncPrimaryAffiliation
     return syncUser;
   }
 
-  @Override
-  public void createPrimaryUserAffiliations(UUID consortiumId, String centralTenantId, SyncPrimaryAffiliationBody syncPrimaryAffiliationBody) {
-    var context = TenantContextUtils.prepareContextForTenant(centralTenantId, folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext);
-    asyncTaskExecutor.execute(getRunnableWithFolioContext(context,
-      () -> self.createPrimaryUserAffiliationsInternal(consortiumId, centralTenantId, syncPrimaryAffiliationBody)));
-  }
-
-  @Transactional
-  public void createPrimaryUserAffiliationsInternal(UUID consortiumId, String centralTenantId, SyncPrimaryAffiliationBody syncPrimaryAffiliationBody) {
-    try {
-      log.info("Start creating user primary affiliation for tenant {}", syncPrimaryAffiliationBody.getTenantId());
-      lockService.lockTenantSetupWithinTransaction();
-      var tenantId = syncPrimaryAffiliationBody.getTenantId();
-      var userList = syncPrimaryAffiliationBody.getUsers();
-      TenantEntity tenantEntity = tenantService.getByTenantId(tenantId);
-      createPrimaryUserAffiliations(consortiumId, centralTenantId, tenantId, userList, tenantEntity);
-    } catch (Exception e) {
-      log.error("createPrimaryUserAffiliations:: error creating user primary affiliations", e);
-      tenantService.updateTenantSetupStatus(syncPrimaryAffiliationBody.getTenantId(), centralTenantId, SetupStatusEnum.FAILED);
-      throw e;
-    }
-  }
-
-  private void createPrimaryUserAffiliations(UUID consortiumId, String centralTenantId, String tenantId,
-    List<SyncUser> userList, TenantEntity tenantEntity) {
-    var affiliatedUsersCount = 0;
-    var hasFailedAffiliations = false;
-    for (int idx = 0; idx < userList.size(); idx++) {
-      var user = userList.get(idx);
-      try {
-        log.info("createPrimaryUserAffiliations:: Processing users: {} of {}", idx + 1, userList.size());
-        Optional<UserTenantEntity> userTenant = userTenantRepository.findByUserIdAndIsPrimaryTrue(UUID.fromString(user.getId()));
-
-        if (userTenant.isPresent()) {
-          log.info("createPrimaryUserAffiliations:: Primary affiliation already exists for tenant/user: {}/{}", tenantId, user.getUsername());
-        } else {
-          PrimaryAffiliationEvent primaryAffiliationEvent = createPrimaryAffiliationEvent(user, tenantId, centralTenantId, consortiumId);
-          createPrimaryAffiliationService.createPrimaryAffiliationInNewTransaction(consortiumId, centralTenantId, tenantEntity, primaryAffiliationEvent);
-        }
-        affiliatedUsersCount++;
-      } catch (Exception e) {
-        hasFailedAffiliations = true;
-        log.error("createPrimaryUserAffiliations:: Failed to create primary affiliations for userid: {}, tenant: {}" +
-          " and error message: {}", user.getId(), tenantId, e.getMessage(), e);
-      }
-    }
-    tenantService.updateTenantSetupStatus(tenantId, centralTenantId, hasFailedAffiliations ?
-      SetupStatusEnum.COMPLETED_WITH_ERRORS : SetupStatusEnum.COMPLETED);
-    log.info("createPrimaryUserAffiliations:: Successfully created {} of {} primary affiliations for tenant {}",
-      affiliatedUsersCount, userList.size(), tenantId);
-  }
-
-  private PrimaryAffiliationEvent createPrimaryAffiliationEvent(SyncUser user,
-                                                                String tenantId,
-                                                                String centralTenantId,
-                                                                UUID consortiumId) {
-    PrimaryAffiliationEvent event = new PrimaryAffiliationEvent();
-    event.setId(UUID.randomUUID());
-    event.setUserId(UUID.fromString(user.getId()));
-    event.setUsername(user.getUsername());
-    event.setTenantId(tenantId);
-    event.setEmail(user.getEmail());
-    event.setPhoneNumber(user.getPhoneNumber());
-    event.setMobilePhoneNumber(user.getMobilePhoneNumber());
-    event.setBarcode(user.getBarcode());
-    event.setExternalSystemId(user.getExternalSystemId());
-    event.setCentralTenantId(centralTenantId);
-    event.setConsortiumId(consortiumId);
-    return event;
-  }
 }

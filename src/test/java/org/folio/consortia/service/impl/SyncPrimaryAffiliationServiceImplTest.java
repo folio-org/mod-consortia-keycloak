@@ -25,12 +25,10 @@ import org.folio.consortia.service.LockService;
 import org.folio.consortia.service.PrimaryAffiliationService;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.folio.consortia.domain.dto.SyncPrimaryAffiliationBody;
 import org.folio.consortia.domain.dto.SyncUser;
 import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
 import org.folio.consortia.domain.dto.User;
@@ -77,12 +75,14 @@ class SyncPrimaryAffiliationServiceImplTest {
   private AsyncTaskExecutor asyncTaskExecutor = new SimpleAsyncTaskExecutor();
 
   private SyncPrimaryAffiliationServiceImpl syncPrimaryAffiliationService;
+  private CreatePrimaryAffiliationServiceImpl createPrimaryAffiliationService;
 
   @BeforeEach
   void setUp() {
-    syncPrimaryAffiliationService = spy(new SyncPrimaryAffiliationServiceImpl(userService, tenantService, userTenantRepository,
-      lockService, primaryAffiliationService, getFolioExecutionContext(), asyncTaskExecutor));
-    syncPrimaryAffiliationService.setSyncPrimaryAffiliationService(syncPrimaryAffiliationService);
+    createPrimaryAffiliationService = spy(new CreatePrimaryAffiliationServiceImpl(tenantService, userTenantRepository,
+      lockService, primaryAffiliationService));
+    syncPrimaryAffiliationService = spy(new SyncPrimaryAffiliationServiceImpl(userService, tenantService,
+      createPrimaryAffiliationService, getFolioExecutionContext(), asyncTaskExecutor));
   }
 
   @Test
@@ -99,9 +99,6 @@ class SyncPrimaryAffiliationServiceImplTest {
     var syncUser = new SyncUser().id(UUID.randomUUID()
         .toString())
       .username("test_user");
-    var spab = new SyncPrimaryAffiliationBody()
-      .users(Collections.singletonList(syncUser))
-      .tenantId(tenantId);
 
     // stub collection of 2 users
     when(tenantService.getByTenantId(anyString())).thenReturn(tenantEntity1);
@@ -110,7 +107,7 @@ class SyncPrimaryAffiliationServiceImplTest {
     when(userService.getUsersByQuery(eq(CQL_GET_USERS), anyInt(), anyInt())).thenReturn(userCollection);
     when(consortiaConfigurationService.getCentralTenantId(anyString())).thenReturn(tenantId);
 
-    syncPrimaryAffiliationService.createPrimaryUserAffiliationsInternal(consortiumId, centralTenantId, spab);
+    createPrimaryAffiliationService.createPrimaryUserAffiliations(consortiumId, centralTenantId, tenantId, List.of(syncUser));
 
     verify(primaryAffiliationService).createPrimaryAffiliationInNewTransaction(any(), anyString(), any(), any());
     verify(tenantService).updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.COMPLETED);
@@ -130,9 +127,6 @@ class SyncPrimaryAffiliationServiceImplTest {
     var syncUser = new SyncUser().id(UUID.randomUUID()
         .toString())
       .username("test_user");
-    var spab = new SyncPrimaryAffiliationBody()
-      .users(Collections.singletonList(syncUser))
-      .tenantId(tenantId);
 
     // stub collection of 2 users
     when(tenantService.getByTenantId(anyString())).thenReturn(tenantEntity1);
@@ -141,7 +135,7 @@ class SyncPrimaryAffiliationServiceImplTest {
     when(userService.getUsersByQuery(eq(CQL_GET_USERS), anyInt(), anyInt())).thenReturn(userCollection);
     when(consortiaConfigurationService.getCentralTenantId(anyString())).thenReturn(centralTenantId);
 
-    syncPrimaryAffiliationService.createPrimaryUserAffiliationsInternal(consortiumId, centralTenantId, spab);
+    createPrimaryAffiliationService.createPrimaryUserAffiliations(consortiumId, centralTenantId, tenantId, List.of(syncUser));
 
     verify(primaryAffiliationService).createPrimaryAffiliationInNewTransaction(any(), anyString(), any(), any());
     verify(tenantService).updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.COMPLETED);
@@ -159,6 +153,17 @@ class SyncPrimaryAffiliationServiceImplTest {
     var userCollectionString = getMockDataAsString("mockdata/user_collection.json");
     List<User> userCollection = new ObjectMapper().readValue(userCollectionString, UserCollection.class).getUsers();
 
+    var syncUsers = userCollection.stream()
+      .map(user -> new SyncUser()
+        .id(user.getId())
+        .username(user.getUsername())
+        .email(user.getPersonal().getEmail())
+        .phoneNumber(user.getPersonal().getPhone())
+        .mobilePhoneNumber(user.getPersonal().getMobilePhone())
+        .externalSystemId(user.getExternalSystemId())
+        .barcode(user.getBarcode()))
+      .toList();
+
     doNothing().when(tenantService).updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.COMPLETED);
     // stub collection of 2 users
     when(userService.getUsersByQuery(eq(CQL_GET_USERS), anyInt(), anyInt())).thenReturn(userCollection);
@@ -167,7 +172,7 @@ class SyncPrimaryAffiliationServiceImplTest {
 
     syncPrimaryAffiliationService.syncPrimaryAffiliationsInternal(consortiumId, tenantId, centralTenantId);
 
-    verify(syncPrimaryAffiliationService, timeout(2000)).createPrimaryUserAffiliationsInternal(consortiumId, centralTenantId, getSyncBody(tenantId));
+    verify(createPrimaryAffiliationService, timeout(2000)).createPrimaryUserAffiliations(consortiumId, centralTenantId, tenantId, syncUsers);
     verify(tenantService).updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.COMPLETED);
   }
 
@@ -193,13 +198,10 @@ class SyncPrimaryAffiliationServiceImplTest {
     var syncUser = new SyncUser().id(UUID.randomUUID()
         .toString())
       .username("test_user");
-    var spab = new SyncPrimaryAffiliationBody()
-      .users(Collections.singletonList(syncUser))
-      .tenantId(tenantId);
 
     when(tenantService.getByTenantId(anyString())).thenThrow(DataAccessResourceFailureException.class);
 
-    Executable call = () -> syncPrimaryAffiliationService.createPrimaryUserAffiliationsInternal(consortiumId, centralTenantId, spab);
+    Executable call = () -> createPrimaryAffiliationService.createPrimaryUserAffiliations(consortiumId, centralTenantId, tenantId, List.of(syncUser));
 
     assertThrows(DataAccessResourceFailureException.class, call);
     verifyNoInteractions(primaryAffiliationService);
@@ -218,38 +220,17 @@ class SyncPrimaryAffiliationServiceImplTest {
 
     var syncUser = new SyncUser().id("88888888-8888-4888-8888-888888888888").username("mockuser8");
     var syncUser2 = new SyncUser().id("99999999-9999-4999-9999-999999999999").username("mockuser9");
-    var spab = new SyncPrimaryAffiliationBody()
-      .users(List.of(syncUser, syncUser2))
-      .tenantId(tenantId);
 
     when(tenantService.getByTenantId(anyString())).thenReturn(tenantEntity1);
     when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any()))
       .thenReturn(Optional.empty())
       .thenThrow(DataAccessResourceFailureException.class);
 
-    syncPrimaryAffiliationService.createPrimaryUserAffiliationsInternal(consortiumId, centralTenantId, spab);
+    createPrimaryAffiliationService.createPrimaryUserAffiliations(consortiumId, centralTenantId, tenantId, List.of(syncUser, syncUser2));
 
     verify(primaryAffiliationService, times(1)).createPrimaryAffiliationInNewTransaction(any(), anyString(), any(), any());
     verify(tenantService).updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.COMPLETED_WITH_ERRORS);
     verify(lockService).lockTenantSetupWithinTransaction();
   }
 
-  private SyncPrimaryAffiliationBody getSyncBody(String tenantId) {
-    var syncUser = new SyncUser()
-      .id("88888888-8888-4888-8888-888888888888")
-      .username("mockuser8")
-      .email("hlintall1@si.edu")
-      .phoneNumber("927-306-2327");
-    var syncUser2 = new SyncUser()
-      .id("99999999-9999-4999-9999-999999999999")
-      .username("mockuser9")
-      .externalSystemId("123")
-      .barcode("test123")
-      .email("mock@biglibrary.org")
-      .phoneNumber("2125551212")
-      .mobilePhoneNumber("112233");
-    return new SyncPrimaryAffiliationBody()
-      .users(List.of(syncUser, syncUser2))
-      .tenantId(tenantId);
-  }
 }

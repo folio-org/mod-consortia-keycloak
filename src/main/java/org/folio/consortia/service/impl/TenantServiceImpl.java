@@ -8,7 +8,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantCollection;
 import org.folio.consortia.domain.dto.TenantDeleteRequest;
-import org.folio.consortia.domain.dto.TenantDeleteRequest.DeleteTypeEnum;
 import org.folio.consortia.domain.dto.TenantDetails;
 import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
 import org.folio.consortia.domain.dto.User;
@@ -164,14 +163,17 @@ public class TenantServiceImpl implements TenantService {
 
   @Override
   public void deleteTenant(TenantEntity tenant, TenantDeleteRequest.DeleteTypeEnum deleteType) {
-    if (deleteType.equals(DeleteTypeEnum.HARD)) {
-      log.info("deleteTenant:: Hard deleting tenant with id={}", tenant.getId());
-      userTenantRepository.deleteUserTenantsByTenantId(tenant.getId());
-      tenantRepository.delete(tenant);
-    } else {
-      log.info("deleteTenant:: Soft deleting tenant with id={}", tenant.getId());
-      tenant.setIsDeleted(true);
-      saveTenant(tenant);
+    switch (deleteType) {
+      case HARD -> {
+        log.info("deleteTenant:: Hard deleting tenant with id={}", tenant.getId());
+        userTenantRepository.deleteUserTenantsByTenantId(tenant.getId());
+        tenantRepository.delete(tenant);
+      }
+      case SOFT -> {
+        log.info("deleteTenant:: Soft deleting tenant with id={}", tenant.getId());
+        tenant.setIsDeleted(true);
+        saveTenant(tenant);
+      }
     }
   }
 

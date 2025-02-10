@@ -77,7 +77,7 @@ public class TenantController implements TenantsApi {
   public ResponseEntity<Void> createPrimaryAffiliations(UUID consortiumId, String tenantId, @NotNull String centralTenantId,
       SyncPrimaryAffiliationBody syncPrimaryAffiliationBody) {
     try {
-      syncPrimaryAffiliationService.createPrimaryUserAffiliations(consortiumId, centralTenantId, syncPrimaryAffiliationBody);
+      syncPrimaryAffiliationService.syncPrimaryUserAffiliations(consortiumId, centralTenantId, syncPrimaryAffiliationBody);
       return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     } catch (Exception e) {
       log.error("createPrimaryAffiliations:: error creating user primary affiliations", e);
