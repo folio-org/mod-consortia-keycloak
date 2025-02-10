@@ -68,7 +68,7 @@ public class TenantManagerImpl implements TenantManager {
 
   @Override
   public TenantCollection get(UUID consortiumId, Integer offset, Integer limit) {
-   return tenantService.get(consortiumId, offset, limit);
+    return tenantService.get(consortiumId, offset, limit);
   }
 
   @Override
@@ -106,13 +106,15 @@ public class TenantManagerImpl implements TenantManager {
   public void delete(UUID consortiumId, String tenantId, TenantDeleteRequest tenantDeleteRequest) {
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
     var tenant = getTenantById(tenantId);
-    var isHardDelete = tenantDeleteRequest.getDeleteType().equals(DeleteTypeEnum.HARD);
-    var deleteInternalData = isHardDelete && Boolean.TRUE.equals(tenantDeleteRequest.getDeleteOptions().getDeleteInternalData());
+    var deleteType = tenantDeleteRequest.getDeleteType();
+    var deleteOptions = tenantDeleteRequest.getDeleteOptions();
 
-    // During soft delete central or already deleted tenant cannot proceed
-    if (!isHardDelete) {
-      validateTenantForDeleteOperation(tenant);
-    }
+    // Delete internal data only if it is a hard delete and deleteInternalData flag is set
+    var deleteInternalData = deleteType.equals(DeleteTypeEnum.HARD) && deleteOptions.getDeleteInternalData();
+    // Delete users user-tenants always for soft delete and if deleteUsersUserTenants flag is set for hard delete
+    var deleteUsersUserTenants = deleteType.equals(DeleteTypeEnum.SOFT) || deleteOptions.getDeleteUsersUserTenants();
+
+    validateTenantForDeleteOperation(tenantDeleteRequest.getDeleteType(), tenant);
 
     // Clean publish coordinator tables first, because after tenant removal it will be ignored by cleanup service
     cleanupService.clearPublicationTables();
@@ -126,7 +128,9 @@ public class TenantManagerImpl implements TenantManager {
       if (deleteInternalData) {
         configurationClient.deleteConfiguration();
       }
-      userTenantsClient.deleteUserTenants();
+      if (deleteUsersUserTenants) {
+        userTenantsClient.deleteUserTenants();
+      }
     }
   }
 
@@ -258,7 +262,11 @@ public class TenantManagerImpl implements TenantManager {
     }
   }
 
-  private void validateTenantForDeleteOperation(TenantEntity tenant) {
+  // During soft delete central or already deleted tenant cannot proceed
+  private void validateTenantForDeleteOperation(DeleteTypeEnum deleteType, TenantEntity tenant) {
+    if (DeleteTypeEnum.HARD.equals(deleteType)) {
+      return;
+    }
     if (Boolean.TRUE.equals(tenant.getIsDeleted())) {
       throw new IllegalArgumentException(String.format("Tenant [%s] has already been soft deleted.", tenant.getId()));
     }
