@@ -52,6 +52,7 @@ public class ConsortiaConfigurationServiceImpl implements ConsortiaConfiguration
     if (!existingConfigurations.isEmpty()) {
       log.info("createConfiguration:: Deleting existing configuration with centralTenantId: '{}'", existingConfigurations.get(0).getCentralTenantId());
       configurationRepository.deleteAll();
+      configurationRepository.flush();
     } else {
       log.info("createConfiguration:: No existing configuration found to delete");
     }
