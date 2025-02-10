@@ -349,37 +349,37 @@ class TenantManagerTest {
 
   @ParameterizedTest
   @CsvSource({"true, false", "false, false", "true, true", "false, true"})
-  void testDeleteTenantHard(boolean deleteInternalData, boolean isCentral) {
+  void testDeleteTenantHard(boolean deleteData, boolean isCentral) {
     UUID consortiumId = UUID.randomUUID();
     var tenant = createTenantEntity(TENANT_ID);
     tenant.setIsCentral(isCentral);
-    var deleteRequest = createTenantDeleteRequest(DeleteTypeEnum.HARD, deleteInternalData);
+    var deleteRequest = createTenantDeleteRequest(DeleteTypeEnum.HARD, deleteData);
 
-    if (deleteInternalData) {
+    if (deleteData) {
       doNothing().when(consortiaConfigurationClient).deleteConfiguration();
       doNothing().when(cleanupService).clearSharingTables(TENANT_ID);
+      doNothing().when(userTenantsClient).deleteUserTenants();
     }
     doNothing().when(consortiumService).checkConsortiumExistsOrThrow(consortiumId);
     doNothing().when(cleanupService).clearPublicationTables();
     doNothing().when(tenantRepository).delete(tenant);
     doNothing().when(userTenantRepository).deleteUserTenantsByTenantId(TENANT_ID);
-    doNothing().when(userTenantsClient).deleteUserTenants();
     when(tenantRepository.findById(tenant.getId())).thenReturn(Optional.of(tenant));
     when(executionContextBuilder.buildContext(anyString())).thenReturn(folioExecutionContext);
     mockOkapiHeaders();
 
     tenantManager.delete(consortiumId, TENANT_ID, deleteRequest);
 
-    var verifyTimes = deleteInternalData ? times(1) : never();
+    var verifyTimes = deleteData ? times(1) : never();
     verify(consortiaConfigurationClient, verifyTimes).deleteConfiguration();
     verify(cleanupService, verifyTimes).clearSharingTables(TENANT_ID);
+    verify(userTenantsClient, verifyTimes).deleteUserTenants();
 
     verify(consortiumService).checkConsortiumExistsOrThrow(consortiumId);
     verify(tenantRepository).findById(TENANT_ID);
     verify(cleanupService).clearPublicationTables();
     verify(tenantRepository).delete(tenant);
     verify(userTenantRepository).deleteUserTenantsByTenantId(TENANT_ID);
-    verify(userTenantsClient).deleteUserTenants();
   }
 
   @Test
