@@ -29,7 +29,8 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 @AllArgsConstructor
 public class UserAffiliationServiceImpl implements UserAffiliationService {
-  private static final String EVENT_PAYLOAD_COULD_NOT_BE_PARSED = "Skipping user affiliation event because input payload: {} could not be parsed";
+  private static final String EVENT_PAYLOAD_COULD_NOT_BE_PARSED =
+    "Skipping user affiliation event because input payload could not be parsed";
 
   private final UserTenantService userTenantService;
   private final TenantService tenantService;
@@ -44,7 +45,7 @@ public class UserAffiliationServiceImpl implements UserAffiliationService {
     String centralTenantId = folioExecutionContext.getTenantId();
     var userEvent = parseUserEvent(eventPayload);
     if (Objects.isNull(userEvent)) {
-      log.warn(EVENT_PAYLOAD_COULD_NOT_BE_PARSED, eventPayload);
+      log.warn(EVENT_PAYLOAD_COULD_NOT_BE_PARSED);
       return;
     }
 
@@ -54,8 +55,8 @@ public class UserAffiliationServiceImpl implements UserAffiliationService {
       boolean isPrimaryAffiliationExists = userTenantService
         .checkUserIfHasPrimaryAffiliationByUserId(tenant.getConsortiumId(), userEvent.getUserDto().getId());
       if (isPrimaryAffiliationExists) {
-        log.warn("createPrimaryUserAffiliation:: Primary affiliation already exists for tenant/user: {}/{}",
-          userEvent.getTenantId(), userEvent.getUserDto().getUsername());
+        log.warn("createPrimaryUserAffiliation:: Primary affiliation already exists for tenant/userId: {}/{}",
+          userEvent.getTenantId(), userEvent.getUserDto().getId());
         return;
       }
 
@@ -73,7 +74,7 @@ public class UserAffiliationServiceImpl implements UserAffiliationService {
     String centralTenantId = folioExecutionContext.getTenantId();
     var userEvent = parseUserEvent(eventPayload);
     if (Objects.isNull(userEvent)) {
-      log.warn(EVENT_PAYLOAD_COULD_NOT_BE_PARSED, eventPayload);
+      log.warn(EVENT_PAYLOAD_COULD_NOT_BE_PARSED);
       return;
     }
 
@@ -126,7 +127,7 @@ public class UserAffiliationServiceImpl implements UserAffiliationService {
     String centralTenantId = folioExecutionContext.getTenantId();
     var userEvent = parseUserEvent(eventPayload);
     if (Objects.isNull(userEvent)) {
-      log.warn(EVENT_PAYLOAD_COULD_NOT_BE_PARSED, eventPayload);
+      log.warn(EVENT_PAYLOAD_COULD_NOT_BE_PARSED);
       return;
     }
 

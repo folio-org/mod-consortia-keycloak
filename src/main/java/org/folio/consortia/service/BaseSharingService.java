@@ -103,8 +103,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
       .forEach(requests -> requests.forEach(pubRequest ->
         pubRequest.setPayload(updateSourcePayload(pubRequest.getPayload(), sourceValue))));
 
-    log.info("start:: set source as '{}' in payload of {}: {}",
-      sourceValue, configName, configId);
+    log.info("start:: set source in payload of {}: {}", configName, configId);
 
     // create PC request with POST and PUT Http method to create configs, using 'mod-consortia-keycloak' system user
     return systemUserScopedExecutionService.executeSystemUserScoped(folioExecutionContext.getTenantId(), () -> {
@@ -236,7 +235,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
     pubPutRequests.forEach(pubRequest -> pubRequest.setPayload(updateSourcePayload(pubRequest.getPayload(), sourceValue)));
 
     log.info("updateFailedConfigsToLocalSource:: send PUT request to publication with new source in " +
-        "payload={} by system user of {}", sourceValue, folioExecutionContext.getTenantId());
+        "payload by system user of {}", folioExecutionContext.getTenantId());
     executePublishRequests(consortiumId, pubPutRequests);
   }
 

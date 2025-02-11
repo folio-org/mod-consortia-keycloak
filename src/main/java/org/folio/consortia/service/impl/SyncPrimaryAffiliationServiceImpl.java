@@ -103,8 +103,8 @@ public class SyncPrimaryAffiliationServiceImpl implements SyncPrimaryAffiliation
         .mobilePhoneNumber(personal.getMobilePhone());
     }
     if (StringUtils.isBlank(user.getType())) {
-      log.warn("Required field 'type' was not populated for existing user with id: {}, username: {} in tenant: {}",
-        user.getId(), user.getUsername(), tenantId);
+      log.warn("Required field 'type' was not populated for existing user with id: {} in tenant: {}",
+        user.getId(), tenantId);
     }
     return syncUser;
   }
@@ -143,8 +143,8 @@ public class SyncPrimaryAffiliationServiceImpl implements SyncPrimaryAffiliation
         Page<UserTenantEntity> userTenantPage = userTenantRepository.findAnyByUserId(UUID.fromString(user.getId()), OffsetRequest.of(0, 1));
 
         if (userTenantPage.getTotalElements() > 0) {
-          log.info("createPrimaryUserAffiliations:: Primary affiliation already exists for tenant/user: {}/{}",
-            tenantId, user.getUsername());
+          log.info("createPrimaryUserAffiliations:: Primary affiliation already exists for tenant/userId: {}/{}",
+            tenantId, user.getId());
         } else {
           PrimaryAffiliationEvent primaryAffiliationEvent = createPrimaryAffiliationEvent(user, tenantId, centralTenantId, consortiumId);
           createPrimaryAffiliationService.createPrimaryAffiliationInNewTransaction(consortiumId, centralTenantId, tenantEntity, primaryAffiliationEvent);
