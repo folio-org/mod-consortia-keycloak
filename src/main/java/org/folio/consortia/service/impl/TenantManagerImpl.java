@@ -5,11 +5,13 @@ import static org.folio.consortia.service.impl.CustomFieldServiceImpl.ORIGINAL_T
 import static org.folio.consortia.service.impl.CustomFieldServiceImpl.ORIGINAL_TENANT_ID_NAME;
 import static org.folio.consortia.utils.HelperUtils.checkIdenticalOrThrow;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.client.ConsortiaConfigurationClient;
+import org.folio.consortia.client.KeycloakClient;
 import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.domain.dto.Tenant;
@@ -22,7 +24,6 @@ import org.folio.consortia.exception.ResourceAlreadyExistException;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.service.CapabilitiesUserService;
 import org.folio.consortia.service.CleanupService;
-import org.folio.consortia.service.ConsortiaConfigurationService;
 import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.CustomFieldService;
 import org.folio.consortia.service.LockService;
@@ -64,6 +65,7 @@ public class TenantManagerImpl implements TenantManager {
   private final SystemUserScopedExecutionService systemUserScopedExecutionService;
   private final ExecutionContextBuilder contextBuilder;
   private final FolioExecutionContext folioExecutionContext;
+  private final KeycloakClient keycloakClient;
 
   @Override
   public TenantCollection get(UUID consortiumId, Integer offset, Integer limit) {
@@ -79,10 +81,9 @@ public class TenantManagerImpl implements TenantManager {
     tenantService.checkTenantUniqueNameAndCodeOrThrow(tenantDto);
 
     createCustomFieldIfNeeded(tenantDto.getId());
+    addCustomAuthenticationFlowForCentralTenant(tenantDto);
 
     var existingTenant = tenantService.getByTenantId(tenantDto.getId());
-
-    // checked whether tenant exists or not.
     return existingTenant != null
       ? reAddSoftDeletedTenant(consortiumId, existingTenant, tenantDto)
       : addNewTenant(consortiumId, tenantDto, adminUserId);
@@ -128,6 +129,34 @@ public class TenantManagerImpl implements TenantManager {
         return null;
       }
     );
+  }
+
+  private void addCustomAuthenticationFlowForCentralTenant(Tenant tenant) {
+    if (tenant.getIsCentral()) {
+      String tenantId = tenant.getId();
+      log.debug("addCustomAuthenticationFlowForCentralTenant:: Adding custom authentication flow for central tenant with id={}", tenantId);
+
+      // 1. Duplicate built-in browser authentication flow
+      Map<String, String> browserFlowCopyConfig = Map.of("newName", "custom-browser-flow");
+      keycloakClient.copyBrowserFlow(tenantId, browserFlowCopyConfig);
+
+      // 2. Add custom ecs folio authentication form provider to the duplicated flow
+      Map<String, String> browserFlowProviderConfig = Map.of("provider", "ecs-folio-auth-usrnm-pwd-form");
+      keycloakClient.executeBrowserFlow(tenantId, "custom-browser-flow", browserFlowProviderConfig);
+
+      // 3. Fetch executions from current flow
+      var currentFlow = keycloakClient.getExecutions(tenantId, "custom-browser-flow");
+
+      // 4. Raise priority of the custom ecs folio authentication form provider
+      keycloakClient.raisePriority(tenantId, "custom-browser-flow", currentFlow.get(0).get("id").asText());
+
+      // 5. Delete default auth-username-password-form execution from the flow
+      keycloakClient.deleteExecution(tenant.getId(), "custom-browser-flow", "auth-username-password-form");
+
+      // 6. Bind the custom flow to the realm
+      Map<String, String> flowConfig = Map.of("alias", "custom-browser-flow");
+      keycloakClient.updateFlow(tenantId, "browser", flowConfig);
+    }
   }
 
   private Tenant reAddSoftDeletedTenant(UUID consortiumId, TenantEntity existingTenant, Tenant tenantDto) {
