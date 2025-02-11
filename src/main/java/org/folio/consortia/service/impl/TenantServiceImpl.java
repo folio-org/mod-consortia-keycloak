@@ -90,7 +90,7 @@ public class TenantServiceImpl implements TenantService {
 
   @Override
   public Tenant saveTenant(TenantEntity tenantEntity) {
-    log.debug("saveTenant:: Trying to save tenant with consoritumId={} and tenant with id={}",
+    log.debug("saveTenant:: Trying to save tenant with consortiumId={} and tenant with id={}",
       tenantEntity.getConsortiumId(), tenantEntity.getId());
     TenantEntity savedTenant = tenantRepository.save(tenantEntity);
     log.info("saveTenant: Tenant '{}' successfully saved", savedTenant.getId());
@@ -104,7 +104,7 @@ public class TenantServiceImpl implements TenantService {
 
   @Override
   public Tenant saveTenantDetails(UUID consortiumId, Tenant tenantDto, TenantDetails.SetupStatusEnum setupStatus) {
-    log.debug("saveTenant:: Trying to save tenant with consoritumId={} and tenant with id={}, setupStatus={}",
+    log.debug("saveTenant:: Trying to save tenant with consortiumId={} and tenant with id={}, setupStatus={}",
       consortiumId, tenantDto, setupStatus);
     TenantDetailsEntity entity = toTenantDetailsEntity(consortiumId, tenantDto, setupStatus);
     TenantDetailsEntity savedTenant = tenantDetailsRepository.save(entity);
