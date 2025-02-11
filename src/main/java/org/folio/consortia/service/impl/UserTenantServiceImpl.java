@@ -144,7 +144,7 @@ public class UserTenantServiceImpl implements UserTenantService {
 
     var createdRecord = userTenantRepository.save(userTenantEntity);
     var userTenant = converter.convert(createdRecord, UserTenant.class);
-    log.info("createPrimaryUserTenantAffiliation:: Successfully created primary affiliation for tenant/user {}/{}", consortiaTenant.getId(), userId);
+    log.info("createPrimaryUserTenantAffiliation:: Successfully created primary affiliation for tenant/userId {}/{}", consortiaTenant.getId(), userId);
     return userTenant;
   }
 
