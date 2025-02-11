@@ -349,17 +349,17 @@ class TenantManagerTest {
 
   @ParameterizedTest
   @CsvSource({"true, false", "false, false", "true, true", "false, true"})
-  void testDeleteTenantHard(boolean deleteData, boolean isCentral) {
+  void testDeleteTenantHard(boolean deleteUserTenants, boolean isCentral) {
     UUID consortiumId = UUID.randomUUID();
     var tenant = createTenantEntity(TENANT_ID);
     tenant.setIsCentral(isCentral);
-    var deleteRequest = createTenantDeleteRequest(DeleteTypeEnum.HARD, deleteData);
+    var deleteRequest = createTenantDeleteRequest(DeleteTypeEnum.HARD, deleteUserTenants);
 
-    if (deleteData) {
-      doNothing().when(consortiaConfigurationClient).deleteConfiguration();
-      doNothing().when(cleanupService).clearSharingTables(TENANT_ID);
+    if (deleteUserTenants) {
       doNothing().when(userTenantsClient).deleteUserTenants();
     }
+    doNothing().when(consortiaConfigurationClient).deleteConfiguration();
+    doNothing().when(cleanupService).clearSharingTables(TENANT_ID);
     doNothing().when(consortiumService).checkConsortiumExistsOrThrow(consortiumId);
     doNothing().when(cleanupService).clearPublicationTables();
     doNothing().when(tenantRepository).delete(tenant);
@@ -370,11 +370,11 @@ class TenantManagerTest {
 
     tenantManager.delete(consortiumId, TENANT_ID, deleteRequest);
 
-    var verifyTimes = deleteData ? times(1) : never();
-    verify(consortiaConfigurationClient, verifyTimes).deleteConfiguration();
-    verify(cleanupService, verifyTimes).clearSharingTables(TENANT_ID);
+    var verifyTimes = deleteUserTenants ? times(1) : never();
     verify(userTenantsClient, verifyTimes).deleteUserTenants();
 
+    verify(consortiaConfigurationClient).deleteConfiguration();
+    verify(cleanupService).clearSharingTables(TENANT_ID);
     verify(consortiumService).checkConsortiumExistsOrThrow(consortiumId);
     verify(tenantRepository).findById(TENANT_ID);
     verify(cleanupService).clearPublicationTables();

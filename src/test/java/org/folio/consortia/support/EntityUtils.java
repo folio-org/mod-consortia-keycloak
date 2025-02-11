@@ -188,12 +188,11 @@ public class EntityUtils {
     return tenant;
   }
 
-  public static TenantDeleteRequest createTenantDeleteRequest(TenantDeleteRequest.DeleteTypeEnum deleteType, boolean deleteData) {
+  public static TenantDeleteRequest createTenantDeleteRequest(TenantDeleteRequest.DeleteTypeEnum deleteType, boolean deleteUserTenants) {
     return new TenantDeleteRequest()
       .deleteType(deleteType)
       .deleteOptions(new TenantDeleteRequestDeleteOptions()
-        .deleteInternalData(deleteData)
-        .deleteUsersUserTenants(deleteData)
+        .deleteUsersUserTenants(deleteUserTenants)
         .deleteRelatedShadowUsers(false));
   }
 

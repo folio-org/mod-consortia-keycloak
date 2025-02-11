@@ -109,26 +109,25 @@ public class TenantManagerImpl implements TenantManager {
     var deleteType = tenantDeleteRequest.getDeleteType();
     var deleteOptions = tenantDeleteRequest.getDeleteOptions();
 
-    // Delete internal data only if it is a hard delete and deleteInternalData flag is set
-    var deleteInternalData = deleteType.equals(DeleteTypeEnum.HARD) && deleteOptions.getDeleteInternalData();
+    // Delete internal data only if it is a hard delete
+    var isHardDelete = deleteType.equals(DeleteTypeEnum.HARD);
     // Delete users user-tenants always for soft delete and if deleteUsersUserTenants flag is set for hard delete
-    var deleteUsersUserTenants = deleteType.equals(DeleteTypeEnum.SOFT) || deleteOptions.getDeleteUsersUserTenants();
 
     validateTenantForDeleteOperation(tenantDeleteRequest.getDeleteType(), tenant);
 
     // Clean publish coordinator tables first, because after tenant removal it will be ignored by cleanup service
     cleanupService.clearPublicationTables();
     // Clean sharing tables or shadow users if needed
-    if (deleteInternalData) {
+    if (isHardDelete) {
       cleanupService.clearSharingTables(tenantId);
     }
     tenantService.deleteTenant(tenant, tenantDeleteRequest.getDeleteType());
 
     try (var ignored = new FolioExecutionContextSetter(contextBuilder.buildContext(tenantId))) {
-      if (deleteInternalData) {
+      if (isHardDelete) {
         configurationClient.deleteConfiguration();
       }
-      if (deleteUsersUserTenants) {
+      if (!isHardDelete || deleteOptions.getDeleteUsersUserTenants()) {
         userTenantsClient.deleteUserTenants();
       }
     }

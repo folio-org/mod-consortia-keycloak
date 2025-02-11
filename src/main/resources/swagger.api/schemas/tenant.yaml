@@ -57,9 +57,6 @@ TenantDeleteRequest:
       deleteOptions:
         type: object
         properties:
-          deleteInternalData:
-            type: boolean
-            default: false
           deleteUsersUserTenants:
             type: boolean
             default: false
