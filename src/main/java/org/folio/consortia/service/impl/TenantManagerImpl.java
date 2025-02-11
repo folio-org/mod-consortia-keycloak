@@ -128,7 +128,9 @@ public class TenantManagerImpl implements TenantManager {
       if (isHardDelete) {
         configurationClient.deleteConfiguration();
       }
-      if (!isHardDelete || deleteOptions.getDeleteUsersUserTenants()) {
+      // Delete user-tenants always for soft delete.
+      // For hard delete, delete user-tenants if deleteUsersUserTenants flag is set and tenant is not already soft deleted
+      if (!isHardDelete || deleteOptions.getDeleteUsersUserTenants() && !tenant.getIsDeleted()) {
         userTenantsClient.deleteUserTenants();
       }
     }
