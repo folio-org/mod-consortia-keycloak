@@ -411,6 +411,16 @@
         },
         {
           "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/consortia-configuration",
+          "permissionsRequired": [
+            "consortia.consortia-configuration.item.delete"
+          ],
+          "modulePermissions": []
+        },
+        {
+          "methods": [
             "POST"
           ],
           "pathPattern": "/consortia/{consortiumId}/sharing/instances",
@@ -614,6 +624,7 @@
         "consortia.user-tenants.item.post",
         "consortia.user-tenants.item.delete",
         "consortia.consortia-configuration.item.post",
+        "consortia.consortia-configuration.item.delete",
         "consortia.inventory.local.sharing-instances.execute",
         "consortia.inventory.update-ownership.item.post",
         "consortia.sync-primary-affiliations.item.post",
@@ -726,6 +737,11 @@
       "permissionName": "consortia.consortia-configuration.item.post",
       "displayName": "create consortia configuration",
       "description": "Create consortia configuration"
+    },
+    {
+      "permissionName": "consortia.consortia-configuration.item.delete",
+      "displayName": "delete consortia configuration",
+      "description": "Delete consortia configuration"
     },
     {
       "permissionName": "consortia.inventory.local.sharing-instances.execute",
@@ -844,6 +860,7 @@
       "type": "system",
       "permissions": [
         "consortia.consortia-configuration.item.post",
+        "consortia.consortia-configuration.item.delete",
         "users.collection.get",
         "users.item.get",
         "users.item.post",
