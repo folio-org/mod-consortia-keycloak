@@ -50,7 +50,7 @@ public class PrimaryAffiliationServiceImpl implements PrimaryAffiliationService 
                                   TenantEntity tenantEntity,
                                   PrimaryAffiliationEvent event) {
     userTenantService.createPrimaryUserTenantAffiliation(consortiumId, tenantEntity, event.getUserId().toString(), event.getUsername());
-    if (ObjectUtils.notEqual(centralTenantId, tenantEntity.getId())) {
+    if (ObjectUtils.notEqual(centralTenantId, tenantEntity.getId()) && !userTenantService.existsByUserIdAndTenantId(event.getUserId(), centralTenantId)) {
       userTenantService.save(consortiumId, createUserTenant(centralTenantId, event.getUserId(), event.getUsername()), true);
     }
     String data = objectMapper.writeValueAsString(event);

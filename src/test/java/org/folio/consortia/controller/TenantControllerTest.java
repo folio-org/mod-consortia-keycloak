@@ -1,6 +1,7 @@
 package org.folio.consortia.controller;
 
 import static org.folio.consortia.support.EntityUtils.createTenant;
+import static org.folio.consortia.support.EntityUtils.createTenantDeleteRequest;
 import static org.folio.consortia.support.EntityUtils.createTenantDetailsEntity;
 import static org.folio.consortia.support.EntityUtils.createTenantEntity;
 import static org.folio.consortia.support.EntityUtils.createUser;
@@ -44,6 +45,7 @@ import org.folio.consortia.domain.dto.CapabilitySets;
 import org.folio.consortia.domain.dto.SyncPrimaryAffiliationBody;
 import org.folio.consortia.domain.dto.SyncUser;
 import org.folio.consortia.domain.dto.Tenant;
+import org.folio.consortia.domain.dto.TenantDeleteRequest;
 import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserTenantCollection;
 import org.folio.consortia.domain.entity.TenantDetailsEntity;
@@ -413,18 +415,21 @@ class TenantControllerTest extends BaseIT {
   }
 
   @Test
-  void shouldThrownExceptionWhenDeletingCentralTenant() throws Exception {
+  void shouldThrownExceptionWhenSoftDeletingCentralTenant() throws Exception {
     var headers = defaultHeaders();
     String tenantId = "diku";
     var centralTenant = createTenantEntity(tenantId);
     centralTenant.setIsCentral(true);
+    var deleteRequest = createTenantDeleteRequest(TenantDeleteRequest.DeleteTypeEnum.SOFT, false);
+    var objectMapper = new ObjectMapper();
 
     when(tenantRepository.findById(any())).thenReturn(Optional.of(centralTenant));
     when(consortiumRepository.existsById(any())).thenReturn(true);
 
     this.mockMvc.perform(
         delete("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/tenants/diku")
-          .headers(headers))
+          .headers(headers)
+          .content(objectMapper.writeValueAsBytes(deleteRequest)))
       .andExpectAll(
         status().is4xxClientError(),
         jsonPath("$.errors[0].code", is("VALIDATION_ERROR")),

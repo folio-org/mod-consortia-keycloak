@@ -24,4 +24,11 @@ public class ConsortiaConfigurationController implements ConsortiaConfigurationA
     return ResponseEntity.status(HttpStatus.CREATED)
       .body(configurationService.createConfiguration(configuration.getCentralTenantId()));
   }
+
+  @Override
+  public ResponseEntity<Void> deleteConfiguration() {
+    configurationService.deleteConfiguration();
+    return ResponseEntity.noContent().build();
+  }
+
 }

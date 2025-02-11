@@ -4,6 +4,8 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
+
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.domain.entity.ConsortiaConfigurationEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
@@ -13,6 +15,7 @@ import org.folio.consortia.utils.TenantContextUtils;
 import org.folio.spring.FolioExecutionContext;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Log4j2
 @Service
@@ -35,13 +38,24 @@ public class ConsortiaConfigurationServiceImpl implements ConsortiaConfiguration
   }
 
   @Override
+  @Transactional
   public ConsortiaConfiguration createConfiguration(String centralTenantId) {
-    if (configurationRepository.count() > 0) {
-      log.info("createConfiguration:: Override existing consortia configuration with centralTenantId: '{}'", centralTenantId);
-    }
-    ConsortiaConfigurationEntity configuration = new ConsortiaConfigurationEntity();
-    configuration.setCentralTenantId(centralTenantId);
+    this.deleteConfiguration();
+    log.info("createConfiguration:: Saving new consortia configuration with centralTenantId: '{}'", centralTenantId);
+    val configuration = ConsortiaConfigurationEntity.builder().centralTenantId(centralTenantId).build();
     return converter.convert(configurationRepository.save(configuration), ConsortiaConfiguration.class);
+  }
+
+  @Override
+  public void deleteConfiguration() {
+    val existingConfigurations = configurationRepository.findAll();
+    if (!existingConfigurations.isEmpty()) {
+      log.info("createConfiguration:: Deleting existing configuration with centralTenantId: '{}'", existingConfigurations.get(0).getCentralTenantId());
+      configurationRepository.deleteAll();
+      configurationRepository.flush();
+    } else {
+      log.info("createConfiguration:: No existing configuration found to delete");
+    }
   }
 
   private ConsortiaConfigurationEntity getConfiguration(String requestTenantId) {

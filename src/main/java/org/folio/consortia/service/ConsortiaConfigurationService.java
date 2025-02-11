@@ -28,4 +28,9 @@ public interface ConsortiaConfigurationService {
    * @param centralTenantId id of central tenant for requested tenant
    */
   ConsortiaConfiguration createConfiguration(String centralTenantId);
+
+  /**
+   * Delete configuration for tenant which is fetched from header
+   */
+  void deleteConfiguration();
 }

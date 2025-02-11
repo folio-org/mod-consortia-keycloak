@@ -14,6 +14,8 @@ import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.dto.SharingInstance;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantCollection;
+import org.folio.consortia.domain.dto.TenantDeleteRequest;
+import org.folio.consortia.domain.dto.TenantDeleteRequestDeleteOptions;
 import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
 import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserTenant;
@@ -186,6 +188,14 @@ public class EntityUtils {
     return tenant;
   }
 
+  public static TenantDeleteRequest createTenantDeleteRequest(TenantDeleteRequest.DeleteTypeEnum deleteType, boolean deleteUserTenants) {
+    return new TenantDeleteRequest()
+      .deleteType(deleteType)
+      .deleteOptions(new TenantDeleteRequestDeleteOptions()
+        .deleteUsersUserTenants(deleteUserTenants)
+        .deleteRelatedShadowUsers(false));
+  }
+
   public static UserTenant createUserTenant(UUID associationId) {
     UserTenant userTenant = new UserTenant();
     userTenant.setId(associationId);
@@ -207,10 +217,10 @@ public class EntityUtils {
   }
 
   public static ConsortiaConfigurationEntity createConsortiaConfigurationEntity(String centralTenantId) {
-    ConsortiaConfigurationEntity configuration = new ConsortiaConfigurationEntity();
-    configuration.setId(UUID.randomUUID());
-    configuration.setCentralTenantId(centralTenantId);
-    return configuration;
+    return ConsortiaConfigurationEntity.builder()
+      .id(UUID.randomUUID())
+      .centralTenantId(centralTenantId)
+      .build();
   }
 
   public static ConsortiaConfiguration createConsortiaConfiguration(String centralTenantId) {

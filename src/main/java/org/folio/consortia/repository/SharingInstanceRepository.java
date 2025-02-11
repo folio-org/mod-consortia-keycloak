@@ -11,6 +11,7 @@ import org.folio.consortia.domain.entity.SharingInstanceEntity;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -19,6 +20,10 @@ public interface SharingInstanceRepository extends JpaRepository<SharingInstance
 
   @Query("SELECT si FROM SharingInstanceEntity si WHERE si.instanceId = ?1 AND si.sourceTenantId= ?2 AND si.targetTenantId= ?3")
   Optional<SharingInstanceEntity> findByInstanceAndTenantIds(UUID instanceIdentifier, String sourceTenantId, String targetTenantId);
+
+  @Modifying
+  @Query("DELETE FROM SharingInstanceEntity si WHERE si.sourceTenantId = ?1 OR si.targetTenantId = ?1")
+  int deleteInstancesForTenant(String tenantId);
 
   interface Specifications {
     static Specification<SharingInstanceEntity> constructSpecification(UUID instanceIdentifier, String sourceTenantId,

@@ -5,6 +5,7 @@ import static org.folio.consortia.support.EntityUtils.CENTRAL_TENANT_ID;
 import static org.folio.consortia.support.EntityUtils.TENANT_ID;
 import static org.folio.consortia.support.EntityUtils.createOkapiHeaders;
 import static org.folio.consortia.support.EntityUtils.createTenant;
+import static org.folio.consortia.support.EntityUtils.createTenantDeleteRequest;
 import static org.folio.consortia.support.EntityUtils.createTenantDetailsEntity;
 import static org.folio.consortia.support.EntityUtils.createTenantEntity;
 import static org.folio.consortia.support.EntityUtils.createUser;
@@ -37,6 +38,7 @@ import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.domain.dto.Tenant;
+import org.folio.consortia.domain.dto.TenantDeleteRequest.DeleteTypeEnum;
 import org.folio.consortia.domain.dto.TenantDetails;
 import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserTenantCollection;
@@ -58,6 +60,8 @@ import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -283,11 +287,26 @@ class TenantManagerTest {
   }
 
   @Test
-  void shouldDeleteTenant() {
+  void testDeleteTenantNonExistent() {
+    UUID consortiumId = UUID.randomUUID();
+    String tenantId = "123";
+    var deleteRequest = createTenantDeleteRequest(DeleteTypeEnum.SOFT, false);
+
+    // Mock repository method calls
+    when(tenantRepository.existsById(tenantId)).thenReturn(false);
+
+    // Call the method
+    assertThrows(ResourceNotFoundException.class, () ->
+      tenantManager.delete(consortiumId, tenantId, deleteRequest));
+  }
+
+  @Test
+  void testDeleteTenantSoft() {
     UUID consortiumId = UUID.randomUUID();
     var tenant = createTenantEntity(TENANT_ID);
     var deletingTenant = createTenantEntity(TENANT_ID);
     deletingTenant.setIsDeleted(true);
+    var deleteRequest = createTenantDeleteRequest(DeleteTypeEnum.SOFT, true);
 
     doNothing().when(consortiumService).checkConsortiumExistsOrThrow(consortiumId);
     doNothing().when(cleanupService).clearPublicationTables();
@@ -296,7 +315,7 @@ class TenantManagerTest {
     doReturn(folioExecutionContext).when(executionContextBuilder).buildContext(anyString());
     mockOkapiHeaders();
 
-    tenantManager.delete(consortiumId, TENANT_ID);
+    tenantManager.delete(consortiumId, TENANT_ID, deleteRequest);
 
     // Assert
     verify(consortiumService).checkConsortiumExistsOrThrow(consortiumId);
@@ -307,32 +326,20 @@ class TenantManagerTest {
   }
 
   @Test
-  void testDeleteNonexistentTenant() {
-    UUID consortiumId = UUID.randomUUID();
-    String tenantId = "123";
-
-    // Mock repository method calls
-    when(tenantRepository.existsById(tenantId)).thenReturn(false);
-
-    // Call the method
-    assertThrows(ResourceNotFoundException.class, () ->
-      tenantManager.delete(consortiumId, tenantId));
-  }
-
-  @Test
-  void shouldThrowErrorWhenDeletingCentralTenant() {
+  void testDeleteTenantSoftCentral() {
     UUID consortiumId = UUID.randomUUID();
     var tenant = createTenantEntity(TENANT_ID);
     tenant.setIsCentral(true);
     var deletingTenant = createTenantEntity(TENANT_ID);
     deletingTenant.setIsDeleted(true);
+    var deleteRequest = createTenantDeleteRequest(DeleteTypeEnum.SOFT, false);
 
     doNothing().when(consortiumService).checkConsortiumExistsOrThrow(consortiumId);
     when(tenantRepository.findById(tenant.getId())).thenReturn(Optional.of(tenant));
 
     // Assert
     assertThrows(java.lang.IllegalArgumentException.class, () ->
-      tenantManager.delete(consortiumId, TENANT_ID));
+      tenantManager.delete(consortiumId, TENANT_ID, deleteRequest));
 
     verify(consortiumService).checkConsortiumExistsOrThrow(consortiumId);
     verify(tenantRepository).findById(TENANT_ID);
@@ -340,6 +347,40 @@ class TenantManagerTest {
     verifyNoInteractions(userTenantsClient);
   }
 
+  @ParameterizedTest
+  @CsvSource({"true, false", "false, false", "true, true", "false, true"})
+  void testDeleteTenantHard(boolean deleteUserTenants, boolean isCentral) {
+    UUID consortiumId = UUID.randomUUID();
+    var tenant = createTenantEntity(TENANT_ID);
+    tenant.setIsCentral(isCentral);
+    var deleteRequest = createTenantDeleteRequest(DeleteTypeEnum.HARD, deleteUserTenants);
+
+    if (deleteUserTenants) {
+      doNothing().when(userTenantsClient).deleteUserTenants();
+    }
+    doNothing().when(consortiaConfigurationClient).deleteConfiguration();
+    doNothing().when(cleanupService).clearSharingTables(TENANT_ID);
+    doNothing().when(consortiumService).checkConsortiumExistsOrThrow(consortiumId);
+    doNothing().when(cleanupService).clearPublicationTables();
+    doNothing().when(tenantRepository).delete(tenant);
+    doNothing().when(userTenantRepository).deleteUserTenantsByTenantId(TENANT_ID);
+    when(tenantRepository.findById(tenant.getId())).thenReturn(Optional.of(tenant));
+    when(executionContextBuilder.buildContext(anyString())).thenReturn(folioExecutionContext);
+    mockOkapiHeaders();
+
+    tenantManager.delete(consortiumId, TENANT_ID, deleteRequest);
+
+    var verifyTimes = deleteUserTenants ? times(1) : never();
+    verify(userTenantsClient, verifyTimes).deleteUserTenants();
+
+    verify(consortiaConfigurationClient).deleteConfiguration();
+    verify(cleanupService).clearSharingTables(TENANT_ID);
+    verify(consortiumService).checkConsortiumExistsOrThrow(consortiumId);
+    verify(tenantRepository).findById(TENANT_ID);
+    verify(cleanupService).clearPublicationTables();
+    verify(tenantRepository).delete(tenant);
+    verify(userTenantRepository).deleteUserTenantsByTenantId(TENANT_ID);
+  }
 
   @Test
   void shouldThrowExceptionWhileSavingLocalTenantWithoutAdminUserId() {
