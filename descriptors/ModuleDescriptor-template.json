@@ -258,7 +258,9 @@
           "permissionsRequired": [
             "consortia.tenants.item.delete"
           ],
-          "modulePermissions": []
+          "modulePermissions": [
+            "consortia.consortia-configuration.item.delete"
+          ]
         },
         {
           "methods": [

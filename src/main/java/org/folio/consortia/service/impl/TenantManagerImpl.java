@@ -123,7 +123,8 @@ public class TenantManagerImpl implements TenantManager {
     }
     tenantService.deleteTenant(tenant, tenantDeleteRequest.getDeleteType());
 
-    try (var ignored = new FolioExecutionContextSetter(contextBuilder.buildContext(tenantId))) {
+    var memberTenantContext = TenantContextUtils.prepareContextForTenant(tenantId, folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext);
+    try (var ignored = new FolioExecutionContextSetter(memberTenantContext)) {
       if (isHardDelete) {
         configurationClient.deleteConfiguration();
       }
