@@ -160,6 +160,11 @@ public class UserTenantServiceImpl implements UserTenantService {
   }
 
   @Override
+  public boolean existsByUserIdAndTenantId(UUID userId, String tenantId) {
+    return userTenantRepository.findByUserIdAndTenantId(userId, tenantId).isPresent();
+  }
+
+  @Override
   @Transactional
   public void deleteByUserIdAndTenantId(UUID consortiumId, String tenantId, UUID userId) {
     log.debug("Going to delete user affiliation for user id: {} in the tenant: {}", userId.toString(), tenantId);

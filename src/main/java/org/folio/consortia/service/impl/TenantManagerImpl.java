@@ -104,6 +104,7 @@ public class TenantManagerImpl implements TenantManager {
   @Override
   @Transactional
   public void delete(UUID consortiumId, String tenantId, TenantDeleteRequest tenantDeleteRequest) {
+    log.info("delete:: Trying to delete tenant '{}' in consortium '{}'", tenantId, consortiumId);
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
     var tenant = getTenantById(tenantId);
     var deleteType = tenantDeleteRequest.getDeleteType();
@@ -126,14 +127,18 @@ public class TenantManagerImpl implements TenantManager {
     var memberTenantContext = TenantContextUtils.prepareContextForTenant(tenantId, folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext);
     try (var ignored = new FolioExecutionContextSetter(memberTenantContext)) {
       if (isHardDelete) {
+        log.info("delete:: Deleting configuration for tenant '{}'", tenantId);
         configurationClient.deleteConfiguration();
       }
       // Delete user-tenants always for soft delete.
       // For hard delete, delete user-tenants if deleteUsersUserTenants flag is set and tenant is not already soft deleted
       if (!isHardDelete || deleteOptions.getDeleteUsersUserTenants() && !tenant.getIsDeleted()) {
+        log.info("delete:: Deleting user-tenants for tenant '{}'", tenantId);
         userTenantsClient.deleteUserTenants();
       }
     }
+
+    log.info("delete:: Tenant '{}' in consortium '{}' was successfully deleted", tenantId, consortiumId);
   }
 
   private void createCustomFieldIfNeeded(String tenant) {
