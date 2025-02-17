@@ -2,7 +2,13 @@ package org.folio.consortia.service;
 
 import static org.folio.consortia.support.EntityUtils.CENTRAL_TENANT_ID;
 import static org.folio.consortia.support.EntityUtils.TENANT_ID;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.folio.consortia.client.KeycloakClient;
 import org.folio.consortia.config.keycloak.KeycloakIdentityProviderProperties;
@@ -11,6 +17,7 @@ import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
 import org.folio.consortia.service.impl.KeycloakServiceImpl;
 import org.folio.consortia.support.CopilotGenerated;
 import org.folio.tools.store.SecureStore;
+import org.folio.tools.store.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +76,22 @@ class KeycloakServiceTest {
 
     verify(keycloakClient).getIdentityProvider(CENTRAL_TENANT_ID, alias);
     verify(keycloakClient).createIdentityProvider(eq(CENTRAL_TENANT_ID), any(KeycloakIdentityProvider.class));
+  }
+
+  @Test
+  void createIdentityProvider_createsProviderSuccessfully_secureStoreEnabled_keyNotFound() {
+    var alias = getTenantClientAlias(TENANT_ID);
+    var clientId = TENANT_ID + keycloakLoginClientProperties.getClientNameSuffix();
+    when(keycloakClient.getIdentityProvider(CENTRAL_TENANT_ID, alias)).thenReturn(null);
+    when(keycloakLoginClientProperties.getSecureStoreDisabled()).thenReturn(false);
+    when(secureStore.get("%s_%s_%s".formatted(folioEnvironment, CENTRAL_TENANT_ID, clientId)))
+      .thenThrow(new NotFoundException("Not found"));
+
+    assertThrows(IllegalStateException.class, () -> keycloakService.createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID),
+      "Failed to get value from secure store [clientId: %s]".formatted(clientId));
+
+    verify(keycloakClient).getIdentityProvider(CENTRAL_TENANT_ID, alias);
+    verify(keycloakClient, never()).createIdentityProvider(eq(CENTRAL_TENANT_ID), any(KeycloakIdentityProvider.class));
   }
 
   @Test
