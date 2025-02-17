@@ -80,8 +80,8 @@ public class KeycloakServiceImpl implements KeycloakService {
       log.info("retrieveKcClientSecret:: Retrieving client secret from secure store");
       return secureStore.get("%s_%s_%s".formatted(folioEnvironment, realm, clientId));
     } catch (NotFoundException e) {
-      throw new IllegalStateException(String.format(
-        "Failed to get value from secure store [clientId: %s]", clientId), e);
+      log.error("retrieveKcClientSecret:: Client secret not found in secure store [clientId: {}]", clientId);
+      throw new IllegalStateException("Failed to get value from secure store [clientId: %s]".formatted(clientId), e);
     }
   }
 
