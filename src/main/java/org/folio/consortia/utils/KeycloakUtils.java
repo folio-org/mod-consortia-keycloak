@@ -11,6 +11,9 @@ public class KeycloakUtils {
   private static final String USER_INFO_URL = "%s/protocol/openid-connect/userinfo";
   private static final String JWKS_URL = "%s/protocol/openid-connect/certs";
 
+  private KeycloakUtils() {
+  }
+
   public static KeycloakIdentityProvider.ClientConfig buildIdpClientConfig(String baseUrl, String tenantRealm, String clientId, String clientSecret) {
     var realmUrl = REALM_URL.formatted(baseUrl, tenantRealm);
     return KeycloakIdentityProvider.ClientConfig.builder()
