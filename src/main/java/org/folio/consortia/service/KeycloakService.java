@@ -9,10 +9,8 @@ public interface KeycloakService {
    *
    * @param centralTenant central tenant
    * @param memberTenant  member tenant
-   * @param clientId     identity provider client id
-   * @param clientSecret identity provider client secret
    */
-  void createIdentityProvider(String centralTenant, String memberTenant, String clientId, String clientSecret);
+  void createIdentityProvider(String centralTenant, String memberTenant);
 
   /**
    * Deletes an identity provider in the central tenant realm corresponding to the member tenant.
