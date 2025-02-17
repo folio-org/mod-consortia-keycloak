@@ -26,6 +26,7 @@ import org.folio.consortia.service.CapabilitiesUserService;
 import org.folio.consortia.service.CleanupService;
 import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.CustomFieldService;
+import org.folio.consortia.service.KeycloakService;
 import org.folio.consortia.service.LockService;
 import org.folio.consortia.service.SyncPrimaryAffiliationService;
 import org.folio.consortia.service.TenantManager;
@@ -53,6 +54,7 @@ public class TenantManagerImpl implements TenantManager {
   private static final String DUMMY_USERNAME = "dummy_user";
 
   private final TenantService tenantService;
+  private final KeycloakService keycloakService;
   private final ConsortiumService consortiumService;
   private final ConsortiaConfigurationClient configurationClient;
   private final SyncPrimaryAffiliationService syncPrimaryAffiliationService;
@@ -121,6 +123,8 @@ public class TenantManagerImpl implements TenantManager {
     // Clean sharing tables or shadow users if needed
     if (isHardDelete) {
       cleanupService.clearSharingTables(tenantId);
+      // Delete identity provider for member tenant if it is being hard deleted
+      keycloakService.deleteIdentityProvider(folioExecutionContext.getTenantId(), tenantId);
     }
     tenantService.deleteTenant(tenant, tenantDeleteRequest.getDeleteType());
 
@@ -192,6 +196,7 @@ public class TenantManagerImpl implements TenantManager {
       centralTenantId = tenantService.getCentralTenantId();
       shadowAdminUser = userService.prepareShadowUser(adminUserId, folioExecutionContext.getTenantId());
       tenantService.saveUserTenant(consortiumId, shadowAdminUser, tenantDto);
+      keycloakService.createIdentityProvider(centralTenantId, tenantDto.getId());
     }
 
     var finalShadowAdminUser = shadowAdminUser;
