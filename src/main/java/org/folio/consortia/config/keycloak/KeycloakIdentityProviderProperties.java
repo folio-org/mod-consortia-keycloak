@@ -10,10 +10,10 @@ import lombok.Data;
 @Data
 @Component
 @Validated
-@ConfigurationProperties(prefix = "application.keycloak.identity-provider")
+@ConfigurationProperties(prefix = "folio.keycloak.identity-provider")
 public class KeycloakIdentityProviderProperties {
   @NotNull
-  private Boolean isEnabled;
+  private Boolean enabled;
   @NotNull
   private String alias;
   @NotNull

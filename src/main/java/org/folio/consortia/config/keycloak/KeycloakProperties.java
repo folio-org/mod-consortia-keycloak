@@ -11,7 +11,7 @@ import org.springframework.validation.annotation.Validated;
 @Data
 @Component
 @Validated
-@ConfigurationProperties(prefix = "application.keycloak")
+@ConfigurationProperties(prefix = "folio.keycloak")
 public class KeycloakProperties {
 
   @NotNull
