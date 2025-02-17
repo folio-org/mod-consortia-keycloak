@@ -16,7 +16,6 @@ public class KeycloakIdentityProvider {
   private String alias;
   private String displayName;
   private String providerId;
-  private boolean enabled;
   private ClientConfig config;
 
   @AllArgsConstructor

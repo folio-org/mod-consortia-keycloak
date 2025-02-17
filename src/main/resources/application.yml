@@ -85,13 +85,13 @@ folio:
       trust-store-path: ${KC_CLIENT_TLS_TRUSTSTORE_PATH:}
       trust-store-password: ${KC_CLIENT_TLS_TRUSTSTORE_PASSWORD:}
       trust-store-type: ${KC_CLIENT_TLS_TRUSTSTORE_TYPE:}
-  login:
-    client-name-suffix: ${KC_LOGIN_CLIENT_SUFFIX:-login-application}
-    secure-store-disabled: ${KC_ADMIN_SECURE_STORE_ENABLED:true}
-  identity-provider:
-    enabled: ${SINGLE_TENANT_UX:false}
-    alias: ${IDENTITY_PROVIDER_ALIAS:{tenantId}-keycloak-oidc}
-    display-name: ${IDENTITY_PROVIDER_DISPLAY_NAME:{tenantId} Keycloak OIDC}
+    login:
+      client-name-suffix: ${KC_LOGIN_CLIENT_SUFFIX:-login-application}
+      secure-store-disabled: ${KC_ADMIN_SECURE_STORE_ENABLED:true}
+    identity-provider:
+      enabled: ${SINGLE_TENANT_UX:false}
+      alias: ${IDENTITY_PROVIDER_ALIAS:{tenantId}-keycloak-oidc}
+      display-name: ${IDENTITY_PROVIDER_DISPLAY_NAME:{tenantId} Keycloak OIDC}
 feign:
   client:
     config:

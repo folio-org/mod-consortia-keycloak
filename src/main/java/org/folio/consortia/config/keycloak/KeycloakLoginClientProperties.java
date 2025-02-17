@@ -10,7 +10,7 @@ import lombok.Data;
 @Data
 @Component
 @Validated
-@ConfigurationProperties(prefix = "application.keycloak.login")
+@ConfigurationProperties(prefix = "folio.keycloak.login")
 public class KeycloakLoginClientProperties {
   @NotNull
   private String clientNameSuffix;
