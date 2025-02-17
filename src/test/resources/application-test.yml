@@ -47,7 +47,7 @@ folio:
       client-name-suffix: ${KC_LOGIN_CLIENT_SUFFIX:-login-application}
       secure-store-disabled: ${KC_ADMIN_SECURE_STORE_ENABLED:true}
     identity-provider:
-      enabled: ${SINGLE_TENANT_UX:false}
+      enabled: ${SINGLE_TENANT_UX:true}
       alias: ${IDENTITY_PROVIDER_ALIAS:{tenantId}-keycloak-oidc}
       display-name: ${IDENTITY_PROVIDER_DISPLAY_NAME:{tenantId} Keycloak OIDC}
 management:

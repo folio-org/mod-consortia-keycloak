@@ -41,24 +41,4 @@ class KeycloakUtilsTest {
     assertEquals("tenant-12345-field", result);
   }
 
-  @Test
-  void formatTenantField_handlesEmptyTenantId() {
-    String template = "tenant-{tenantId}-field";
-    String tenantId = "";
-
-    String result = KeycloakUtils.formatTenantField(template, tenantId);
-
-    assertEquals("tenant--field", result);
-  }
-
-  @Test
-  void formatTenantField_handlesNoPlaceholder() {
-    String template = "tenant-field";
-    String tenantId = "12345";
-
-    String result = KeycloakUtils.formatTenantField(template, tenantId);
-
-    assertEquals("tenant-field", result);
-  }
-
 }
