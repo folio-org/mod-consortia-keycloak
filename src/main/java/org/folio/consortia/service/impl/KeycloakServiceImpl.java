@@ -12,6 +12,7 @@ import org.folio.consortia.service.KeycloakCredentialsService;
 import org.folio.consortia.service.KeycloakService;
 import org.springframework.stereotype.Service;
 
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -20,6 +21,8 @@ import lombok.val;
 @RequiredArgsConstructor
 @Log4j2
 public class KeycloakServiceImpl implements KeycloakService {
+
+  private static final String KEYCLOAK_PROVIDER_ID = "keycloak-oidc";
 
   private final KeycloakClient keycloakClient;
   private final KeycloakProperties keycloakProperties;
@@ -35,7 +38,7 @@ public class KeycloakServiceImpl implements KeycloakService {
     log.info("createIdentityProvider:: Creating identity provider for tenant {} in central realm {}", memberTenant, centralTenant);
     var providerAlias = formatTenantField(keycloakIdpProperties.getAlias(), memberTenant);
 
-    if (keycloakClient.getIdentityProvider(centralTenant, providerAlias, getToken()) != null) {
+    if (identityProviderExists(centralTenant, providerAlias)) {
       log.info("createIdentityProvider:: Identity provider {} already exists for tenant {} in central realm {}", providerAlias, memberTenant, centralTenant);
       return;
     }
@@ -46,6 +49,7 @@ public class KeycloakServiceImpl implements KeycloakService {
     val idp = KeycloakIdentityProvider.builder()
       .alias(providerAlias)
       .displayName(providerDisplayName)
+      .providerId(KEYCLOAK_PROVIDER_ID)
       .config(clientConfig)
       .build();
 
@@ -58,9 +62,25 @@ public class KeycloakServiceImpl implements KeycloakService {
       log.info("deleteIdentityProvider:: Identity provider creation is disabled. Skipping deletion for tenant {}", memberTenant);
       return;
     }
+
     log.info("deleteIdentityProvider:: Deleting identity provider for realm {}", memberTenant);
     var providerAlias = formatTenantField(keycloakIdpProperties.getAlias(), memberTenant);
+
+    if (!identityProviderExists(centralTenant, providerAlias)) {
+      log.info("deleteIdentityProvider:: Identity provider {} does not exist for tenant {} in central realm {}", providerAlias, memberTenant, centralTenant);
+      return;
+    }
+
     keycloakClient.deleteIdentityProvider(centralTenant, providerAlias, getToken());
+  }
+
+  private boolean identityProviderExists(String realm, String providerAlias) {
+    try {
+      keycloakClient.getIdentityProvider(realm, providerAlias, getToken());
+      return true;
+    } catch (FeignException.NotFound ignored) {
+      return false;
+    }
   }
 
   private boolean isIdpCreationDisabled() {
