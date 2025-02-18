@@ -230,6 +230,7 @@
           ],
           "modulePermissions": [
             "consortia.consortia-configuration.item.post",
+            "consortia.identity-provider.item.post",
             "perms.users.item.put",
             "perms.users.item.post",
             "perms.users.assign.immutable",
@@ -259,7 +260,8 @@
             "consortia.tenants.item.delete"
           ],
           "modulePermissions": [
-            "consortia.consortia-configuration.item.delete"
+            "consortia.consortia-configuration.item.delete",
+            "consortia.identity-provider.item.delete"
           ]
         },
         {
@@ -300,6 +302,26 @@
           "pathPattern": "/consortia/{consortiumId}/tenants/{tenantId}/create-primary-affiliations",
           "permissionsRequired": [
             "consortia.create-primary-affiliations.item.post"
+          ],
+          "modulePermissions": []
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/consortia/{consortiumId}/tenants/{tenantId}/identity-provider",
+          "permissionsRequired": [
+            "consortia.identity-provider.item.post"
+          ],
+          "modulePermissions": []
+        },
+        {
+          "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/consortia/{consortiumId}/tenants/{tenantId}/identity-provider",
+          "permissionsRequired": [
+            "consortia.identity-provider.item.delete"
           ],
           "modulePermissions": []
         },
@@ -631,6 +653,8 @@
         "consortia.inventory.update-ownership.item.post",
         "consortia.sync-primary-affiliations.item.post",
         "consortia.create-primary-affiliations.item.post",
+        "consortia.identity-provider.item.post",
+        "consortia.identity-provider.item.delete",
         "consortia.sharing-instances.item.post",
         "consortia.sharing-instances.item.get",
         "consortia.sharing-instances.collection.get",
@@ -684,6 +708,16 @@
       "permissionName": "consortia.create-primary-affiliations.item.post",
       "displayName": "create consortia primary affiliation",
       "description": "create consortia primary affiliation"
+    },
+    {
+      "permissionName": "consortia.identity-provider.item.post",
+      "displayName": "create identity provider",
+      "description": "Create identity provider"
+    },
+    {
+      "permissionName": "consortia.identity-provider.item.delete",
+      "displayName": "delete identity provider",
+      "description": "Delete identity provider"
     },
     {
       "permissionName": "consortia.publications.item.post",
