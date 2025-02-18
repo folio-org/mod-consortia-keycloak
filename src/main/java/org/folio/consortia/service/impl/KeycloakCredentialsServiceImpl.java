@@ -72,14 +72,14 @@ public class KeycloakCredentialsServiceImpl implements KeycloakCredentialsServic
 
   private String retrieveKcClientSecret(String realm, String clientId) {
     if (Boolean.TRUE.equals(keycloakClientProperties.getSecureStoreDisabled())) {
-      log.info("retrieveKcClientSecret:: Secure store is disabled. Using default client secret");
+      log.info("retrieveKcClientSecret:: Secure store is disabled. Using default client secret for clientId: {}", clientId);
       return "SecretPassword";
     }
     try {
       log.info("retrieveKcClientSecret:: Retrieving client secret from secure store");
       return secureStore.get("%s_%s_%s".formatted(folioEnvironment, realm, clientId));
     } catch (NotFoundException e) {
-      log.error("retrieveKcClientSecret:: Client secret not found in secure store [clientId: {}]", clientId);
+      log.error("retrieveKcClientSecret:: Client secret not found in secure store for clientId: {}", clientId);
       throw new IllegalStateException("Failed to get value from secure store [clientId: %s]".formatted(clientId), e);
     }
   }
