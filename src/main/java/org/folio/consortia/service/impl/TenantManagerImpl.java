@@ -145,6 +145,16 @@ public class TenantManagerImpl implements TenantManager {
     log.info("delete:: Tenant '{}' in consortium '{}' was successfully deleted", tenantId, consortiumId);
   }
 
+  @Override
+  public void createIdentityProvider(String memberTenant) {
+    keycloakService.createIdentityProvider(folioExecutionContext.getTenantId(), memberTenant);
+  }
+
+  @Override
+  public void deleteIdentityProvider(String memberTenant) {
+    keycloakService.deleteIdentityProvider(folioExecutionContext.getTenantId(), memberTenant);
+  }
+
   private void createCustomFieldIfNeeded(String tenant) {
     systemUserScopedExecutionService.executeSystemUserScoped(tenant, () -> {
         if (isNotEmpty(customFieldService.getCustomFieldByName(ORIGINAL_TENANT_ID_NAME))) {
