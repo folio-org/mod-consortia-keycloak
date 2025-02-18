@@ -6,13 +6,10 @@ import static org.folio.consortia.utils.KeycloakUtils.formatTenantField;
 import org.apache.commons.lang3.BooleanUtils;
 import org.folio.consortia.client.KeycloakClient;
 import org.folio.consortia.config.keycloak.KeycloakIdentityProviderProperties;
-import org.folio.consortia.config.keycloak.KeycloakLoginClientProperties;
 import org.folio.consortia.config.keycloak.KeycloakProperties;
 import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
+import org.folio.consortia.service.KeycloakCredentialsService;
 import org.folio.consortia.service.KeycloakService;
-import org.folio.tools.store.SecureStore;
-import org.folio.tools.store.exception.NotFoundException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -26,12 +23,8 @@ public class KeycloakServiceImpl implements KeycloakService {
 
   private final KeycloakClient keycloakClient;
   private final KeycloakProperties keycloakProperties;
-  private final KeycloakLoginClientProperties keycloakClientProperties;
   private final KeycloakIdentityProviderProperties keycloakIdpProperties;
-  private final SecureStore secureStore;
-
-  @Value("${folio.environment}")
-  private String folioEnvironment;
+  private final KeycloakCredentialsService keycloakCredentialsService;
 
   @Override
   public void createIdentityProvider(String centralTenant, String memberTenant) {
@@ -42,22 +35,21 @@ public class KeycloakServiceImpl implements KeycloakService {
     log.info("createIdentityProvider:: Creating identity provider for tenant {} in central realm {}", memberTenant, centralTenant);
     var providerAlias = formatTenantField(keycloakIdpProperties.getAlias(), memberTenant);
 
-    if (keycloakClient.getIdentityProvider(centralTenant, providerAlias) != null) {
+    if (keycloakClient.getIdentityProvider(centralTenant, providerAlias, getToken()) != null) {
       log.info("createIdentityProvider:: Identity provider {} already exists for tenant {} in central realm {}", providerAlias, memberTenant, centralTenant);
       return;
     }
 
     var providerDisplayName = formatTenantField(keycloakIdpProperties.getDisplayName(), memberTenant);
-    var clientId = memberTenant + keycloakClientProperties.getClientNameSuffix();
-    var clientSecret = retrieveKcClientSecret(centralTenant, clientId);
-    var clientConfig = buildIdpClientConfig(keycloakProperties.getUrl(), memberTenant, clientId, clientSecret);
+    var clientCredentials = keycloakCredentialsService.getClientCredentials(centralTenant, memberTenant);
+    var clientConfig = buildIdpClientConfig(keycloakProperties.getUrl(), memberTenant, clientCredentials.clientId(), clientCredentials.clientSecret());
     val idp = KeycloakIdentityProvider.builder()
       .alias(providerAlias)
       .displayName(providerDisplayName)
       .config(clientConfig)
       .build();
 
-    keycloakClient.createIdentityProvider(centralTenant, idp);
+    keycloakClient.createIdentityProvider(centralTenant, idp, getToken());
   }
 
   @Override
@@ -68,25 +60,15 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
     log.info("deleteIdentityProvider:: Deleting identity provider for realm {}", memberTenant);
     var providerAlias = formatTenantField(keycloakIdpProperties.getAlias(), memberTenant);
-    keycloakClient.deleteIdentityProvider(centralTenant, providerAlias);
-  }
-
-  private String retrieveKcClientSecret(String realm, String clientId) {
-    if (Boolean.TRUE.equals(keycloakClientProperties.getSecureStoreDisabled())) {
-      log.info("retrieveKcClientSecret:: Secure store is disabled. Using default client secret");
-      return "SecretPassword";
-    }
-    try {
-      log.info("retrieveKcClientSecret:: Retrieving client secret from secure store");
-      return secureStore.get("%s_%s_%s".formatted(folioEnvironment, realm, clientId));
-    } catch (NotFoundException e) {
-      log.error("retrieveKcClientSecret:: Client secret not found in secure store [clientId: {}]", clientId);
-      throw new IllegalStateException("Failed to get value from secure store [clientId: %s]".formatted(clientId), e);
-    }
+    keycloakClient.deleteIdentityProvider(centralTenant, providerAlias, getToken());
   }
 
   private boolean isIdpCreationDisabled() {
     return BooleanUtils.isNotTrue(keycloakIdpProperties.getEnabled());
+  }
+
+  private String getToken() {
+    return keycloakCredentialsService.getMasterAuthToken();
   }
 
 }

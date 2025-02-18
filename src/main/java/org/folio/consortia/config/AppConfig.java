@@ -13,8 +13,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.format.FormatterRegistry;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -29,6 +31,7 @@ public class AppConfig implements WebMvcConfigurer {
     registry.addConverter(new UserTenantConverter());
     registry.addConverter(new ConsortiumConverter());
   }
+
   @Primary
   @Bean("asyncTaskExecutor")
   public TaskExecutor asyncTaskExecutor() {
@@ -39,6 +42,16 @@ public class AppConfig implements WebMvcConfigurer {
     executor.setThreadNamePrefix("ConsortiaAsync-");
     executor.initialize();
     return executor;
+  }
+
+  @Bean("asyncTaskScheduler")
+  public TaskScheduler asyncTaskScheduler() {
+    ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+    scheduler.setPoolSize(10);
+    scheduler.setWaitForTasksToCompleteOnShutdown(true);
+    scheduler.setThreadNamePrefix("ConsortiaAsyncScheduler-");
+    scheduler.initialize();
+    return scheduler;
   }
 
   @Primary
