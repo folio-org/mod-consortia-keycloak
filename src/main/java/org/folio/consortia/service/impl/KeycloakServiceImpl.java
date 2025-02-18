@@ -45,7 +45,7 @@ public class KeycloakServiceImpl implements KeycloakService {
 
     var providerDisplayName = formatTenantField(keycloakIdpProperties.getDisplayName(), memberTenant);
     var clientCredentials = keycloakCredentialsService.getClientCredentials(centralTenant, memberTenant);
-    var clientConfig = buildIdpClientConfig(keycloakProperties.getUrl(), memberTenant, clientCredentials.clientId(), clientCredentials.clientSecret());
+    var clientConfig = buildIdpClientConfig(keycloakIdpProperties.getBaseUrl(), memberTenant, clientCredentials.clientId(), clientCredentials.clientSecret());
     val idp = KeycloakIdentityProvider.builder()
       .alias(providerAlias)
       .displayName(providerDisplayName)

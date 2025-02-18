@@ -15,6 +15,8 @@ public class KeycloakIdentityProviderProperties {
   @NotNull
   private Boolean enabled;
   @NotNull
+  private String baseUrl;
+  @NotNull
   private String alias;
   @NotNull
   private String displayName;

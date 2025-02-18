@@ -90,6 +90,7 @@ folio:
       secure-store-disabled: ${KC_ADMIN_SECURE_STORE_DISABLED:false}
     identity-provider:
       enabled: ${SINGLE_TENANT_UX:false}
+      base-url: ${IDENTITY_PROVIDER_BASE_URL:${folio.keycloak.url}}
       alias: ${IDENTITY_PROVIDER_ALIAS:{tenantId}-keycloak-oidc}
       display-name: ${IDENTITY_PROVIDER_DISPLAY_NAME:{tenantId} Keycloak OIDC}
 feign:
