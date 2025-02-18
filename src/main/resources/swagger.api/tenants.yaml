@@ -138,6 +138,37 @@ paths:
           $ref: "#/components/responses/Conflict"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /tenants/{tenantId}/identity-provider:
+    post:
+      summary: Create keycloak identity provider for member tenant in central tenant realm
+      operationId: createIdentityProvider
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/tenantId"
+      responses:
+        "201":
+          $ref: "#/components/responses/Created"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      summary: Delete keycloak identity provider of member tenant from central tenant realm
+      operationId: deleteIdentityProvider
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/tenantId"
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 components:
   requestBodies:
     TenantBody:
@@ -179,6 +210,8 @@ components:
         application/json:
           schema:
             $ref: "schemas/tenant.yaml#/TenantCollection"
+    Created:
+      description: Created
     NoContent:
       description: No content
     Conflict:
