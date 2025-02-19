@@ -5,15 +5,12 @@ import static org.folio.consortia.service.impl.CustomFieldServiceImpl.ORIGINAL_T
 import static org.folio.consortia.service.impl.CustomFieldServiceImpl.ORIGINAL_TENANT_ID_NAME;
 import static org.folio.consortia.utils.HelperUtils.checkIdenticalOrThrow;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.client.ConsortiaConfigurationClient;
-import org.folio.consortia.client.KeycloakClient;
 import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.domain.dto.Tenant;
@@ -30,6 +27,7 @@ import org.folio.consortia.service.CapabilitiesUserService;
 import org.folio.consortia.service.CleanupService;
 import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.CustomFieldService;
+import org.folio.consortia.service.KeycloakService;
 import org.folio.consortia.service.LockService;
 import org.folio.consortia.service.SyncPrimaryAffiliationService;
 import org.folio.consortia.service.TenantManager;
@@ -51,10 +49,6 @@ public class TenantManagerImpl implements TenantManager {
   private static final String SHADOW_ADMIN_PERMISSION_SETS_FILE_PATH = "permissions/admin-user-permission-sets.csv";
   private static final String TENANTS_IDS_NOT_MATCHED_ERROR_MSG = "Request body tenantId and path param tenantId should be identical";
 
-  private static final String CUSTOM_BROWSER_FLOW = "custom-browser";
-  private static final String ECS_FOLIO_AUTH_USRNM_PWD_FORM = "ecs-folio-auth-usrnm-pwd-form";
-  private static final String AUTH_USERNAME_PASSWORD_FORM = "auth-username-password-form";
-
   private static final String DUMMY_USERNAME = "dummy_user";
 
   private final TenantService tenantService;
@@ -70,7 +64,8 @@ public class TenantManagerImpl implements TenantManager {
   private final SystemUserScopedExecutionService systemUserScopedExecutionService;
   private final ExecutionContextBuilder contextBuilder;
   private final FolioExecutionContext folioExecutionContext;
-  private final KeycloakClient keycloakClient;
+  private final KeycloakService keycloakService;
+
 
   @Override
   public TenantCollection get(UUID consortiumId, Integer offset, Integer limit) {
@@ -86,7 +81,7 @@ public class TenantManagerImpl implements TenantManager {
     tenantService.checkTenantUniqueNameAndCodeOrThrow(tenantDto);
 
     createCustomFieldIfNeeded(tenantDto.getId());
-    addCustomAuthenticationFlowForCentralTenant(tenantDto);
+    keycloakService.addCustomAuthFlowForCentralTenant(tenantDto);
 
     var existingTenant = tenantService.getByTenantId(tenantDto.getId());
     return existingTenant != null
@@ -157,43 +152,6 @@ public class TenantManagerImpl implements TenantManager {
         return null;
       }
     );
-  }
-
-  private void addCustomAuthenticationFlowForCentralTenant(Tenant tenant) {
-    if (tenant.getIsCentral()) {
-      var token = getToken();
-      String tenantId = tenant.getId();
-      log.debug("addCustomAuthenticationFlowForCentralTenant:: Adding custom authentication flow for central tenant with id={}", tenantId);
-      // 1. Duplicate built-in browser authentication flow
-      var browserFlowCopyConfig = Map.of("newName", CUSTOM_BROWSER_FLOW);
-      keycloakClient.copyBrowserFlow(tenantId, browserFlowCopyConfig);
-
-      // 2. Add custom ecs folio authentication form provider to the duplicated flow
-      var browserFlowProviderConfig = Map.of("provider", ECS_FOLIO_AUTH_USRNM_PWD_FORM);
-      keycloakClient.executeBrowserFlow(tenantId, CUSTOM_BROWSER_FLOW, browserFlowProviderConfig);
-
-      // 3. Fetch executions from current flow
-      var executions = keycloakClient.getExecutions(tenantId, CUSTOM_BROWSER_FLOW);
-      var authUsernamePasswordFormExecution = executions.stream()
-        .filter(execution -> execution.getProviderId().equals(AUTH_USERNAME_PASSWORD_FORM))
-        .findFirst()
-        .orElseThrow(() -> new IllegalStateException("auth-username-password-form execution not found"));
-      var ecsFolioAuthUsernamePasswordFormExecution = executions.stream()
-        .filter(execution -> execution.getProviderId().equals(ECS_FOLIO_AUTH_USRNM_PWD_FORM))
-        .findFirst()
-        .orElseThrow(() -> new IllegalStateException("ecs-folio-auth-usrnm-pwd-form execution not found"));
-
-      // 4. Delete default auth-username-password-form execution from the flow
-      keycloakClient.deleteExecution(tenant.getId(), CUSTOM_BROWSER_FLOW, authUsernamePasswordFormExecution.getId());
-
-      // 5. Raise priority of the custom ecs folio authentication form provider
-      keycloakClient.raisePriority(tenantId, CUSTOM_BROWSER_FLOW, ecsFolioAuthUsernamePasswordFormExecution.getId());
-
-      // 6. Bind the custom flow to the realm
-      ObjectNode realm = keycloakClient.getRealm(tenantId);
-      realm.put("browserFlow", CUSTOM_BROWSER_FLOW);
-      keycloakClient.updateRealm(tenantId, realm);
-    }
   }
 
   private Tenant reAddSoftDeletedTenant(UUID consortiumId, TenantEntity existingTenant, Tenant tenantDto) {

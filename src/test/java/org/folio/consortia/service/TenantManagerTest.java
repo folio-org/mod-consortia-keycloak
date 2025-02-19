@@ -35,7 +35,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import org.folio.consortia.client.ConsortiaConfigurationClient;
-import org.folio.consortia.client.KeycloakClient;
 import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.domain.dto.Tenant;
@@ -112,7 +111,7 @@ class TenantManagerTest {
   @Mock
   private CustomFieldService customFieldService;
   @Mock
-  private KeycloakClient keycloakClient;
+  private KeycloakService keycloakService;
 
   private TenantManager tenantManager;
   private TenantService tenantService;
@@ -121,7 +120,7 @@ class TenantManagerTest {
   void setUp() {
     tenantService = new TenantServiceImpl(tenantRepository, userTenantRepository, tenantDetailsRepository, conversionService, consortiumService, folioExecutionContext);
     tenantManager = new TenantManagerImpl(tenantService, consortiumService, consortiaConfigurationClient, syncPrimaryAffiliationService, userService, capabilitiesUserService,
-      customFieldService, cleanupService, lockService, userTenantsClient, systemUserScopedExecutionService, executionContextBuilder, folioExecutionContext, keycloakClient);
+      customFieldService, cleanupService, lockService, userTenantsClient, systemUserScopedExecutionService, executionContextBuilder, folioExecutionContext, keycloakService);
   }
 
   @Test
