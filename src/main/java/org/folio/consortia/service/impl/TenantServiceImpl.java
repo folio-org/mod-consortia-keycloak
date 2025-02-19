@@ -7,6 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantCollection;
+import org.folio.consortia.domain.dto.TenantDeleteRequest;
 import org.folio.consortia.domain.dto.TenantDetails;
 import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
 import org.folio.consortia.domain.dto.User;
@@ -157,6 +158,22 @@ public class TenantServiceImpl implements TenantService {
       log.warn("Tenants with ids {} not found", absentTenants);
 
       throw new ResourceNotFoundException("ids", absentTenants);
+    }
+  }
+
+  @Override
+  public void deleteTenant(TenantEntity tenant, TenantDeleteRequest.DeleteTypeEnum deleteType) {
+    switch (deleteType) {
+      case HARD -> {
+        log.info("deleteTenant:: Hard deleting tenant with id={}", tenant.getId());
+        userTenantRepository.deleteUserTenantsByTenantId(tenant.getId());
+        tenantRepository.delete(tenant);
+      }
+      case SOFT -> {
+        log.info("deleteTenant:: Soft deleting tenant with id={}", tenant.getId());
+        tenant.setIsDeleted(true);
+        saveTenant(tenant);
+      }
     }
   }
 

@@ -5,8 +5,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.folio.consortia.domain.entity.base.AuditableEntity;
@@ -14,10 +16,12 @@ import org.folio.consortia.domain.entity.base.AuditableEntity;
 import java.util.Objects;
 import java.util.UUID;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
+@Builder
 @Entity
 @Table(name = "consortia_configuration")
 public class ConsortiaConfigurationEntity extends AuditableEntity {

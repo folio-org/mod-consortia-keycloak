@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantCollection;
+import org.folio.consortia.domain.dto.TenantDeleteRequest;
 
 public interface TenantManager {
 
@@ -45,7 +46,11 @@ public interface TenantManager {
    * Deletes single tenant based on consortiumId.
    * @param consortiumId the consortiumId
    * @param tenantId the tenantId
+   * @param tenantDeleteRequest object with flag indicating whether tenant should be deleted permanently or soft deleted
+   *                            with related delete options. Delete type is determined by the value of the flag:<br/>
+   *                            - <code>true</code>: tenant should be deleted permanently with all related data<br/>
+   *                            - <code>false</code>: tenant should be soft deleted
    */
-  void delete(UUID consortiumId, String tenantId);
+  void delete(UUID consortiumId, String tenantId, TenantDeleteRequest tenantDeleteRequest);
 
 }

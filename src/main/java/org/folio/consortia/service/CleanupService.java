@@ -16,4 +16,17 @@ public interface CleanupService {
    */
   void clearPublicationTables();
 
+  /**
+   * Removes all tenant related records when deleting the tenant from the following tables:
+   * <ul>
+   *   <li>sharing_instance</li>
+   *   <li>sharing_role</li>
+   *   <li>sharing_policy</li>
+   *   <li>sharing_setting</li>
+   * </ul>
+   *
+   * @param tenantId the tenant id
+   */
+  void clearSharingTables(String tenantId);
+
 }

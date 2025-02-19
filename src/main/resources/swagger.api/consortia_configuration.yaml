@@ -23,12 +23,20 @@ paths:
           $ref: '#/components/responses/ConsortiaConfiguration'
         '400':
           $ref: '#/components/responses/BadRequest'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
       requestBody:
         $ref: '#/components/requestBodies/ConfigurationBody'
+    delete:
+      summary: Delete consortia configuration
+      operationId: deleteConfiguration
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 components:
   requestBodies:
     ConfigurationBody:
@@ -45,35 +53,14 @@ components:
         application/json:
           schema:
             $ref: "schemas/consortiaConfiguration.yaml#/ConsortiaConfiguration"
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: "schemas/common.yaml#/Error"
+    NoContent:
+      description: No content
     BadRequest:
       description: Bad request
       content:
         application/json:
           schema:
             $ref: "schemas/common.yaml#/Error"
-    Conflict:
-      description: Validation errors
-      content:
-        application/json:
-          schema:
-            $ref: "schemas/common.yaml#/Errors"
-    Unauthorized:
-      description: Not authorized to perform requested action
-      content:
-        text/plain:
-          example: unable to perform action -- unauthorized
-    UnprocessableEntity:
-      description: Validation errors
-      content:
-        application/json:
-          schema:
-            $ref: 'schemas/common.yaml#/Errors'
     InternalServerError:
       description: Internal server error
       content:

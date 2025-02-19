@@ -21,9 +21,6 @@ public interface UserTenantRepository extends JpaRepository<UserTenantEntity, UU
   @Query("SELECT ut FROM UserTenantEntity ut WHERE ut.userId= ?1 AND ut.tenant.isDeleted= FALSE")
   Page<UserTenantEntity> findByUserId(UUID userId, Pageable pageable);
 
-  @Query("SELECT ut FROM UserTenantEntity ut WHERE ut.userId= ?1")
-  Page<UserTenantEntity> findAnyByUserId(UUID userId, Pageable pageable);
-
   @Query("SELECT ut FROM UserTenantEntity ut WHERE ut.username= ?1 AND ut.tenant.id= ?2 AND ut.tenant.isDeleted= FALSE")
   Optional<UserTenantEntity> findByUsernameAndTenantId(String username, String tenantId);
 
@@ -56,4 +53,8 @@ public interface UserTenantRepository extends JpaRepository<UserTenantEntity, UU
   void deleteOrphansByUserIdAndIsPrimaryFalse(UUID userId);
 
   boolean existsByUsernameAndTenantIdAndIsPrimaryTrue(String username, String tenantId);
+
+  @Modifying
+  @Query("DELETE FROM UserTenantEntity ut WHERE ut.tenant.id= ?1")
+  void deleteUserTenantsByTenantId(String id);
 }

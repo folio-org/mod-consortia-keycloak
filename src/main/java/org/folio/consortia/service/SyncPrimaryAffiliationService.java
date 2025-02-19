@@ -7,18 +7,20 @@ import java.util.UUID;
 public interface SyncPrimaryAffiliationService {
 
   /**
-   * Sync primary affiliation for user
-   * @param consortiumId               - consortium unique identifier
-   * @param centralTenantId            - central tenant unique identifier
-   * @param syncPrimaryAffiliationBody - consortia tenant record
+   * Sync primary affiliation for all users in the tenant
+   *
+   * @param consortiumId    - consortium unique identifier
+   * @param tenantId        - tenant unique identifier
+   * @param centralTenantId - central tenant unique identifier
    */
-  void syncPrimaryAffiliations(UUID consortiumId, String centralTenantId, String syncPrimaryAffiliationBody);
+  void syncPrimaryAffiliations(UUID consortiumId, String tenantId, String centralTenantId);
 
   /**
-   * Create affiliations between central tenant and user
-   *        primary affiliation between local tenant and its user
+   * Sync primary affiliation for specified users in the specified tenant
+   *
    * @param consortiumId               - consortium unique identifier
-   * @param syncPrimaryAffiliationBody - consortia tenant record
+   * @param centralTenantId            - central tenant unique identifier
+   * @param syncPrimaryAffiliationBody - object with tenant id and user list
    */
-  void createPrimaryUserAffiliations(UUID consortiumId, String centralTenantId, SyncPrimaryAffiliationBody syncPrimaryAffiliationBody);
+  void syncPrimaryUserAffiliations(UUID consortiumId, String centralTenantId, SyncPrimaryAffiliationBody syncPrimaryAffiliationBody);
 }

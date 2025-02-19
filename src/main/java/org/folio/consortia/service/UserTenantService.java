@@ -55,6 +55,15 @@ public interface UserTenantService {
   UserTenantEntity getByUserIdAndTenantId(UUID userId, String tenantId);
 
   /**
+   * Check if a user-tenant association exists by userId and tenantId.
+   *
+   * @param userId     the user id
+   * @param tenantId     the tenant id
+   * @return true if user-tenant association exists
+   */
+  boolean existsByUserIdAndTenantId(UUID userId, String tenantId);
+
+  /**
    * Get user tenant association by id based on consortiumId.
    *
    * @param consortiumId the consortiumId

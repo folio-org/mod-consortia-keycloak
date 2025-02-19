@@ -16,6 +16,8 @@ import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantCollection;
+import org.folio.consortia.domain.dto.TenantDeleteRequest;
+import org.folio.consortia.domain.dto.TenantDeleteRequest.DeleteTypeEnum;
 import org.folio.consortia.domain.dto.TenantDetails;
 import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserTenant;
@@ -69,7 +71,7 @@ public class TenantManagerImpl implements TenantManager {
 
   @Override
   public TenantCollection get(UUID consortiumId, Integer offset, Integer limit) {
-   return tenantService.get(consortiumId, offset, limit);
+    return tenantService.get(consortiumId, offset, limit);
   }
 
   @Override
@@ -103,19 +105,42 @@ public class TenantManagerImpl implements TenantManager {
 
   @Override
   @Transactional
-  public void delete(UUID consortiumId, String tenantId) {
+  public void delete(UUID consortiumId, String tenantId, TenantDeleteRequest tenantDeleteRequest) {
+    log.info("delete:: Trying to delete tenant '{}' in consortium '{}'", tenantId, consortiumId);
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
     var tenant = getTenantById(tenantId);
-    validateTenantForDeleteOperation(tenant);
+    var deleteType = tenantDeleteRequest.getDeleteType();
+    var deleteOptions = tenantDeleteRequest.getDeleteOptions();
 
-		tenant.setIsDeleted(true);
-    // clean publish coordinator tables first, because after tenant removal it will be ignored by cleanup service
+    // Delete internal data only if it is a hard delete
+    var isHardDelete = deleteType.equals(DeleteTypeEnum.HARD);
+    // Delete users user-tenants always for soft delete and if deleteUsersUserTenants flag is set for hard delete
+
+    validateTenantForDeleteOperation(tenantDeleteRequest.getDeleteType(), tenant);
+
+    // Clean publish coordinator tables first, because after tenant removal it will be ignored by cleanup service
     cleanupService.clearPublicationTables();
-    tenantService.saveTenant(tenant);
-
-    try (var ignored = new FolioExecutionContextSetter(contextBuilder.buildContext(tenantId))) {
-      userTenantsClient.deleteUserTenants();
+    // Clean sharing tables or shadow users if needed
+    if (isHardDelete) {
+      cleanupService.clearSharingTables(tenantId);
     }
+    tenantService.deleteTenant(tenant, tenantDeleteRequest.getDeleteType());
+
+    var memberTenantContext = TenantContextUtils.prepareContextForTenant(tenantId, folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext);
+    try (var ignored = new FolioExecutionContextSetter(memberTenantContext)) {
+      if (isHardDelete) {
+        log.info("delete:: Deleting configuration for tenant '{}'", tenantId);
+        configurationClient.deleteConfiguration();
+      }
+      // Delete user-tenants always for soft delete.
+      // For hard delete, delete user-tenants if deleteUsersUserTenants flag is set and tenant is not already soft deleted
+      if (!isHardDelete || deleteOptions.getDeleteUsersUserTenants() && !tenant.getIsDeleted()) {
+        log.info("delete:: Deleting user-tenants for tenant '{}'", tenantId);
+        userTenantsClient.deleteUserTenants();
+      }
+    }
+
+    log.info("delete:: Tenant '{}' in consortium '{}' was successfully deleted", tenantId, consortiumId);
   }
 
   private void createCustomFieldIfNeeded(String tenant) {
@@ -274,7 +299,11 @@ public class TenantManagerImpl implements TenantManager {
     }
   }
 
-  private void validateTenantForDeleteOperation(TenantEntity tenant) {
+  // During soft delete central or already deleted tenant cannot proceed
+  private void validateTenantForDeleteOperation(DeleteTypeEnum deleteType, TenantEntity tenant) {
+    if (DeleteTypeEnum.HARD.equals(deleteType)) {
+      return;
+    }
     if (Boolean.TRUE.equals(tenant.getIsDeleted())) {
       throw new IllegalArgumentException(String.format("Tenant [%s] has already been soft deleted.", tenant.getId()));
     }
