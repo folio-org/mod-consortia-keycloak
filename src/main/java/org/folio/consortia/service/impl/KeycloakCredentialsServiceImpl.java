@@ -3,6 +3,8 @@ package org.folio.consortia.service.impl;
 import java.time.Instant;
 import java.util.HashMap;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.folio.consortia.client.KeycloakClient;
 import org.folio.consortia.config.keycloak.KeycloakLoginClientProperties;
 import org.folio.consortia.config.keycloak.KeycloakProperties;
@@ -39,8 +41,12 @@ public class KeycloakCredentialsServiceImpl implements KeycloakCredentialsServic
   @Cacheable(cacheNames = "keycloak-credentials", key = "{#centralTenant, #memberTenant}")
   public KeycloakClientCredentials getClientCredentials(String centralTenant, String memberTenant) {
     var clientId = memberTenant + keycloakClientProperties.getClientNameSuffix();
-    var clientSecret = retrieveKcClientSecret(centralTenant, clientId);
-    return new KeycloakClientCredentials(clientId, clientSecret);
+    var clientCredentials = keycloakClient.getClientCredentials(memberTenant, clientId, getMasterAuthToken());
+    if (CollectionUtils.isEmpty(clientCredentials) || BooleanUtils.isNotTrue(clientCredentials.get(0).getEnabled())) {
+      log.error("getClientCredentials:: Failed to get client credentials for tenant: {}", memberTenant);
+      throw new IllegalStateException("Failed to get client credentials for tenant: %s".formatted(memberTenant));
+    }
+    return clientCredentials.get(0);
   }
 
   @Cacheable(cacheNames = "keycloak-token", key = MASTER_TOKEN_CACHE_KEY)

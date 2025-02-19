@@ -6,7 +6,6 @@ import static org.folio.consortia.utils.KeycloakUtils.formatTenantField;
 import org.apache.commons.lang3.BooleanUtils;
 import org.folio.consortia.client.KeycloakClient;
 import org.folio.consortia.config.keycloak.KeycloakIdentityProviderProperties;
-import org.folio.consortia.config.keycloak.KeycloakProperties;
 import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
 import org.folio.consortia.service.KeycloakCredentialsService;
 import org.folio.consortia.service.KeycloakService;
@@ -25,7 +24,6 @@ public class KeycloakServiceImpl implements KeycloakService {
   private static final String KEYCLOAK_PROVIDER_ID = "keycloak-oidc";
 
   private final KeycloakClient keycloakClient;
-  private final KeycloakProperties keycloakProperties;
   private final KeycloakIdentityProviderProperties keycloakIdpProperties;
   private final KeycloakCredentialsService keycloakCredentialsService;
 
@@ -45,7 +43,7 @@ public class KeycloakServiceImpl implements KeycloakService {
 
     var providerDisplayName = formatTenantField(keycloakIdpProperties.getDisplayName(), memberTenant);
     var clientCredentials = keycloakCredentialsService.getClientCredentials(centralTenant, memberTenant);
-    var clientConfig = buildIdpClientConfig(keycloakIdpProperties.getBaseUrl(), memberTenant, clientCredentials.clientId(), clientCredentials.clientSecret());
+    var clientConfig = buildIdpClientConfig(keycloakIdpProperties.getBaseUrl(), memberTenant, clientCredentials.getClientId(), clientCredentials.getSecret());
     val idp = KeycloakIdentityProvider.builder()
       .alias(providerAlias)
       .displayName(providerDisplayName)
