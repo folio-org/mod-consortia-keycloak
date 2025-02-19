@@ -576,4 +576,22 @@ class TenantManagerTest {
     assertEquals(tenant, tenant1);
   }
 
+  @Test
+  void testCreateIdentityProvider() {
+    when(folioExecutionContext.getTenantId()).thenReturn(CENTRAL_TENANT_ID);
+
+    tenantManager.createIdentityProvider(TENANT_ID);
+
+    verify(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+  }
+
+  @Test
+  void testDeleteIdentityProvider() {
+    when(folioExecutionContext.getTenantId()).thenReturn(CENTRAL_TENANT_ID);
+
+    tenantManager.deleteIdentityProvider(TENANT_ID);
+
+    verify(keycloakService).deleteIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+  }
+
 }
