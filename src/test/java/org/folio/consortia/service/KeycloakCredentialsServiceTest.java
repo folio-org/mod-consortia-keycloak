@@ -24,11 +24,14 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @CopilotGenerated(partiallyGenerated = true)
 @ExtendWith(MockitoExtension.class)
 class KeycloakCredentialsServiceTest {
+
+  private static final String AUTH_TOKEN = "Bearer token";
 
   @Mock
   private KeycloakClient keycloakClient;
@@ -53,37 +56,41 @@ class KeycloakCredentialsServiceTest {
     String centralTenant = "central";
     String memberTenant = "member";
     when(keycloakClientProperties.getClientNameSuffix()).thenReturn("-suffix");
-    when(secureStore.get(anyString())).thenReturn("secret");
+    when(keycloakClient.login(anyMap())).thenReturn(createTokenResponse());
+    when(keycloakClient.getClientCredentials(memberTenant, memberTenant + "-suffix", AUTH_TOKEN))
+      .thenReturn(List.of(createClientCredentials(memberTenant + "-suffix", "secret", true)));
 
     KeycloakClientCredentials credentials = keycloakCredentialsService.getClientCredentials(centralTenant, memberTenant);
 
-    assertEquals("member-suffix", credentials.clientId());
-    assertEquals("secret", credentials.clientSecret());
-    verify(secureStore).get("%s_%s_%s".formatted(folioEnvironment, "central", "member-suffix"));
+    assertEquals("member-suffix", credentials.getClientId());
+    assertEquals("secret", credentials.getSecret());
+    verify(keycloakClient).getClientCredentials(memberTenant, "member-suffix", AUTH_TOKEN);
   }
 
   @Test
-  void getClientCredentials_returnsValidCredentials_secureStoreDisabled() {
+  void getClientCredentials_throwsException_clientNotFound() {
     String centralTenant = "central";
     String memberTenant = "member";
     when(keycloakClientProperties.getClientNameSuffix()).thenReturn("-suffix");
-    when(keycloakClientProperties.getSecureStoreDisabled()).thenReturn(true);
-
-    KeycloakClientCredentials credentials = keycloakCredentialsService.getClientCredentials(centralTenant, memberTenant);
-
-    assertEquals("member-suffix", credentials.clientId());
-    assertEquals("SecretPassword", credentials.clientSecret());
-    verify(secureStore, never()).get("%s_%s_%s".formatted(folioEnvironment, "central", "member-suffix"));
-  }
-
-  @Test
-  void getClientCredentials_throwsExceptionIfSecretNotFound() {
-    String centralTenant = "central";
-    String memberTenant = "member";
-    when(keycloakClientProperties.getClientNameSuffix()).thenReturn("-suffix");
-    when(secureStore.get(anyString())).thenThrow(new NotFoundException("Not found"));
+    when(keycloakClient.login(anyMap())).thenReturn(createTokenResponse());
+    when(keycloakClient.getClientCredentials(memberTenant, memberTenant + "-suffix", AUTH_TOKEN))
+      .thenReturn(List.of());
 
     assertThrows(IllegalStateException.class, () -> keycloakCredentialsService.getClientCredentials(centralTenant, memberTenant));
+    verify(keycloakClient).getClientCredentials(memberTenant, "member-suffix", AUTH_TOKEN);
+  }
+
+  @Test
+  void getClientCredentials_throwsException_clientNotEnabled() {
+    String centralTenant = "central";
+    String memberTenant = "member";
+    when(keycloakClientProperties.getClientNameSuffix()).thenReturn("-suffix");
+    when(keycloakClient.login(anyMap())).thenReturn(createTokenResponse());
+    when(keycloakClient.getClientCredentials(memberTenant, memberTenant + "-suffix", AUTH_TOKEN))
+      .thenReturn(List.of(createClientCredentials(memberTenant + "-suffix", "secret", false)));
+
+    assertThrows(IllegalStateException.class, () -> keycloakCredentialsService.getClientCredentials(centralTenant, memberTenant));
+    verify(keycloakClient).getClientCredentials(memberTenant, "member-suffix", AUTH_TOKEN);
   }
 
   @Test
@@ -98,8 +105,34 @@ class KeycloakCredentialsServiceTest {
 
     String token = keycloakCredentialsService.getMasterAuthToken();
 
-    assertEquals("Bearer accessToken", token);
+    assertEquals(AUTH_TOKEN, token);
+    verify(secureStore).get("%s_%s_%s".formatted(folioEnvironment, "master", clientId));
     verify(asyncTaskScheduler).schedule(any(Runnable.class), any(Instant.class));
+  }
+
+  @Test
+  void getMasterAuthToken_returnsValidToken_secureStoreDisabled() {
+    String clientId = "clientId";
+    when(keycloakProperties.getClientId()).thenReturn(clientId);
+    when(keycloakClient.login(anyMap())).thenReturn(createTokenResponse());
+    when(keycloakClientProperties.getSecureStoreDisabled()).thenReturn(true);
+
+    String token = keycloakCredentialsService.getMasterAuthToken();
+
+    assertEquals(AUTH_TOKEN, token);
+    verify(secureStore, never()).get(anyString());
+    verify(asyncTaskScheduler).schedule(any(Runnable.class), any(Instant.class));
+  }
+
+  @Test
+  void getMasterAuthToken_throwsException_secretNotFound() {
+    String clientId = "clientId";
+    when(keycloakProperties.getClientId()).thenReturn(clientId);
+    when(secureStore.get(anyString())).thenThrow(new NotFoundException("Not found"));
+
+    assertThrows(IllegalStateException.class, () -> keycloakCredentialsService.getMasterAuthToken());
+    verify(secureStore).get("%s_%s_%s".formatted(folioEnvironment, "master", clientId));
+    verify(asyncTaskScheduler, never()).schedule(any(Runnable.class), any(Instant.class));
   }
 
   @Test
@@ -115,7 +148,7 @@ class KeycloakCredentialsServiceTest {
 
     String token = keycloakCredentialsService.getMasterAuthToken();
 
-    assertEquals("Bearer accessToken", token);
+    assertEquals(AUTH_TOKEN, token);
     verify(asyncTaskScheduler).schedule(any(Runnable.class), any(Instant.class));
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
       verify(keycloakCredentialsService).evictMasterAuthToken();
@@ -124,10 +157,18 @@ class KeycloakCredentialsServiceTest {
 
   private static KeycloakTokenResponse createTokenResponse() {
     KeycloakTokenResponse tokenResponse = new KeycloakTokenResponse();
-    tokenResponse.setTokenType("Bearer");
-    tokenResponse.setAccessToken("accessToken");
+    tokenResponse.setTokenType(AUTH_TOKEN.split(" ")[0]);
+    tokenResponse.setAccessToken(AUTH_TOKEN.split(" ")[1]);
     tokenResponse.setExpiresIn(3600L);
     return tokenResponse;
+  }
+
+  public static KeycloakClientCredentials createClientCredentials(String clientId, String secret, boolean enabled) {
+    return KeycloakClientCredentials.builder()
+      .clientId(clientId)
+      .secret(secret)
+      .enabled(enabled)
+      .build();
   }
 
 }

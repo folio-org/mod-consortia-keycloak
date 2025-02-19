@@ -1,5 +1,6 @@
 package org.folio.consortia.service;
 
+import static org.folio.consortia.service.KeycloakCredentialsServiceTest.createClientCredentials;
 import static org.folio.consortia.support.EntityUtils.CENTRAL_TENANT_ID;
 import static org.folio.consortia.support.EntityUtils.TENANT_ID;
 import static org.mockito.ArgumentMatchers.any;
@@ -57,16 +58,16 @@ class KeycloakServiceTest {
   void setUp() {
     when(keycloakIdpProperties.getEnabled()).thenReturn(true);
     when(keycloakCredentialsService.getMasterAuthToken()).thenReturn(AUTH_TOKEN);
-    when(keycloakCredentialsService.getClientCredentials(anyString(), anyString()))
-      .thenReturn(new KeycloakClientCredentials(TENANT_ID, CLIENT_SECRET));
   }
 
   @Test
   void createIdentityProvider_createsProviderSuccessfully() {
     var alias = getTenantClientAlias(TENANT_ID);
-    when(keycloakLoginClientProperties.getSecureStoreDisabled()).thenReturn(true);
+    var clientId = TENANT_ID + keycloakLoginClientProperties.getClientNameSuffix();
     when(keycloakClient.getIdentityProvider(CENTRAL_TENANT_ID, alias, AUTH_TOKEN))
       .thenThrow(new FeignException.NotFound("not found", mock(Request.class), new byte[0], null));
+    when(keycloakCredentialsService.getClientCredentials(CENTRAL_TENANT_ID, TENANT_ID))
+      .thenReturn(createClientCredentials(clientId, CLIENT_SECRET, true));
 
     keycloakService.createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
 
