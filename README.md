@@ -6,7 +6,9 @@ This software is distributed under the terms of the Apache License,
 Version 2.0. See the file "[LICENSE](LICENSE)" for more information.
 
 ### Description
-`mod-consortia-keycloak` an alternative implementation of `mod-consortia` intended to be used in conjunction with other keycloak modules (e.g. `mod-users-keycloak`, etc.).
+
+`mod-consortia-keycloak` an alternative implementation of `mod-consortia` intended to be used in conjunction with other
+keycloak modules (e.g. `mod-users-keycloak`, etc.).
 
 ## Table of Contents
 
@@ -28,25 +30,28 @@ APIs for Consortia module.
 
 Consortia API provides the following URLs:
 
-| Method | URL                                                     | Permissions                           | Description                                                     |
-|--------|---------------------------------------------------------|---------------------------------------|-----------------------------------------------------------------|
-| GET    | /consortia/{consortiumId}/tenants                       | consortia.tenants.collection.get      | Gets list of tenants based on consortiumId                      |
-| GET    | /consortia/{consortiumId}/user-tenants                  | consortia.user-tenants.collection.get | Gets list of user-tenants based on consortiumId                 |
-| GET    | /consortia/{consortiumId}/user-tenants/{associationId}  | consortia.user-tenants.item.get       | Gets single user-tenant based on consortiumId and associationId |
-| GET    | /consortia/{consortiumId}                               | consortia.consortium.item.get         | Gets single tenant based on consortiumId                        |
-| GET    | /consortia                                              | consortia.consortium.collection.get   | Gets list of consortia                                          |
-| POST   | /consortia                                              | consortia.consortium.item.post        | Inserts single consortium                                       |
-| POST   | /consortia/{consortiumId}/tenants                       | consortia.tenants.item.post           | Inserts a single tenant based on consortiumId                   |
-| PUT    | /consortia/{consortiumId}/tenants/{tenantId}            | consortia.tenants.item.put            | Update a single tenant name based on consortiumId and tenantId  |
-| PUT    | /consortia/{consortiumId}                               | consortia.consortium.item.put         | Update consortium name based on consortiumId                    |
+| Method | URL                                                    | Permissions                           | Description                                                     |
+|--------|--------------------------------------------------------|---------------------------------------|-----------------------------------------------------------------|
+| GET    | /consortia/{consortiumId}/tenants                      | consortia.tenants.collection.get      | Gets list of tenants based on consortiumId                      |
+| GET    | /consortia/{consortiumId}/user-tenants                 | consortia.user-tenants.collection.get | Gets list of user-tenants based on consortiumId                 |
+| GET    | /consortia/{consortiumId}/user-tenants/{associationId} | consortia.user-tenants.item.get       | Gets single user-tenant based on consortiumId and associationId |
+| GET    | /consortia/{consortiumId}                              | consortia.consortium.item.get         | Gets single tenant based on consortiumId                        |
+| GET    | /consortia                                             | consortia.consortium.collection.get   | Gets list of consortia                                          |
+| POST   | /consortia                                             | consortia.consortium.item.post        | Inserts single consortium                                       |
+| POST   | /consortia/{consortiumId}/tenants                      | consortia.tenants.item.post           | Inserts a single tenant based on consortiumId                   |
+| PUT    | /consortia/{consortiumId}/tenants/{tenantId}           | consortia.tenants.item.put            | Update a single tenant name based on consortiumId and tenantId  |
+| PUT    | /consortia/{consortiumId}                              | consortia.consortium.item.put         | Update consortium name based on consortiumId                    |
 
 More detail about mod-consortia
- - API can be found on api-guide.md: [API Docs](/docs/api-guide.md).
- - Schema architecture can be found on Consortia wiki-page: [mod-consortia schema and ER diagram](https://wiki.folio.org/display/DD/Defining+Tenant+Schema+For+Consortia).
+
+- API can be found on api-guide.md: [API Docs](/docs/api-guide.md).
+- Schema architecture can be found on Consortia
+  wiki-page: [mod-consortia schema and ER diagram](https://wiki.folio.org/display/DD/Defining+Tenant+Schema+For+Consortia).
 
 ## Permissions
 
 Institutional users should be granted the following permissions in order to use this Consortia API:
+
 ```shell
 consortia.all
 ```
@@ -56,6 +61,7 @@ consortia.all
 ### Compiling
 
 Compile with
+
 ```shell
 mvn clean install
 ```
@@ -118,8 +124,8 @@ requires and provides, the permissions, and the additional module metadata.
 | KC_LOGIN_CLIENT_SUFFIX              | -login-application         | Suffix of a Keycloak client who owns the authorization resources. |
 | SINGLE_TENANT_UX                    | false                      | Flag to enable single login UX with identity providers.           |
 | KC_IDENTITY_PROVIDER_BASE_URL       | -                          | Base URL to set up identity provider URLs with.                   |
-| KC_IDENTITY_PROVIDER_SUFFIX         | -                          | Identity provider alias suffix.                                   |
-| KC_IDENTITY_PROVIDER_DISPLAY_SUFFIX | -                          | Identity provider display name suffix.                            |
+| KC_IDENTITY_PROVIDER_SUFFIX         | -keycloak-oidc             | Identity provider alias suffix.                                   |
+| KC_IDENTITY_PROVIDER_DISPLAY_SUFFIX | Keycloak OIDC              | Identity provider display name suffix.                            |
 
 ### Secure storage environment variables
 
