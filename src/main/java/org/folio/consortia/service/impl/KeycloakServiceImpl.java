@@ -46,6 +46,7 @@ public class KeycloakServiceImpl implements KeycloakService {
   public void addCustomAuthFlowForCentralTenant(Tenant tenant) {
     log.debug("Trying to add custom authentication flow for tenant with id={}", tenant.getId());
     if (Boolean.FALSE.equals(tenant.getIsCentral())) {
+      log.info("Tenant with id={} is not central, skipping custom authentication flow addition", tenant.getId());
       return;
     }
 
