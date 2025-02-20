@@ -78,7 +78,7 @@ folio:
   max-active-threads: 5
 application:
   secret-store:
-    type: ${SECRET_STORE_TYPE:AWS_SSM}
+    type: ${SECRET_STORE_TYPE:EPHEMERAL}
     aws-ssm:
       region: ${SECRET_STORE_AWS_SSM_REGION:}
       use-iam: ${SECRET_STORE_AWS_SSM_USE_IAM:true}
