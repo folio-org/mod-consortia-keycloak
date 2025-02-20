@@ -50,6 +50,7 @@ public class RealmConfigurationProvider {
 
   @CacheEvict(cacheNames = "keycloak-client-configuration", allEntries = true)
   public void evictAllClientConfigurations() {
+    throw new UnsupportedOperationException();
   }
 
   private String retrieveKcClientSecret(String realm, String clientId) {
