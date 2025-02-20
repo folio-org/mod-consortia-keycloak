@@ -77,10 +77,10 @@ public class TenantManagerImpl implements TenantManager {
   public Tenant save(UUID consortiumId, UUID adminUserId, Tenant tenantDto) {
     log.info("save:: Trying to save a tenant with id={}, consortiumId={} and isCentral={}", tenantDto.getId(),
       consortiumId, tenantDto.getIsCentral());
-    validateConsortiumAndTenantForSaveOperation(consortiumId, tenantDto);
+//    validateConsortiumAndTenantForSaveOperation(consortiumId, tenantDto);
     tenantService.checkTenantUniqueNameAndCodeOrThrow(tenantDto);
 
-    createCustomFieldIfNeeded(tenantDto.getId());
+//    createCustomFieldIfNeeded(tenantDto.getId());
     keycloakService.addCustomAuthFlowForCentralTenant(tenantDto);
 
     var existingTenant = tenantService.getByTenantId(tenantDto.getId());

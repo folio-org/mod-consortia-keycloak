@@ -1,6 +1,7 @@
 package org.folio.consortia.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.folio.common.configuration.properties.FolioEnvironment;
 import org.folio.consortia.config.keycloak.KeycloakProperties;
 import org.folio.consortia.domain.dto.KeycloakRealmConfiguration;
@@ -12,9 +13,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class RealmConfigurationProvider {
 
   private static final String MASTER_REALM = "master";
+  private static final Boolean DISABLE_SECURE_STORE = Boolean.valueOf(System.getenv()
+    .getOrDefault("DISABLE_SECURE_STORE", "false"));
   private final FolioEnvironment folioEnvironment;
   private final SecureStore secureStore;
   private final KeycloakProperties keycloakConfigurationProperties;
@@ -49,7 +53,12 @@ public class RealmConfigurationProvider {
   }
 
   private String retrieveKcClientSecret(String realm, String clientId) {
+    if (Boolean.TRUE.equals(DISABLE_SECURE_STORE)) {
+      log.info("Secure store is disabled. Using default secret password");
+      return "SecretPassword";
+    }
     try {
+      log.info("Secure store is enabled. Trying to get value from secure store");
       return secureStore.get(buildKey(folioEnvironment.getEnvironment(), realm, clientId));
     } catch (NotFoundException e) {
       throw new IllegalStateException(String.format(

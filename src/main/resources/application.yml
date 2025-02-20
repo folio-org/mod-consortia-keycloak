@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 36002
 spring:
   application:
     name: mod-consortia-keycloak

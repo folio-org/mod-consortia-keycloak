@@ -54,15 +54,13 @@ public interface KeycloakClient {
                           @RequestBody Map<String, ?> executionRequest,
                           @RequestHeader(AUTHORIZATION) String token);
 
-  @PostMapping(value = "/admin/realms/{tenant}/authentication/flows/{flowName}/executions/{executionId}/raise-priority")
+  @PostMapping(value = "/admin/realms/{tenant}/authentication/executions/{executionId}/raise-priority")
   void raisePriority(@PathVariable("tenant") String tenant,
-                     @PathVariable("flowName") String flowName,
                      @PathVariable("executionId") String executionId,
                      @RequestHeader(AUTHORIZATION) String token);
 
-  @DeleteMapping(value = "/admin/realms/{tenant}/authentication/flows/{flowName}/executions/{executionId}")
+  @DeleteMapping(value = "/admin/realms/{tenant}/authentication/executions/{executionId}")
   void deleteExecution(@PathVariable("tenant") String tenant,
-                       @PathVariable("flowName") String flowName,
                        @PathVariable("executionId") String executionId,
                        @RequestHeader(AUTHORIZATION) String token);
 
