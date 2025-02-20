@@ -14,7 +14,6 @@ import static org.mockito.Mockito.when;
 import org.folio.consortia.client.KeycloakClient;
 import org.folio.consortia.config.keycloak.KeycloakIdentityProviderProperties;
 import org.folio.consortia.config.keycloak.KeycloakLoginClientProperties;
-import org.folio.consortia.domain.dto.KeycloakClientCredentials;
 import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
 import org.folio.consortia.service.impl.KeycloakServiceImpl;
 import org.folio.consortia.support.CopilotGenerated;
@@ -66,7 +65,7 @@ class KeycloakServiceTest {
     var clientId = TENANT_ID + keycloakLoginClientProperties.getClientNameSuffix();
     when(keycloakClient.getIdentityProvider(CENTRAL_TENANT_ID, alias, AUTH_TOKEN))
       .thenThrow(new FeignException.NotFound("not found", mock(Request.class), new byte[0], null));
-    when(keycloakCredentialsService.getClientCredentials(CENTRAL_TENANT_ID, TENANT_ID))
+    when(keycloakCredentialsService.getClientCredentials(TENANT_ID, AUTH_TOKEN))
       .thenReturn(createClientCredentials(clientId, CLIENT_SECRET, true));
 
     keycloakService.createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);

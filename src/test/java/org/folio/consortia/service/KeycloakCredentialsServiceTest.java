@@ -53,14 +53,12 @@ class KeycloakCredentialsServiceTest {
 
   @Test
   void getClientCredentials_returnsValidCredentials() {
-    String centralTenant = "central";
     String memberTenant = "member";
     when(keycloakClientProperties.getClientNameSuffix()).thenReturn("-suffix");
-    when(keycloakClient.login(anyMap())).thenReturn(createTokenResponse());
     when(keycloakClient.getClientCredentials(memberTenant, memberTenant + "-suffix", AUTH_TOKEN))
       .thenReturn(List.of(createClientCredentials(memberTenant + "-suffix", "secret", true)));
 
-    KeycloakClientCredentials credentials = keycloakCredentialsService.getClientCredentials(centralTenant, memberTenant);
+    KeycloakClientCredentials credentials = keycloakCredentialsService.getClientCredentials(memberTenant, AUTH_TOKEN);
 
     assertEquals("member-suffix", credentials.getClientId());
     assertEquals("secret", credentials.getSecret());
@@ -69,27 +67,23 @@ class KeycloakCredentialsServiceTest {
 
   @Test
   void getClientCredentials_throwsException_clientNotFound() {
-    String centralTenant = "central";
     String memberTenant = "member";
     when(keycloakClientProperties.getClientNameSuffix()).thenReturn("-suffix");
-    when(keycloakClient.login(anyMap())).thenReturn(createTokenResponse());
     when(keycloakClient.getClientCredentials(memberTenant, memberTenant + "-suffix", AUTH_TOKEN))
       .thenReturn(List.of());
 
-    assertThrows(IllegalStateException.class, () -> keycloakCredentialsService.getClientCredentials(centralTenant, memberTenant));
+    assertThrows(IllegalStateException.class, () -> keycloakCredentialsService.getClientCredentials(memberTenant, AUTH_TOKEN));
     verify(keycloakClient).getClientCredentials(memberTenant, "member-suffix", AUTH_TOKEN);
   }
 
   @Test
   void getClientCredentials_throwsException_clientNotEnabled() {
-    String centralTenant = "central";
     String memberTenant = "member";
     when(keycloakClientProperties.getClientNameSuffix()).thenReturn("-suffix");
-    when(keycloakClient.login(anyMap())).thenReturn(createTokenResponse());
     when(keycloakClient.getClientCredentials(memberTenant, memberTenant + "-suffix", AUTH_TOKEN))
       .thenReturn(List.of(createClientCredentials(memberTenant + "-suffix", "secret", false)));
 
-    assertThrows(IllegalStateException.class, () -> keycloakCredentialsService.getClientCredentials(centralTenant, memberTenant));
+    assertThrows(IllegalStateException.class, () -> keycloakCredentialsService.getClientCredentials(memberTenant, AUTH_TOKEN));
     verify(keycloakClient).getClientCredentials(memberTenant, "member-suffix", AUTH_TOKEN);
   }
 

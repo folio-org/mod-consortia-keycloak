@@ -5,13 +5,13 @@ import org.folio.consortia.domain.dto.KeycloakClientCredentials;
 public interface KeycloakCredentialsService {
 
   /**
-   * Returns client id and secret for member tenant login client in central realm
+   * Returns client credentials for a login client of a tenant
    *
-   * @param centralTenant central tenant for getting correct realm
-   * @param memberTenant member tenant for getting correct client id
-   * @return Credentials for member tenant client in central realm
+   * @param tenantId tenant to fetch client credentials for
+   * @param token    authorization token for keycloak client
+   * @return Credentials for a tenant login client
    */
-  KeycloakClientCredentials getClientCredentials(String centralTenant, String memberTenant) ;
+  KeycloakClientCredentials getClientCredentials(String tenantId, String token) ;
 
   /**
    * Returns master realm admin token for Keycloak communication

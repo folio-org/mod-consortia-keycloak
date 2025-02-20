@@ -39,12 +39,12 @@ public class KeycloakCredentialsServiceImpl implements KeycloakCredentialsServic
   private String folioEnvironment;
 
   @Cacheable(cacheNames = "keycloak-credentials", key = "{#centralTenant, #memberTenant}")
-  public KeycloakClientCredentials getClientCredentials(String centralTenant, String memberTenant) {
-    var clientId = memberTenant + keycloakClientProperties.getClientNameSuffix();
-    var clientCredentials = keycloakClient.getClientCredentials(memberTenant, clientId, getMasterAuthToken());
+  public KeycloakClientCredentials getClientCredentials(String tenantId, String token) {
+    var clientId = tenantId + keycloakClientProperties.getClientNameSuffix();
+    var clientCredentials = keycloakClient.getClientCredentials(tenantId, clientId, token);
     if (CollectionUtils.isEmpty(clientCredentials) || BooleanUtils.isNotTrue(clientCredentials.get(0).getEnabled())) {
-      log.error("getClientCredentials:: Failed to get client credentials for tenant: {}", memberTenant);
-      throw new IllegalStateException("Failed to get client credentials for tenant: %s".formatted(memberTenant));
+      log.error("getClientCredentials:: Failed to get client credentials for tenant: {}", tenantId);
+      throw new IllegalStateException("Failed to get client credentials for tenant: %s".formatted(tenantId));
     }
     return clientCredentials.get(0);
   }
