@@ -32,8 +32,4 @@ public class KeycloakUtils {
       .build();
   }
 
-  public static String formatTenantField(String template, String tenantId) {
-    return template.replace("{tenantId}", tenantId);
-  }
-
 }
