@@ -31,14 +31,4 @@ class KeycloakUtilsTest {
     assertFalse(config.isPkceEnabled());
   }
 
-  @Test
-  void formatTenantField_replacesTenantId() {
-    String template = "tenant-{tenantId}-field";
-    String tenantId = "12345";
-
-    String result = KeycloakUtils.formatTenantField(template, tenantId);
-
-    assertEquals("tenant-12345-field", result);
-  }
-
 }

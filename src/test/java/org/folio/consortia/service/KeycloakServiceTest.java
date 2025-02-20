@@ -21,8 +21,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -31,7 +29,6 @@ import feign.FeignException;
 import feign.Request;
 
 @SpringBootTest
-@EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 @CopilotGenerated(partiallyGenerated = true)
 class KeycloakServiceTest {
 

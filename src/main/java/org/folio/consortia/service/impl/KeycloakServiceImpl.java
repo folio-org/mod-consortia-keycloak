@@ -1,7 +1,6 @@
 package org.folio.consortia.service.impl;
 
 import static org.folio.consortia.utils.KeycloakUtils.buildIdpClientConfig;
-import static org.folio.consortia.utils.KeycloakUtils.formatTenantField;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,14 +34,14 @@ public class KeycloakServiceImpl implements KeycloakService {
       return;
     }
     log.info("createIdentityProvider:: Creating identity provider for tenant {} in central realm {}", memberTenant, centralTenant);
-    var providerAlias = formatTenantField(keycloakIdpProperties.getAlias(), memberTenant);
+    var providerAlias = memberTenant + keycloakIdpProperties.getAlias();
 
     if (identityProviderExists(centralTenant, providerAlias)) {
       log.info("createIdentityProvider:: Identity provider {} already exists for tenant {} in central realm {}", providerAlias, memberTenant, centralTenant);
       return;
     }
 
-    var providerDisplayName = formatTenantField(keycloakIdpProperties.getDisplayName(), StringUtils.capitalize(memberTenant));
+    var providerDisplayName = StringUtils.capitalize(memberTenant) + " " + keycloakIdpProperties.getDisplayName();
     var clientCredentials = keycloakCredentialsService.getClientCredentials(memberTenant, getToken());
     var clientConfig = buildIdpClientConfig(keycloakIdpProperties.getBaseUrl(), memberTenant, clientCredentials.getClientId(), clientCredentials.getSecret());
     val idp = KeycloakIdentityProvider.builder()
@@ -63,7 +62,7 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
 
     log.info("deleteIdentityProvider:: Deleting identity provider for realm {}", memberTenant);
-    var providerAlias = formatTenantField(keycloakIdpProperties.getAlias(), memberTenant);
+    var providerAlias = memberTenant + keycloakIdpProperties.getAlias();
 
     if (!identityProviderExists(centralTenant, providerAlias)) {
       log.info("deleteIdentityProvider:: Identity provider {} does not exist for tenant {} in central realm {}", providerAlias, memberTenant, centralTenant);

@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.PageImpl;
 
@@ -28,6 +29,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
+@Profile("test")
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 class ConsortiumServiceTest {
 

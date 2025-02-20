@@ -78,7 +78,7 @@ folio:
   max-active-threads: 5
 application:
   secret-store:
-    type: ${SECRET_STORE_TYPE:aws-ssm}
+    type: ${SECRET_STORE_TYPE:AWS_SSM}
     aws-ssm:
       region: ${SECRET_STORE_AWS_SSM_REGION:}
       use-iam: ${SECRET_STORE_AWS_SSM_USE_IAM:true}
@@ -103,12 +103,11 @@ application:
       trust-store-type: ${KC_CLIENT_TLS_TRUSTSTORE_TYPE:}
     login:
       client-name-suffix: ${KC_LOGIN_CLIENT_SUFFIX:-login-application}
-      secure-store-disabled: ${KC_ADMIN_SECURE_STORE_DISABLED:false}
     identity-provider:
       enabled: ${SINGLE_TENANT_UX:false}
       base-url: ${IDENTITY_PROVIDER_BASE_URL:${folio.keycloak.url}}
-      alias: ${IDENTITY_PROVIDER_ALIAS:{tenantId}-keycloak-oidc}
-      display-name: ${IDENTITY_PROVIDER_DISPLAY_NAME:{tenantId} Keycloak OIDC}
+      alias: ${IDENTITY_PROVIDER_SUFFIX:-keycloak-oidc}
+      display-name: ${IDENTITY_PROVIDER_DISPLAY_SUFFIX:Keycloak OIDC}
 feign:
   client:
     config:

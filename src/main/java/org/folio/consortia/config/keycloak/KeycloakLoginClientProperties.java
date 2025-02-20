@@ -14,6 +14,4 @@ import lombok.Data;
 public class KeycloakLoginClientProperties {
   @NotNull
   private String clientNameSuffix;
-  @NotNull
-  private Boolean secureStoreDisabled;
 }

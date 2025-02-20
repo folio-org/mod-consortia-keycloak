@@ -105,20 +105,6 @@ class KeycloakCredentialsServiceTest {
   }
 
   @Test
-  void getMasterAuthToken_returnsValidToken_secureStoreDisabled() {
-    String clientId = "clientId";
-    when(keycloakProperties.getClientId()).thenReturn(clientId);
-    when(keycloakClient.login(anyMap())).thenReturn(createTokenResponse());
-    when(keycloakClientProperties.getSecureStoreDisabled()).thenReturn(true);
-
-    String token = keycloakCredentialsService.getMasterAuthToken();
-
-    assertEquals(AUTH_TOKEN, token);
-    verify(secureStore, never()).get(anyString());
-    verify(asyncTaskScheduler).schedule(any(Runnable.class), any(Instant.class));
-  }
-
-  @Test
   void getMasterAuthToken_throwsException_secretNotFound() {
     String clientId = "clientId";
     when(keycloakProperties.getClientId()).thenReturn(clientId);

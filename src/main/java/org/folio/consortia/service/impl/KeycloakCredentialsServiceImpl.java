@@ -52,7 +52,7 @@ public class KeycloakCredentialsServiceImpl implements KeycloakCredentialsServic
   @Cacheable(cacheNames = "keycloak-token", key = MASTER_TOKEN_CACHE_KEY)
   public String getMasterAuthToken() {
     var clientId = keycloakProperties.getClientId();
-    var clientSecret = retrieveKcClientSecret(MASTER_REALM, clientId);
+    var clientSecret = getBackendAdminClientSecret(clientId);
 
     HashMap<String, String> loginRequest = new HashMap<>();
     loginRequest.put("client_id", clientId);
@@ -76,16 +76,12 @@ public class KeycloakCredentialsServiceImpl implements KeycloakCredentialsServic
     log.info("evictMasterAuthToken:: Evicting master realm admin token from cache");
   }
 
-  private String retrieveKcClientSecret(String realm, String clientId) {
-    if (Boolean.TRUE.equals(keycloakClientProperties.getSecureStoreDisabled())) {
-      log.info("retrieveKcClientSecret:: Secure store is disabled. Using default client secret for clientId: {}", clientId);
-      return "SecretPassword";
-    }
+  private String getBackendAdminClientSecret(String clientId) {
     try {
-      log.info("retrieveKcClientSecret:: Retrieving client secret from secure store");
-      return secureStore.get("%s_%s_%s".formatted(folioEnvironment, realm, clientId));
+      log.info("getBackendAdminClientSecret:: Retrieving backend admin client secret from secure store");
+      return secureStore.get("%s_%s_%s".formatted(folioEnvironment, MASTER_REALM, clientId));
     } catch (NotFoundException e) {
-      log.error("retrieveKcClientSecret:: Client secret not found in secure store for clientId: {}", clientId);
+      log.error("getBackendAdminClientSecret:: Backend admin client secret not found in secure store for clientId: {}", clientId);
       throw new IllegalStateException("Failed to get value from secure store [clientId: %s]".formatted(clientId), e);
     }
   }
