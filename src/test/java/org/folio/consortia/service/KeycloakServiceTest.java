@@ -61,6 +61,9 @@ class KeycloakServiceTest {
   @Value("${folio.environment}")
   private String folioEnvironment;
 
+  @Captor
+  private ArgumentCaptor<Map<String, String>> mapCaptor;
+
   @BeforeEach
   void setUp() {
     when(keycloakIdpProperties.getEnabled()).thenReturn(true);
@@ -134,13 +137,6 @@ class KeycloakServiceTest {
     verify(keycloakClient, never()).getIdentityProvider(anyString(), anyString(), eq(AUTH_TOKEN));
   }
 
-  private static String getTenantClientAlias(String tenant) {
-    return tenant + "-keycloak-oidc";
-  }
-
-  @Captor
-  private ArgumentCaptor<Map<String, String>> mapCaptor;
-
   @Test
   void addCustomAuthFlowForCentralTenantSuccess() {
     Tenant tenant = new Tenant();
@@ -187,6 +183,10 @@ class KeycloakServiceTest {
     when(keycloakClient.getExecutions(anyString(), anyString(), anyString())).thenReturn(List.of());
 
     assertThrows(IllegalStateException.class, () -> keycloakService.addCustomAuthFlowForCentralTenant(tenant));
+  }
+
+  private static String getTenantClientAlias(String tenant) {
+    return tenant + "-keycloak-oidc";
   }
 
 }
