@@ -230,7 +230,6 @@
           ],
           "modulePermissions": [
             "consortia.consortia-configuration.item.post",
-            "consortia.identity-provider.item.post",
             "perms.users.item.put",
             "perms.users.item.post",
             "perms.users.assign.immutable",
@@ -261,7 +260,6 @@
           ],
           "modulePermissions": [
             "consortia.consortia-configuration.item.delete",
-            "consortia.identity-provider.item.delete"
           ]
         },
         {

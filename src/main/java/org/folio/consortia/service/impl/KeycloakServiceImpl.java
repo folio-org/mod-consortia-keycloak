@@ -28,22 +28,22 @@ public class KeycloakServiceImpl implements KeycloakService {
   private final KeycloakCredentialsService keycloakCredentialsService;
 
   @Override
-  public void createIdentityProvider(String centralTenant, String memberTenant) {
+  public void createIdentityProvider(String centralTenantId, String memberTenantId) {
     if (isIdpCreationDisabled()) {
-      log.info("createIdentityProvider:: Identity provider creation is disabled. Skipping creation for tenant {}", memberTenant);
+      log.info("createIdentityProvider:: Identity provider creation is disabled. Skipping creation for tenant {}", memberTenantId);
       return;
     }
-    log.info("createIdentityProvider:: Creating identity provider for tenant {} in central realm {}", memberTenant, centralTenant);
-    var providerAlias = memberTenant + keycloakIdpProperties.getAlias();
+    log.info("createIdentityProvider:: Creating identity provider for tenant {} in central realm {}", memberTenantId, centralTenantId);
+    var providerAlias = memberTenantId + keycloakIdpProperties.getAlias();
 
-    if (identityProviderExists(centralTenant, providerAlias)) {
-      log.info("createIdentityProvider:: Identity provider {} already exists for tenant {} in central realm {}", providerAlias, memberTenant, centralTenant);
+    if (identityProviderExists(centralTenantId, providerAlias)) {
+      log.info("createIdentityProvider:: Identity provider {} already exists for tenant {} in central realm {}", providerAlias, memberTenantId, centralTenantId);
       return;
     }
 
-    var providerDisplayName = StringUtils.capitalize(memberTenant) + " " + keycloakIdpProperties.getDisplayName();
-    var clientCredentials = keycloakCredentialsService.getClientCredentials(memberTenant, getToken());
-    var clientConfig = buildIdpClientConfig(keycloakIdpProperties.getBaseUrl(), memberTenant, clientCredentials.getClientId(), clientCredentials.getSecret());
+    var providerDisplayName = StringUtils.capitalize(memberTenantId) + " " + keycloakIdpProperties.getDisplayName();
+    var clientCredentials = keycloakCredentialsService.getClientCredentials(memberTenantId, getToken());
+    var clientConfig = buildIdpClientConfig(keycloakIdpProperties.getBaseUrl(), memberTenantId, clientCredentials.getClientId(), clientCredentials.getSecret());
     val idp = KeycloakIdentityProvider.builder()
       .alias(providerAlias)
       .displayName(providerDisplayName)
@@ -51,25 +51,25 @@ public class KeycloakServiceImpl implements KeycloakService {
       .config(clientConfig)
       .build();
 
-    keycloakClient.createIdentityProvider(centralTenant, idp, getToken());
+    keycloakClient.createIdentityProvider(centralTenantId, idp, getToken());
   }
 
   @Override
-  public void deleteIdentityProvider(String centralTenant, String memberTenant) {
+  public void deleteIdentityProvider(String centralTenantId, String memberTenantId) {
     if (isIdpCreationDisabled()) {
-      log.info("deleteIdentityProvider:: Identity provider creation is disabled. Skipping deletion for tenant {}", memberTenant);
+      log.info("deleteIdentityProvider:: Identity provider creation is disabled. Skipping deletion for tenant {}", memberTenantId);
       return;
     }
 
-    log.info("deleteIdentityProvider:: Deleting identity provider for realm {}", memberTenant);
-    var providerAlias = memberTenant + keycloakIdpProperties.getAlias();
+    log.info("deleteIdentityProvider:: Deleting identity provider for realm {}", memberTenantId);
+    var providerAlias = memberTenantId + keycloakIdpProperties.getAlias();
 
-    if (!identityProviderExists(centralTenant, providerAlias)) {
-      log.info("deleteIdentityProvider:: Identity provider {} does not exist for tenant {} in central realm {}", providerAlias, memberTenant, centralTenant);
+    if (!identityProviderExists(centralTenantId, providerAlias)) {
+      log.info("deleteIdentityProvider:: Identity provider {} does not exist for tenant {} in central realm {}", providerAlias, memberTenantId, centralTenantId);
       return;
     }
 
-    keycloakClient.deleteIdentityProvider(centralTenant, providerAlias, getToken());
+    keycloakClient.deleteIdentityProvider(centralTenantId, providerAlias, getToken());
   }
 
   private boolean identityProviderExists(String realm, String providerAlias) {

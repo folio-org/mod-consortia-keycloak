@@ -8,18 +8,18 @@ public interface KeycloakService {
    * support tenant removal and re-creation.<br/>
    * 2) If the identity provider creation is disabled, the method will return without any action
    *
-   * @param centralTenant central tenant
-   * @param memberTenant  member tenant
+   * @param centralTenantId central tenant
+   * @param memberTenantId  member tenant
    */
-  void createIdentityProvider(String centralTenant, String memberTenant);
+  void createIdentityProvider(String centralTenantId, String memberTenantId);
 
   /**
    * Deletes an identity provider in the central tenant realm corresponding to the member tenant.<br/>
    * If the identity provider creation is disabled, the method will return without any action
    *
-   * @param centralTenant central tenant
-   * @param memberTenant  member tenant
+   * @param centralTenantId central tenant
+   * @param memberTenantId  member tenant
    */
-  void deleteIdentityProvider(String centralTenant, String memberTenant);
+  void deleteIdentityProvider(String centralTenantId, String memberTenantId);
 
 }
