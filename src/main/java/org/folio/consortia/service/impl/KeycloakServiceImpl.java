@@ -58,7 +58,7 @@ public class KeycloakServiceImpl implements KeycloakService {
       return;
     }
 
-    var token = getToken();
+    var token = keycloakCredentialsService.getMasterAuthToken();
     var tenantId = tenant.getId();
 
     // 1. Duplicate built-in browser authentication flow
@@ -153,4 +153,5 @@ public class KeycloakServiceImpl implements KeycloakService {
   private boolean isIdpCreationDisabled() {
     return BooleanUtils.isNotTrue(keycloakIdpProperties.getEnabled());
   }
+
 }

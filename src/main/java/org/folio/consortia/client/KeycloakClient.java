@@ -14,7 +14,6 @@ import org.folio.consortia.domain.dto.KeycloakClientCredentials;
 import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
 import org.folio.consortia.domain.dto.KeycloakTokenResponse;
 import org.folio.consortia.domain.dto.RealmExecutions;
-import org.folio.consortia.domain.dto.TokenResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,10 +37,6 @@ public interface KeycloakClient {
    */
   @PostMapping(value = "/realms/master/protocol/openid-connect/token", consumes = APPLICATION_FORM_URLENCODED_VALUE)
   KeycloakTokenResponse login(@RequestBody Map<String, ?> loginRequest);
-  TokenResponse login(@RequestBody Map<String, ?> loginRequest);
-
-  @PostMapping(value = "/realms/{tenant}/protocol/openid-connect/token", consumes = APPLICATION_FORM_URLENCODED_VALUE)
-  TokenResponse login(@RequestBody Map<String, ?> loginRequest, @PathVariable("tenant") String tenant);
 
   /**
    * Get client credentials for a given client id in a realm
@@ -55,14 +50,6 @@ public interface KeycloakClient {
   List<KeycloakClientCredentials> getClientCredentials(@PathVariable("realm") String realm,
                                                        @RequestParam("clientId") String clientId,
                                                        @RequestHeader(AUTHORIZATION) String token);
-  @GetMapping(value = "admin/realms/{tenant}")
-  ObjectNode getRealm(@PathVariable("tenant") String tenant,
-                      @RequestHeader(AUTHORIZATION) String token);
-
-  @PutMapping(value = "/admin/realms/{tenant}")
-  void updateRealm(@PathVariable("tenant") String tenant,
-                   @RequestBody JsonNode realm,
-                   @RequestHeader(AUTHORIZATION) String token);
 
   /**
    * Get identity provider by alias in a realm
@@ -76,26 +63,6 @@ public interface KeycloakClient {
   KeycloakIdentityProvider getIdentityProvider(@PathVariable("realm") String realm,
                                                @PathVariable("alias") String alias,
                                                @RequestHeader(AUTHORIZATION) String token);
-  @PostMapping(value = "/admin/realms/{tenant}/authentication/flows/browser/copy")
-  void copyBrowserFlow(@PathVariable("tenant") String tenant,
-                       @RequestBody Map<String, ?> copyRequest,
-                       @RequestHeader(AUTHORIZATION) String token);
-
-  /**
-   * Delete identity provider by alias in a realm
-   *
-   * @param realm realm to delete identity provider from
-   * @param alias alias of the identity provider
-   * @param token authorization token
-   */
-  @DeleteMapping("/admin/realms/{realm}/identity-provider/instances/{alias}")
-  void deleteIdentityProvider(@PathVariable("realm") String realm,
-                              @PathVariable("alias") String alias,
-                              @RequestHeader(AUTHORIZATION) String token);
-  @GetMapping(value = "/admin/realms/{tenant}/authentication/flows/{flowName}/executions")
-  List<RealmExecutions> getExecutions(@PathVariable("tenant") String tenant,
-                                      @PathVariable("flowName") String flowName,
-                                      @RequestHeader(AUTHORIZATION) String token);
 
   /**
    * Create identity provider in a realm
@@ -108,6 +75,38 @@ public interface KeycloakClient {
   void createIdentityProvider(@PathVariable("realm") String realm,
                               @RequestBody KeycloakIdentityProvider identityProvider,
                               @RequestHeader(AUTHORIZATION) String token);
+
+  /**
+   * Delete identity provider by alias in a realm
+   *
+   * @param realm realm to delete identity provider from
+   * @param alias alias of the identity provider
+   * @param token authorization token
+   */
+  @DeleteMapping("/admin/realms/{realm}/identity-provider/instances/{alias}")
+  void deleteIdentityProvider(@PathVariable("realm") String realm,
+                              @PathVariable("alias") String alias,
+                              @RequestHeader(AUTHORIZATION) String token);
+
+  @GetMapping(value = "admin/realms/{tenant}")
+  ObjectNode getRealm(@PathVariable("tenant") String tenant,
+                      @RequestHeader(AUTHORIZATION) String token);
+
+  @PutMapping(value = "/admin/realms/{tenant}")
+  void updateRealm(@PathVariable("tenant") String tenant,
+                   @RequestBody JsonNode realm,
+                   @RequestHeader(AUTHORIZATION) String token);
+
+  @PostMapping(value = "/admin/realms/{tenant}/authentication/flows/browser/copy")
+  void copyBrowserFlow(@PathVariable("tenant") String tenant,
+                       @RequestBody Map<String, ?> copyRequest,
+                       @RequestHeader(AUTHORIZATION) String token);
+
+  @GetMapping(value = "/admin/realms/{tenant}/authentication/flows/{flowName}/executions")
+  List<RealmExecutions> getExecutions(@PathVariable("tenant") String tenant,
+                                      @PathVariable("flowName") String flowName,
+                                      @RequestHeader(AUTHORIZATION) String token);
+
   @PostMapping(value = "/admin/realms/{tenant}/authentication/flows/{flowName}/executions/execution")
   void executeBrowserFlow(@PathVariable("tenant") String tenant,
                           @PathVariable("flowName") String flowName,

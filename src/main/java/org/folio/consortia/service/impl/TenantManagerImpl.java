@@ -65,7 +65,6 @@ public class TenantManagerImpl implements TenantManager {
   private final SystemUserScopedExecutionService systemUserScopedExecutionService;
   private final ExecutionContextBuilder contextBuilder;
   private final FolioExecutionContext folioExecutionContext;
-  private final KeycloakService keycloakService;
 
 
   @Override

@@ -1,5 +1,6 @@
 package org.folio.consortia.service;
 
+import static org.folio.consortia.service.KeycloakCredentialsServiceTest.createClientCredentials;
 import static org.folio.consortia.support.EntityUtils.CENTRAL_TENANT_ID;
 import static org.folio.consortia.support.EntityUtils.TENANT_ID;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -21,6 +22,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import feign.FeignException;
 import feign.Request;
 import org.folio.consortia.client.KeycloakClient;
+import org.folio.consortia.config.keycloak.KeycloakIdentityProviderProperties;
+import org.folio.consortia.config.keycloak.KeycloakLoginClientProperties;
+import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
 import org.folio.consortia.domain.dto.RealmExecutions;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.service.impl.KeycloakServiceImpl;
@@ -147,7 +151,7 @@ class KeycloakServiceTest {
       new RealmExecutions().withId("id2").withProviderId("ecs-folio-auth-usrnm-pwd-form"));
     var realm = new ObjectNode(JsonNodeFactory.instance);
 
-    when(tokenService.issueToken()).thenReturn(AUTH_TOKEN);
+    when(keycloakCredentialsService.getMasterAuthToken()).thenReturn(AUTH_TOKEN);
     when(keycloakClient.getExecutions(anyString(), anyString(), anyString())).thenReturn(executions);
     when(keycloakClient.getRealm(anyString(), anyString())).thenReturn(realm);
 
@@ -169,7 +173,7 @@ class KeycloakServiceTest {
     keycloakService.addCustomAuthFlowForCentralTenant(tenant);
 
     verifyNoInteractions(keycloakClient);
-    verifyNoInteractions(tokenService);
+    verifyNoInteractions(keycloakCredentialsService);
   }
 
   @Test
@@ -179,7 +183,7 @@ class KeycloakServiceTest {
     tenant.setIsCentral(true);
     String token = "token";
 
-    when(tokenService.issueToken()).thenReturn(token);
+    when(keycloakCredentialsService.getMasterAuthToken()).thenReturn(token);
     when(keycloakClient.getExecutions(anyString(), anyString(), anyString())).thenReturn(List.of());
 
     assertThrows(IllegalStateException.class, () -> keycloakService.addCustomAuthFlowForCentralTenant(tenant));
