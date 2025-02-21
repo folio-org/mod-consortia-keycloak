@@ -39,7 +39,7 @@ public class KeycloakServiceImpl implements KeycloakService {
   @Override
   public void addCustomAuthFlowForCentralTenant(Tenant tenant) {
     log.debug("Trying to add custom authentication flow for tenant with id={}", tenant.getId());
-    if (isKeycloakRealAvailable()) {
+    if (isUnifiedLoginDisabled()) {
       log.info("addCustomAuthFlowForCentralTenant:: Identity provider creation is disabled. Skipping creation for tenant {}", tenant.getId());
       return;
     }
@@ -85,7 +85,7 @@ public class KeycloakServiceImpl implements KeycloakService {
 
   @Override
   public void createIdentityProvider(String centralTenantId, String memberTenantId) {
-    if (isKeycloakRealAvailable()) {
+    if (isUnifiedLoginDisabled()) {
       log.info("createIdentityProvider:: Identity provider creation is disabled. Skipping creation for tenant {}", memberTenantId);
       return;
     }
@@ -114,7 +114,7 @@ public class KeycloakServiceImpl implements KeycloakService {
 
   @Override
   public void deleteIdentityProvider(String centralTenantId, String memberTenantId) {
-    if (isKeycloakRealAvailable()) {
+    if (isUnifiedLoginDisabled()) {
       log.info("deleteIdentityProvider:: Identity provider creation is disabled. Skipping deletion for tenant {}", memberTenantId);
       return;
     }
@@ -140,7 +140,7 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
   }
 
-  private boolean isKeycloakRealAvailable() {
+  private boolean isUnifiedLoginDisabled() {
     return BooleanUtils.isNotTrue(keycloakIdpProperties.getEnabled());
   }
 
