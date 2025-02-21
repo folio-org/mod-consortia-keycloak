@@ -16,7 +16,6 @@ import org.folio.consortia.service.SyncPrimaryAffiliationService;
 import org.folio.consortia.service.TenantManager;
 import org.folio.consortia.service.TenantService;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -65,7 +64,7 @@ public class TenantController implements TenantsApi {
   public ResponseEntity<Void> syncPrimaryAffiliations(UUID consortiumId, String tenantId, @NotNull String centralTenantId) {
     try {
       syncPrimaryAffiliationService.syncPrimaryAffiliations(consortiumId, tenantId, centralTenantId);
-      return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+      return ResponseEntity.status(NO_CONTENT).build();
     } catch (Exception e) {
       log.error("syncPrimaryAffiliations:: error syncing user primary affiliations", e);
       tenantService.updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.FAILED);
@@ -78,11 +77,24 @@ public class TenantController implements TenantsApi {
       SyncPrimaryAffiliationBody syncPrimaryAffiliationBody) {
     try {
       syncPrimaryAffiliationService.syncPrimaryUserAffiliations(consortiumId, centralTenantId, syncPrimaryAffiliationBody);
-      return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+      return ResponseEntity.status(NO_CONTENT).build();
     } catch (Exception e) {
       log.error("createPrimaryAffiliations:: error creating user primary affiliations", e);
       tenantService.updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.FAILED);
       throw e;
     }
   }
+
+  @Override
+  public ResponseEntity<Void> createIdentityProvider(UUID consortiumId, String tenantId) {
+    tenantManager.createIdentityProvider(tenantId);
+    return ResponseEntity.status(CREATED).build();
+  }
+
+  @Override
+  public ResponseEntity<Void> deleteIdentityProvider(UUID consortiumId, String tenantId) {
+    tenantManager.deleteIdentityProvider(tenantId);
+    return ResponseEntity.status(NO_CONTENT).build();
+  }
+
 }

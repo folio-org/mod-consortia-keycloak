@@ -29,6 +29,7 @@ public class AppConfig implements WebMvcConfigurer {
     registry.addConverter(new UserTenantConverter());
     registry.addConverter(new ConsortiumConverter());
   }
+
   @Primary
   @Bean("asyncTaskExecutor")
   public TaskExecutor asyncTaskExecutor() {

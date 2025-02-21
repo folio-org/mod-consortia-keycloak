@@ -53,4 +53,19 @@ public interface TenantManager {
    */
   void delete(UUID consortiumId, String tenantId, TenantDeleteRequest tenantDeleteRequest);
 
+
+  /**
+   * Creates an identity provider for the member tenant in the execution context tenant realm.
+   *
+   * @param memberTenantId the tenant to create the identity provider for
+   */
+  void createIdentityProvider(String memberTenantId);
+
+  /**
+   * Deletes an identity provider of the member tenant from the execution context tenant realm.
+   *
+   * @param memberTenantId the tenant to delete the identity provider of
+   */
+  void deleteIdentityProvider(String memberTenantId);
+
 }

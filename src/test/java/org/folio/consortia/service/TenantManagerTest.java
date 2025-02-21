@@ -110,6 +110,8 @@ class TenantManagerTest {
   private SystemUserScopedExecutionService systemUserScopedExecutionService;
   @Mock
   private CustomFieldService customFieldService;
+  @Mock
+  private KeycloakService keycloakService;
 
   private TenantManager tenantManager;
   private TenantService tenantService;
@@ -117,7 +119,7 @@ class TenantManagerTest {
   @BeforeEach
   void setUp() {
     tenantService = new TenantServiceImpl(tenantRepository, userTenantRepository, tenantDetailsRepository, conversionService, consortiumService, folioExecutionContext);
-    tenantManager = new TenantManagerImpl(tenantService, consortiumService, consortiaConfigurationClient, syncPrimaryAffiliationService, userService, capabilitiesUserService,
+    tenantManager = new TenantManagerImpl(tenantService, keycloakService, consortiumService, consortiaConfigurationClient, syncPrimaryAffiliationService, userService, capabilitiesUserService,
       customFieldService, cleanupService, lockService, userTenantsClient, systemUserScopedExecutionService, executionContextBuilder, folioExecutionContext);
   }
 
@@ -364,9 +366,11 @@ class TenantManagerTest {
     doNothing().when(cleanupService).clearPublicationTables();
     doNothing().when(tenantRepository).delete(tenant);
     doNothing().when(userTenantRepository).deleteUserTenantsByTenantId(TENANT_ID);
+//    doNothing().when(keycloakService).deleteIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+    mockOkapiHeaders();
     when(tenantRepository.findById(tenant.getId())).thenReturn(Optional.of(tenant));
     when(executionContextBuilder.buildContext(anyString())).thenReturn(folioExecutionContext);
-    mockOkapiHeaders();
+    when(folioExecutionContext.getTenantId()).thenReturn(CENTRAL_TENANT_ID);
 
     tenantManager.delete(consortiumId, TENANT_ID, deleteRequest);
 
@@ -380,6 +384,7 @@ class TenantManagerTest {
     verify(cleanupService).clearPublicationTables();
     verify(tenantRepository).delete(tenant);
     verify(userTenantRepository).deleteUserTenantsByTenantId(TENANT_ID);
+//    verify(keycloakService).deleteIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
   }
 
   @Test
@@ -525,7 +530,7 @@ class TenantManagerTest {
     when(conversionService.convert(tenantDetailsEntity, Tenant.class)).thenReturn(tenant);
     when(userService.prepareShadowUser(any(UUID.class), anyString())).thenReturn(adminUser);
     when(userTenantRepository.save(any(UserTenantEntity.class))).thenReturn(new UserTenantEntity());
-
+    doNothing().when(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
     doNothing().when(consortiaConfigurationClient).saveConfiguration(any());
     when(userTenantsClient.getUserTenants()).thenReturn(new UserTenantCollection(List.of(), 1));
 
@@ -535,6 +540,7 @@ class TenantManagerTest {
     verify(userTenantRepository, times(1)).save(any());
     verify(consortiaConfigurationClient).saveConfiguration(any());
     verify(lockService).lockTenantSetupWithinTransaction();
+    verify(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
     verify(userTenantsClient, never()).postUserTenant(any());
     verify(userService, never()).getById(any());
     verify(userService, never()).createUser(any());
@@ -565,8 +571,27 @@ class TenantManagerTest {
 
     verify(userTenantsClient, never()).postUserTenant(any());
     verify(customFieldService, never()).createCustomField(any());
+    verify(keycloakService, never()).createIdentityProvider(any(), any());
 
     assertEquals(tenant, tenant1);
+  }
+
+  @Test
+  void testCreateIdentityProvider() {
+    when(folioExecutionContext.getTenantId()).thenReturn(CENTRAL_TENANT_ID);
+
+    tenantManager.createIdentityProvider(TENANT_ID);
+
+    verify(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+  }
+
+  @Test
+  void testDeleteIdentityProvider() {
+    when(folioExecutionContext.getTenantId()).thenReturn(CENTRAL_TENANT_ID);
+
+    tenantManager.deleteIdentityProvider(TENANT_ID);
+
+    verify(keycloakService).deleteIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
   }
 
 }
