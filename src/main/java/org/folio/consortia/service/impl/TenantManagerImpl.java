@@ -80,7 +80,7 @@ public class TenantManagerImpl implements TenantManager {
 //    validateConsortiumAndTenantForSaveOperation(consortiumId, tenantDto);
     tenantService.checkTenantUniqueNameAndCodeOrThrow(tenantDto);
 
-//    createCustomFieldIfNeeded(tenantDto.getId());
+//    createCustomFieldIfNeeded(tenantDto.getId());k
     keycloakService.addCustomAuthFlowForCentralTenant(tenantDto);
 
     var existingTenant = tenantService.getByTenantId(tenantDto.getId());
