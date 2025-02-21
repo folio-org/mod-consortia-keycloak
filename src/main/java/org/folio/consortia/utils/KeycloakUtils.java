@@ -2,6 +2,9 @@ package org.folio.consortia.utils;
 
 import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public class KeycloakUtils {
 
   private static final String REALM_URL = "%s/realms/%s";
@@ -10,9 +13,6 @@ public class KeycloakUtils {
   private static final String LOGOUT_URL = "%s/protocol/openid-connect/logout";
   private static final String USER_INFO_URL = "%s/protocol/openid-connect/userinfo";
   private static final String JWKS_URL = "%s/protocol/openid-connect/certs";
-
-  private KeycloakUtils() {
-  }
 
   public static KeycloakIdentityProvider.ClientConfig buildIdpClientConfig(String baseUrl, String tenantRealm, String clientId, String clientSecret) {
     var realmUrl = REALM_URL.formatted(baseUrl, tenantRealm);
