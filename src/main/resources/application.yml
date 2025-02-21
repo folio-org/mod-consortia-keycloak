@@ -104,8 +104,8 @@ application:
     login:
       client-name-suffix: ${KC_LOGIN_CLIENT_SUFFIX:-login-application}
     identity-provider:
-      enabled: ${SINGLE_TENANT_UX:false}
-      base-url: ${KC_IDENTITY_PROVIDER_BASE_URL:${application.keycloak.url}}
+      enabled: ${SINGLE_TENANT_UX:true}
+      base-url: ${KC_IDENTITY_PROVIDER_BASE_URL:https://${folio.environment}-keycloak.ci.folio.org}
       alias: ${KC_IDENTITY_PROVIDER_SUFFIX:-keycloak-oidc}
       display-name: ${KC_IDENTITY_PROVIDER_DISPLAY_SUFFIX:Keycloak OIDC}
 feign:
