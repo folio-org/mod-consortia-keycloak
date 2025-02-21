@@ -36,20 +36,6 @@ public class KeycloakServiceImpl implements KeycloakService {
   private final KeycloakIdentityProviderProperties keycloakIdpProperties;
   private final KeycloakCredentialsService keycloakCredentialsService;
 
-  /**
-   * Adds a custom authentication flow for a central tenant.
-   * <p>
-   * This method performs the following steps:
-   * 1. Duplicates the built-in browser authentication flow.
-   * 2. Adds a custom ECS Folio authentication form provider to the duplicated flow.
-   * 3. Fetches executions from the current flow.
-   * 4. Deletes the default auth-username-password-form execution from the flow.
-   * 5. Raises the priority of the custom ECS Folio authentication form provider.
-   * 6. Binds the custom flow to the realm.
-   *
-   * @param tenant the tenant for which the custom authentication flow is to be added
-   * @throws IllegalStateException if the required executions are not found
-   */
   @Override
   public void addCustomAuthFlowForCentralTenant(Tenant tenant) {
     log.debug("Trying to add custom authentication flow for tenant with id={}", tenant.getId());
