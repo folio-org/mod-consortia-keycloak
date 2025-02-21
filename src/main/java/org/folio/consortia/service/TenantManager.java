@@ -57,15 +57,15 @@ public interface TenantManager {
   /**
    * Creates an identity provider for the member tenant in the execution context tenant realm.
    *
-   * @param memberTenant the tenant to create the identity provider for
+   * @param memberTenantId the tenant to create the identity provider for
    */
-  void createIdentityProvider(String memberTenant);
+  void createIdentityProvider(String memberTenantId);
 
   /**
    * Deletes an identity provider of the member tenant from the execution context tenant realm.
    *
-   * @param memberTenant the tenant to delete the identity provider of
+   * @param memberTenantId the tenant to delete the identity provider of
    */
-  void deleteIdentityProvider(String memberTenant);
+  void deleteIdentityProvider(String memberTenantId);
 
 }

@@ -148,13 +148,13 @@ public class TenantManagerImpl implements TenantManager {
   }
 
   @Override
-  public void createIdentityProvider(String memberTenant) {
-    keycloakService.createIdentityProvider(folioExecutionContext.getTenantId(), memberTenant);
+  public void createIdentityProvider(String memberTenantId) {
+    keycloakService.createIdentityProvider(folioExecutionContext.getTenantId(), memberTenantId);
   }
 
   @Override
-  public void deleteIdentityProvider(String memberTenant) {
-    keycloakService.deleteIdentityProvider(folioExecutionContext.getTenantId(), memberTenant);
+  public void deleteIdentityProvider(String memberTenantId) {
+    keycloakService.deleteIdentityProvider(folioExecutionContext.getTenantId(), memberTenantId);
   }
 
   private void createCustomFieldIfNeeded(String tenant) {
