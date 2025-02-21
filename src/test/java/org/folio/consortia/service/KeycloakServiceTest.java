@@ -155,8 +155,8 @@ class KeycloakServiceTest {
 
     verify(keycloakClient).copyBrowserFlow(eq("tenant-id"), mapCaptor.capture(), eq(AUTH_TOKEN));
     verify(keycloakClient).executeBrowserFlow(eq("tenant-id"), eq("custom-browser%20forms"), mapCaptor.capture(), eq(AUTH_TOKEN));
-    verify(keycloakClient).deleteExecution(eq("tenant-id"), eq("id1"), eq(AUTH_TOKEN));
-    verify(keycloakClient).raisePriority(eq("tenant-id"), eq("id2"), eq(AUTH_TOKEN));
+    verify(keycloakClient).deleteExecution("tenant-id", "id1", AUTH_TOKEN);
+    verify(keycloakClient).raisePriority("tenant-id", "id2", AUTH_TOKEN);
     verify(keycloakClient).updateRealm(eq("tenant-id"), any(), eq(AUTH_TOKEN));
   }
 

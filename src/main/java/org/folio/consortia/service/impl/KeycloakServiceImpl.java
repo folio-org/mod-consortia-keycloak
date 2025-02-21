@@ -39,8 +39,12 @@ public class KeycloakServiceImpl implements KeycloakService {
   @Override
   public void addCustomAuthFlowForCentralTenant(Tenant tenant) {
     log.debug("Trying to add custom authentication flow for tenant with id={}", tenant.getId());
+    if (isKeycloakRealAvailable()) {
+      log.info("addCustomAuthFlowForCentralTenant:: Identity provider creation is disabled. Skipping creation for tenant {}", tenant.getId());
+      return;
+    }
     if (Boolean.FALSE.equals(tenant.getIsCentral())) {
-      log.info("Tenant with id={} is not central, skipping custom authentication flow addition", tenant.getId());
+      log.info("addCustomAuthFlowForCentralTenant:: Tenant with id={} is not central, skipping custom authentication flow addition", tenant.getId());
       return;
     }
 
@@ -76,12 +80,12 @@ public class KeycloakServiceImpl implements KeycloakService {
     ObjectNode realm = keycloakClient.getRealm(tenantId, token);
     realm.put("browserFlow", CUSTOM_BROWSER_FLOW);
     keycloakClient.updateRealm(tenantId, realm, token);
-    log.info("Custom authentication flow successfully added for tenant with id={}", tenantId);
+    log.info("addCustomAuthFlowForCentralTenant:: Custom authentication flow successfully added for tenant with id={}", tenantId);
   }
 
   @Override
   public void createIdentityProvider(String centralTenantId, String memberTenantId) {
-    if (isIdpCreationDisabled()) {
+    if (isKeycloakRealAvailable()) {
       log.info("createIdentityProvider:: Identity provider creation is disabled. Skipping creation for tenant {}", memberTenantId);
       return;
     }
@@ -110,7 +114,7 @@ public class KeycloakServiceImpl implements KeycloakService {
 
   @Override
   public void deleteIdentityProvider(String centralTenantId, String memberTenantId) {
-    if (isIdpCreationDisabled()) {
+    if (isKeycloakRealAvailable()) {
       log.info("deleteIdentityProvider:: Identity provider creation is disabled. Skipping deletion for tenant {}", memberTenantId);
       return;
     }
@@ -136,7 +140,7 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
   }
 
-  private boolean isIdpCreationDisabled() {
+  private boolean isKeycloakRealAvailable() {
     return BooleanUtils.isNotTrue(keycloakIdpProperties.getEnabled());
   }
 
