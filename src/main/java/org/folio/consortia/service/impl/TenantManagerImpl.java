@@ -7,7 +7,8 @@ import static org.folio.consortia.utils.HelperUtils.checkIdenticalOrThrow;
 
 import java.util.Objects;
 import java.util.UUID;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.UserTenantsClient;
@@ -40,9 +41,6 @@ import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-
 @Log4j2
 @Service
 @RequiredArgsConstructor
@@ -68,6 +66,7 @@ public class TenantManagerImpl implements TenantManager {
   private final ExecutionContextBuilder contextBuilder;
   private final FolioExecutionContext folioExecutionContext;
 
+
   @Override
   public TenantCollection get(UUID consortiumId, Integer offset, Integer limit) {
     return tenantService.get(consortiumId, offset, limit);
@@ -82,10 +81,9 @@ public class TenantManagerImpl implements TenantManager {
     tenantService.checkTenantUniqueNameAndCodeOrThrow(tenantDto);
 
     createCustomFieldIfNeeded(tenantDto.getId());
+    keycloakService.addCustomAuthFlowForCentralTenant(tenantDto);
 
     var existingTenant = tenantService.getByTenantId(tenantDto.getId());
-
-    // checked whether tenant exists or not.
     return existingTenant != null
       ? reAddSoftDeletedTenant(consortiumId, existingTenant, tenantDto)
       : addNewTenant(consortiumId, tenantDto, adminUserId);

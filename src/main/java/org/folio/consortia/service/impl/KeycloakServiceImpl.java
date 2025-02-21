@@ -2,11 +2,16 @@ package org.folio.consortia.service.impl;
 
 import static org.folio.consortia.utils.KeycloakUtils.buildIdpClientConfig;
 
+import java.util.Map;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.consortia.client.KeycloakClient;
 import org.folio.consortia.config.keycloak.KeycloakIdentityProviderProperties;
 import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
+import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.service.KeycloakCredentialsService;
 import org.folio.consortia.service.KeycloakService;
 import org.springframework.stereotype.Service;
@@ -21,6 +26,10 @@ import lombok.val;
 @Log4j2
 public class KeycloakServiceImpl implements KeycloakService {
 
+  private static final String CUSTOM_BROWSER_FLOW = "custom-browser";
+  private static final String ECS_FOLIO_AUTH_USRNM_PWD_FORM = "ecs-folio-auth-usrnm-pwd-form";
+  private static final String AUTH_USERNAME_PASSWORD_FORM = "auth-username-password-form";
+  private static final String CUSTOM_BROWSER_FLOW_FORMS = CUSTOM_BROWSER_FLOW + "%20forms";
   private static final String KEYCLOAK_PROVIDER_ID = "keycloak-oidc";
 
   private final KeycloakClient keycloakClient;
@@ -28,8 +37,55 @@ public class KeycloakServiceImpl implements KeycloakService {
   private final KeycloakCredentialsService keycloakCredentialsService;
 
   @Override
+  public void addCustomAuthFlowForCentralTenant(Tenant tenant) {
+    log.debug("Trying to add custom authentication flow for tenant with id={}", tenant.getId());
+    if (isUnifiedLoginDisabled()) {
+      log.info("addCustomAuthFlowForCentralTenant:: Identity provider creation is disabled. Skipping creation for tenant {}", tenant.getId());
+      return;
+    }
+    if (Boolean.FALSE.equals(tenant.getIsCentral())) {
+      log.info("addCustomAuthFlowForCentralTenant:: Tenant with id={} is not central, skipping custom authentication flow addition", tenant.getId());
+      return;
+    }
+
+    var token = keycloakCredentialsService.getMasterAuthToken();
+    var tenantId = tenant.getId();
+
+    // 1. Duplicate built-in browser authentication flow
+    var browserFlowCopyConfig = Map.of("newName", CUSTOM_BROWSER_FLOW);
+    keycloakClient.copyBrowserFlow(tenantId, browserFlowCopyConfig, token);
+
+    // 2. Add custom ecs folio authentication form provider to the duplicated flow
+    var browserFlowProviderConfig = Map.of("provider", ECS_FOLIO_AUTH_USRNM_PWD_FORM);
+    keycloakClient.executeBrowserFlow(tenantId, CUSTOM_BROWSER_FLOW_FORMS, browserFlowProviderConfig, token);
+
+    // 3. Fetch executions from current flow
+    var executions = keycloakClient.getExecutions(tenantId, CUSTOM_BROWSER_FLOW, token);
+    var authUsernamePasswordFormExecution = executions.stream()
+      .filter(execution -> StringUtils.equals(execution.getProviderId(), AUTH_USERNAME_PASSWORD_FORM))
+      .findFirst()
+      .orElseThrow(() -> new IllegalStateException("auth-username-password-form execution not found"));
+    var ecsFolioAuthUsernamePasswordFormExecution = executions.stream()
+      .filter(execution -> StringUtils.equals(execution.getProviderId(), ECS_FOLIO_AUTH_USRNM_PWD_FORM))
+      .findFirst()
+      .orElseThrow(() -> new IllegalStateException("ecs-folio-auth-usrnm-pwd-form execution not found"));
+
+    // 4. Delete default auth-username-password-form execution from the flow
+    keycloakClient.deleteExecution(tenant.getId(), authUsernamePasswordFormExecution.getId(), token);
+
+    // 5. Raise priority of the custom ecs folio authentication form provider
+    keycloakClient.raisePriority(tenantId, ecsFolioAuthUsernamePasswordFormExecution.getId(), token);
+
+    // 6. Bind the custom flow to the realm
+    ObjectNode realm = keycloakClient.getRealm(tenantId, token);
+    realm.put("browserFlow", CUSTOM_BROWSER_FLOW);
+    keycloakClient.updateRealm(tenantId, realm, token);
+    log.info("addCustomAuthFlowForCentralTenant:: Custom authentication flow successfully added for tenant with id={}", tenantId);
+  }
+
+  @Override
   public void createIdentityProvider(String centralTenantId, String memberTenantId) {
-    if (isIdpCreationDisabled()) {
+    if (isUnifiedLoginDisabled()) {
       log.info("createIdentityProvider:: Identity provider creation is disabled. Skipping creation for tenant {}", memberTenantId);
       return;
     }
@@ -58,7 +114,7 @@ public class KeycloakServiceImpl implements KeycloakService {
 
   @Override
   public void deleteIdentityProvider(String centralTenantId, String memberTenantId) {
-    if (isIdpCreationDisabled()) {
+    if (isUnifiedLoginDisabled()) {
       log.info("deleteIdentityProvider:: Identity provider creation is disabled. Skipping deletion for tenant {}", memberTenantId);
       return;
     }
@@ -84,7 +140,7 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
   }
 
-  private boolean isIdpCreationDisabled() {
+  private boolean isUnifiedLoginDisabled() {
     return BooleanUtils.isNotTrue(keycloakIdpProperties.getEnabled());
   }
 

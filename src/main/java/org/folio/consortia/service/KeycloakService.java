@@ -1,6 +1,25 @@
 package org.folio.consortia.service;
 
+
+import org.folio.consortia.domain.dto.Tenant;
+
 public interface KeycloakService {
+
+  /**
+   * Adds a custom authentication flow for a central tenant.
+   * <p>
+   * This method performs the following steps:
+   * 1. Duplicates the built-in browser authentication flow.
+   * 2. Adds a custom ECS Folio authentication form provider to the duplicated flow.
+   * 3. Fetches executions from the current flow.
+   * 4. Deletes the default auth-username-password-form execution from the flow.
+   * 5. Raises the priority of the custom ECS Folio authentication form provider.
+   * 6. Binds the custom flow to the realm.
+   *
+   * @param tenant the tenant for which the custom authentication flow is to be added
+   * @throws IllegalStateException if the required executions are not found
+   */
+  void addCustomAuthFlowForCentralTenant(Tenant tenant);
 
   /**
    * Creates an identity provider in the central tenant realm for the member tenant with conditions:<br/>
@@ -21,5 +40,4 @@ public interface KeycloakService {
    * @param memberTenantId  member tenant
    */
   void deleteIdentityProvider(String centralTenantId, String memberTenantId);
-
 }

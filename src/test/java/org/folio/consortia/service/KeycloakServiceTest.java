@@ -3,30 +3,41 @@ package org.folio.consortia.service;
 import static org.folio.consortia.service.KeycloakCredentialsServiceTest.createClientCredentials;
 import static org.folio.consortia.support.EntityUtils.CENTRAL_TENANT_ID;
 import static org.folio.consortia.support.EntityUtils.TENANT_ID;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import feign.FeignException;
+import feign.Request;
 import org.folio.consortia.client.KeycloakClient;
 import org.folio.consortia.config.keycloak.KeycloakIdentityProviderProperties;
 import org.folio.consortia.config.keycloak.KeycloakLoginClientProperties;
 import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
+import org.folio.consortia.domain.dto.RealmExecutions;
+import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.service.impl.KeycloakServiceImpl;
 import org.folio.consortia.support.CopilotGenerated;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-
-import feign.FeignException;
-import feign.Request;
 
 @SpringBootTest
 @CopilotGenerated(partiallyGenerated = true)
@@ -49,6 +60,9 @@ class KeycloakServiceTest {
   private KeycloakServiceImpl keycloakService;
   @Value("${folio.environment}")
   private String folioEnvironment;
+
+  @Captor
+  private ArgumentCaptor<Map<String, String>> mapCaptor;
 
   @BeforeEach
   void setUp() {
@@ -121,6 +135,54 @@ class KeycloakServiceTest {
 
     verify(keycloakClient, never()).deleteIdentityProvider(anyString(), anyString(), eq(AUTH_TOKEN));
     verify(keycloakClient, never()).getIdentityProvider(anyString(), anyString(), eq(AUTH_TOKEN));
+  }
+
+  @Test
+  void addCustomAuthFlowForCentralTenantSuccess() {
+    Tenant tenant = new Tenant();
+    tenant.setId("tenant-id");
+    tenant.setIsCentral(true);
+    var executions = List.of(
+      new RealmExecutions().withId("id1").withProviderId("auth-username-password-form"),
+      new RealmExecutions().withId("id2").withProviderId("ecs-folio-auth-usrnm-pwd-form"));
+    var realm = new ObjectNode(JsonNodeFactory.instance);
+
+    when(keycloakCredentialsService.getMasterAuthToken()).thenReturn(AUTH_TOKEN);
+    when(keycloakClient.getExecutions(anyString(), anyString(), anyString())).thenReturn(executions);
+    when(keycloakClient.getRealm(anyString(), anyString())).thenReturn(realm);
+
+    keycloakService.addCustomAuthFlowForCentralTenant(tenant);
+
+    verify(keycloakClient).copyBrowserFlow(eq("tenant-id"), mapCaptor.capture(), eq(AUTH_TOKEN));
+    verify(keycloakClient).executeBrowserFlow(eq("tenant-id"), eq("custom-browser%20forms"), mapCaptor.capture(), eq(AUTH_TOKEN));
+    verify(keycloakClient).deleteExecution("tenant-id", "id1", AUTH_TOKEN);
+    verify(keycloakClient).raisePriority("tenant-id", "id2", AUTH_TOKEN);
+    verify(keycloakClient).updateRealm(eq("tenant-id"), any(), eq(AUTH_TOKEN));
+  }
+
+  @Test
+  void addCustomAuthFlowForCentralTenantNotCentral() {
+    Tenant tenant = new Tenant();
+    tenant.setId("tenant-id");
+    tenant.setIsCentral(false);
+
+    keycloakService.addCustomAuthFlowForCentralTenant(tenant);
+
+    verifyNoInteractions(keycloakClient);
+    verifyNoInteractions(keycloakCredentialsService);
+  }
+
+  @Test
+  void addCustomAuthFlowForCentralTenantExecutionNotFound() {
+    Tenant tenant = new Tenant();
+    tenant.setId("tenant-id");
+    tenant.setIsCentral(true);
+    String token = "token";
+
+    when(keycloakCredentialsService.getMasterAuthToken()).thenReturn(token);
+    when(keycloakClient.getExecutions(anyString(), anyString(), anyString())).thenReturn(List.of());
+
+    assertThrows(IllegalStateException.class, () -> keycloakService.addCustomAuthFlowForCentralTenant(tenant));
   }
 
   private static String getTenantClientAlias(String tenant) {
