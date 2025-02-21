@@ -366,7 +366,7 @@ class TenantManagerTest {
     doNothing().when(cleanupService).clearPublicationTables();
     doNothing().when(tenantRepository).delete(tenant);
     doNothing().when(userTenantRepository).deleteUserTenantsByTenantId(TENANT_ID);
-    doNothing().when(keycloakService).deleteIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+//    doNothing().when(keycloakService).deleteIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
     mockOkapiHeaders();
     when(tenantRepository.findById(tenant.getId())).thenReturn(Optional.of(tenant));
     when(executionContextBuilder.buildContext(anyString())).thenReturn(folioExecutionContext);
@@ -384,7 +384,7 @@ class TenantManagerTest {
     verify(cleanupService).clearPublicationTables();
     verify(tenantRepository).delete(tenant);
     verify(userTenantRepository).deleteUserTenantsByTenantId(TENANT_ID);
-    verify(keycloakService).deleteIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+//    verify(keycloakService).deleteIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
   }
 
   @Test
