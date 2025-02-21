@@ -124,9 +124,10 @@ public class TenantManagerImpl implements TenantManager {
     if (isHardDelete) {
       cleanupService.clearSharingTables(tenantId);
       // Delete identity provider for member tenant if it is being hard deleted
-      if (!folioExecutionContext.getTenantId().equals(tenantId)) {
-        keycloakService.deleteIdentityProvider(folioExecutionContext.getTenantId(), tenantId);
-      }
+//      TODO: Disabled temporarily until tested
+//      if (!folioExecutionContext.getTenantId().equals(tenantId)) {
+//        keycloakService.deleteIdentityProvider(folioExecutionContext.getTenantId(), tenantId);
+//      }
     }
     tenantService.deleteTenant(tenant, tenantDeleteRequest.getDeleteType());
 
