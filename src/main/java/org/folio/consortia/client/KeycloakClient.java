@@ -25,24 +25,60 @@ import org.springframework.web.bind.annotation.RequestParam;
   configuration = KeycloakFeignClientConfig.class)
 public interface KeycloakClient {
 
+  /**
+   * Login with backend admin cli credentials to get authorization token in master realm
+   *
+   * @param loginRequest containing following properties: client_id, client_secret, grant_type
+   * @return KeycloakTokenResponse
+   */
   @PostMapping(value = "/realms/master/protocol/openid-connect/token", consumes = APPLICATION_FORM_URLENCODED_VALUE)
   KeycloakTokenResponse login(@RequestBody Map<String, ?> loginRequest);
 
+  /**
+   * Get client credentials for a given client id in a realm
+   *
+   * @param realm    the realm to get client credentials from
+   * @param clientId the login client id
+   * @param token    authorization token
+   * @return list of KeycloakClientCredentials (should contain only one element)
+   */
   @GetMapping(value = "/admin/realms/{realm}/clients", produces = APPLICATION_JSON_VALUE)
   List<KeycloakClientCredentials> getClientCredentials(@PathVariable("realm") String realm,
                                                        @RequestParam("clientId") String clientId,
                                                        @RequestHeader(AUTHORIZATION) String token);
 
+  /**
+   * Get identity provider by alias in a realm
+   *
+   * @param realm realm to get identity provider from
+   * @param alias alias of the identity provider
+   * @param token authorization token
+   * @return KeycloakIdentityProvider
+   */
   @GetMapping("/admin/realms/{realm}/identity-provider/instances/{alias}")
   KeycloakIdentityProvider getIdentityProvider(@PathVariable("realm") String realm,
                                                @PathVariable("alias") String alias,
                                                @RequestHeader(AUTHORIZATION) String token);
 
+  /**
+   * Delete identity provider by alias in a realm
+   *
+   * @param realm realm to delete identity provider from
+   * @param alias alias of the identity provider
+   * @param token authorization token
+   */
   @DeleteMapping("/admin/realms/{realm}/identity-provider/instances/{alias}")
   void deleteIdentityProvider(@PathVariable("realm") String realm,
                               @PathVariable("alias") String alias,
                               @RequestHeader(AUTHORIZATION) String token);
 
+  /**
+   * Create identity provider in a realm
+   *
+   * @param realm realm to create identity provider in
+   * @param identityProvider identity provider to create
+   * @param token authorization token
+   */
   @PostMapping("/admin/realms/{realm}/identity-provider/instances")
   void createIdentityProvider(@PathVariable("realm") String realm,
                               @RequestBody KeycloakIdentityProvider identityProvider,
