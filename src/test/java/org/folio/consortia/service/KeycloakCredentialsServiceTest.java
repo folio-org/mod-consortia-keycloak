@@ -1,6 +1,5 @@
 package org.folio.consortia.service;
 
-import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,12 +19,8 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @CopilotGenerated(partiallyGenerated = true)
 @ExtendWith(MockitoExtension.class)
@@ -41,8 +36,6 @@ class KeycloakCredentialsServiceTest {
   private KeycloakLoginClientProperties keycloakClientProperties;
   @Mock
   private SecureStore secureStore;
-  @Spy
-  private TaskScheduler asyncTaskScheduler = new SimpleAsyncTaskScheduler();
 
   @InjectMocks
   @Spy
@@ -101,7 +94,6 @@ class KeycloakCredentialsServiceTest {
 
     assertEquals(AUTH_TOKEN, token);
     verify(secureStore).get("%s_%s_%s".formatted(folioEnvironment, "master", clientId));
-    verify(asyncTaskScheduler).schedule(any(Runnable.class), any(Instant.class));
   }
 
   @Test
@@ -112,27 +104,6 @@ class KeycloakCredentialsServiceTest {
 
     assertThrows(IllegalStateException.class, () -> keycloakCredentialsService.getMasterAuthToken());
     verify(secureStore).get("%s_%s_%s".formatted(folioEnvironment, "master", clientId));
-    verify(asyncTaskScheduler, never()).schedule(any(Runnable.class), any(Instant.class));
-  }
-
-  @Test
-  void getMasterAuthToken_evictsTokenAfterExpiry() {
-    String clientId = "clientId";
-    String clientSecret = "clientSecret";
-    var tokenResponse = createTokenResponse();
-    tokenResponse.setExpiresIn(65L);
-
-    when(keycloakProperties.getClientId()).thenReturn(clientId);
-    when(secureStore.get(anyString())).thenReturn(clientSecret);
-    when(keycloakClient.login(anyMap())).thenReturn(tokenResponse);
-
-    String token = keycloakCredentialsService.getMasterAuthToken();
-
-    assertEquals(AUTH_TOKEN, token);
-    verify(asyncTaskScheduler).schedule(any(Runnable.class), any(Instant.class));
-    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
-      verify(keycloakCredentialsService).evictMasterAuthToken();
-    });
   }
 
   private static KeycloakTokenResponse createTokenResponse() {

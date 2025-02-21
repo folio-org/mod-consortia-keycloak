@@ -259,7 +259,7 @@
             "consortia.tenants.item.delete"
           ],
           "modulePermissions": [
-            "consortia.consortia-configuration.item.delete",
+            "consortia.consortia-configuration.item.delete"
           ]
         },
         {

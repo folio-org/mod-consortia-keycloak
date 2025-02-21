@@ -35,15 +35,17 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
     log.info("createIdentityProvider:: Creating identity provider for tenant {} in central realm {}", memberTenantId, centralTenantId);
     var providerAlias = memberTenantId + keycloakIdpProperties.getAlias();
+    var authToken = keycloakCredentialsService.getMasterAuthToken();
 
-    if (identityProviderExists(centralTenantId, providerAlias)) {
+    if (identityProviderExists(centralTenantId, providerAlias, authToken)) {
       log.info("createIdentityProvider:: Identity provider {} already exists for tenant {} in central realm {}", providerAlias, memberTenantId, centralTenantId);
       return;
     }
 
-    var providerDisplayName = StringUtils.capitalize(memberTenantId) + " " + keycloakIdpProperties.getDisplayName();
-    var clientCredentials = keycloakCredentialsService.getClientCredentials(memberTenantId, getToken());
+    var clientCredentials = keycloakCredentialsService.getClientCredentials(memberTenantId, authToken);
     var clientConfig = buildIdpClientConfig(keycloakIdpProperties.getBaseUrl(), memberTenantId, clientCredentials.getClientId(), clientCredentials.getSecret());
+
+    var providerDisplayName = StringUtils.capitalize(memberTenantId) + " " + keycloakIdpProperties.getDisplayName();
     val idp = KeycloakIdentityProvider.builder()
       .alias(providerAlias)
       .displayName(providerDisplayName)
@@ -51,7 +53,7 @@ public class KeycloakServiceImpl implements KeycloakService {
       .config(clientConfig)
       .build();
 
-    keycloakClient.createIdentityProvider(centralTenantId, idp, getToken());
+    keycloakClient.createIdentityProvider(centralTenantId, idp, authToken);
   }
 
   @Override
@@ -63,18 +65,19 @@ public class KeycloakServiceImpl implements KeycloakService {
 
     log.info("deleteIdentityProvider:: Deleting identity provider for realm {}", memberTenantId);
     var providerAlias = memberTenantId + keycloakIdpProperties.getAlias();
+    var authToken = keycloakCredentialsService.getMasterAuthToken();
 
-    if (!identityProviderExists(centralTenantId, providerAlias)) {
+    if (!identityProviderExists(centralTenantId, providerAlias, authToken)) {
       log.info("deleteIdentityProvider:: Identity provider {} does not exist for tenant {} in central realm {}", providerAlias, memberTenantId, centralTenantId);
       return;
     }
 
-    keycloakClient.deleteIdentityProvider(centralTenantId, providerAlias, getToken());
+    keycloakClient.deleteIdentityProvider(centralTenantId, providerAlias, authToken);
   }
 
-  private boolean identityProviderExists(String realm, String providerAlias) {
+  private boolean identityProviderExists(String realm, String providerAlias, String authToken) {
     try {
-      keycloakClient.getIdentityProvider(realm, providerAlias, getToken());
+      keycloakClient.getIdentityProvider(realm, providerAlias, authToken);
       return true;
     } catch (FeignException.NotFound ignored) {
       return false;
@@ -83,10 +86,6 @@ public class KeycloakServiceImpl implements KeycloakService {
 
   private boolean isIdpCreationDisabled() {
     return BooleanUtils.isNotTrue(keycloakIdpProperties.getEnabled());
-  }
-
-  private String getToken() {
-    return keycloakCredentialsService.getMasterAuthToken();
   }
 
 }

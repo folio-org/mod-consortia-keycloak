@@ -20,9 +20,4 @@ public interface KeycloakCredentialsService {
    */
   String getMasterAuthToken();
 
-  /**
-   * Evicts master realm admin token from cache
-   */
-  void evictMasterAuthToken();
-
 }

@@ -1,6 +1,5 @@
 package org.folio.consortia.service.impl;
 
-import java.time.Instant;
 import java.util.HashMap;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -13,9 +12,6 @@ import org.folio.consortia.service.KeycloakCredentialsService;
 import org.folio.tools.store.SecureStore;
 import org.folio.tools.store.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -27,18 +23,15 @@ import lombok.extern.log4j.Log4j2;
 public class KeycloakCredentialsServiceImpl implements KeycloakCredentialsService {
 
   private static final String MASTER_REALM = "master";
-  private static final String MASTER_TOKEN_CACHE_KEY = "'keycloak-admin-cli-token'";
 
   private final KeycloakClient keycloakClient;
   private final KeycloakProperties keycloakProperties;
   private final KeycloakLoginClientProperties keycloakClientProperties;
   private final SecureStore secureStore;
-  private final TaskScheduler asyncTaskScheduler;
 
   @Value("${folio.environment}")
   private String folioEnvironment;
 
-  @Cacheable(cacheNames = "keycloak-credentials", key = "{#centralTenant, #memberTenant}")
   public KeycloakClientCredentials getClientCredentials(String tenantId, String token) {
     var clientId = tenantId + keycloakClientProperties.getClientNameSuffix();
     var clientCredentials = keycloakClient.getClientCredentials(tenantId, clientId, token);
@@ -49,7 +42,6 @@ public class KeycloakCredentialsServiceImpl implements KeycloakCredentialsServic
     return clientCredentials.get(0);
   }
 
-  @Cacheable(cacheNames = "keycloak-token", key = MASTER_TOKEN_CACHE_KEY)
   public String getMasterAuthToken() {
     var clientId = keycloakProperties.getClientId();
     var clientSecret = getBackendAdminClientSecret(clientId);
@@ -61,19 +53,7 @@ public class KeycloakCredentialsServiceImpl implements KeycloakCredentialsServic
 
     log.info("requestToken:: Issuing access token for Keycloak communication [clientId: {}]", clientId);
     var token = keycloakClient.login(loginRequest);
-
-    if (token.getExpiresIn() != null) {
-      // Evict token 60 seconds before expiration time
-      var expirationTime = Instant.now().plusSeconds(token.getExpiresIn()).minusSeconds(60);
-      asyncTaskScheduler.schedule(this::evictMasterAuthToken, expirationTime);
-    }
-
     return token.getTokenType() + " " + token.getAccessToken();
-  }
-
-  @CacheEvict(cacheNames = "keycloak-token", key = MASTER_TOKEN_CACHE_KEY)
-  public void evictMasterAuthToken() {
-    log.info("evictMasterAuthToken:: Evicting master realm admin token from cache");
   }
 
   private String getBackendAdminClientSecret(String clientId) {
