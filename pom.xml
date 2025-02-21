@@ -108,12 +108,12 @@
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
-      <artifactId>folio-secret-store-starter</artifactId>
+      <artifactId>folio-tls-utils</artifactId>
       <version>${applications-poc-tools.version}</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
-      <artifactId>folio-tls-utils</artifactId>
+      <artifactId>folio-secret-store-starter</artifactId>
       <version>${applications-poc-tools.version}</version>
     </dependency>
     <dependency>

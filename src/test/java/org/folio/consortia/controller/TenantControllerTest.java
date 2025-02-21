@@ -1,5 +1,6 @@
 package org.folio.consortia.controller;
 
+import static org.folio.consortia.support.EntityUtils.TENANT_ID;
 import static org.folio.consortia.support.EntityUtils.createTenant;
 import static org.folio.consortia.support.EntityUtils.createTenantDeleteRequest;
 import static org.folio.consortia.support.EntityUtils.createTenantDetailsEntity;
@@ -56,6 +57,7 @@ import org.folio.consortia.repository.ConsortiumRepository;
 import org.folio.consortia.repository.TenantDetailsRepository;
 import org.folio.consortia.repository.TenantRepository;
 import org.folio.consortia.repository.UserTenantRepository;
+import org.folio.consortia.service.KeycloakService;
 import org.folio.consortia.service.SyncPrimaryAffiliationService;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
@@ -87,6 +89,7 @@ class TenantControllerTest extends BaseIT {
     "/consortia/%s/tenants/%s/sync-primary-affiliations?centralTenantId=%s";
   public static final String PRIMARY_AFFILIATIONS_URL =
     "/consortia/%s/tenants/%s/create-primary-affiliations?centralTenantId=%s";
+  public static final String IDENTITY_PROVIDER_URL = "/consortia/%s/tenants/%s/identity-provider";
 
   @MockBean
   ConsortiumRepository consortiumRepository;
@@ -118,6 +121,8 @@ class TenantControllerTest extends BaseIT {
   UserTenantsClient userTenantsClient;
   @MockBean
   SyncPrimaryAffiliationService syncPrimaryAffiliationService;
+  @MockBean
+  KeycloakService keycloakService;
   @MockBean
   UsersKeycloakClient usersKeycloakClient;
   @MockBean
@@ -476,6 +481,28 @@ class TenantControllerTest extends BaseIT {
     this.mockMvc.perform(
         post(String.format(PRIMARY_AFFILIATIONS_URL, consortiumId, tenantId, centralTenantId)).headers(headers)
           .content(spabString))
+      .andExpectAll(status().isNoContent());
+  }
+
+  @Test
+  void testCreateIdentityProvider() throws Exception {
+    var headers = defaultHeaders();
+    var consortiumId = UUID.randomUUID();
+    doNothing().when(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+
+    this.mockMvc
+      .perform(post(String.format(IDENTITY_PROVIDER_URL, consortiumId, TENANT_ID)).headers(headers))
+      .andExpectAll(status().isCreated());
+  }
+
+  @Test
+  void testDeleteIdentityProvider() throws Exception {
+    var headers = defaultHeaders();
+    var consortiumId = UUID.randomUUID();
+    doNothing().when(keycloakService).deleteIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+
+    this.mockMvc
+      .perform(delete(String.format(IDENTITY_PROVIDER_URL, consortiumId, TENANT_ID)).headers(headers))
       .andExpectAll(status().isNoContent());
   }
 

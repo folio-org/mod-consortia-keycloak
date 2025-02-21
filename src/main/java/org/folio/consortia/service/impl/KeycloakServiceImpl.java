@@ -1,32 +1,40 @@
 package org.folio.consortia.service.impl;
 
+import static org.folio.consortia.utils.KeycloakUtils.buildIdpClientConfig;
+
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.consortia.client.KeycloakClient;
+import org.folio.consortia.config.keycloak.KeycloakIdentityProviderProperties;
+import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
 import org.folio.consortia.domain.dto.Tenant;
+import org.folio.consortia.service.KeycloakCredentialsService;
 import org.folio.consortia.service.KeycloakService;
-import org.folio.consortia.service.TokenService;
 import org.springframework.stereotype.Service;
 
+import feign.FeignException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import lombok.val;
+
 @Service
+@RequiredArgsConstructor
 @Log4j2
 public class KeycloakServiceImpl implements KeycloakService {
+
   private static final String CUSTOM_BROWSER_FLOW = "custom-browser";
   private static final String ECS_FOLIO_AUTH_USRNM_PWD_FORM = "ecs-folio-auth-usrnm-pwd-form";
   private static final String AUTH_USERNAME_PASSWORD_FORM = "auth-username-password-form";
   private static final String CUSTOM_BROWSER_FLOW_FORMS = CUSTOM_BROWSER_FLOW + "%20forms";
+  private static final String KEYCLOAK_PROVIDER_ID = "keycloak-oidc";
 
   private final KeycloakClient keycloakClient;
-  private final TokenService tokenService;
-
-  public KeycloakServiceImpl(KeycloakClient keycloakClient, TokenService tokenService) {
-    this.keycloakClient = keycloakClient;
-    this.tokenService = tokenService;
-  }
+  private final KeycloakIdentityProviderProperties keycloakIdpProperties;
+  private final KeycloakCredentialsService keycloakCredentialsService;
 
   /**
    * Adds a custom authentication flow for a central tenant.
@@ -85,7 +93,64 @@ public class KeycloakServiceImpl implements KeycloakService {
     log.info("Custom authentication flow successfully added for tenant with id={}", tenantId);
   }
 
-  private String getToken() {
-    return tokenService.issueToken();
+  @Override
+  public void createIdentityProvider(String centralTenantId, String memberTenantId) {
+    if (isIdpCreationDisabled()) {
+      log.info("createIdentityProvider:: Identity provider creation is disabled. Skipping creation for tenant {}", memberTenantId);
+      return;
+    }
+    log.info("createIdentityProvider:: Creating identity provider for tenant {} in central realm {}", memberTenantId, centralTenantId);
+    var providerAlias = memberTenantId + keycloakIdpProperties.getAlias();
+    var authToken = keycloakCredentialsService.getMasterAuthToken();
+
+    if (identityProviderExists(centralTenantId, providerAlias, authToken)) {
+      log.info("createIdentityProvider:: Identity provider {} already exists for tenant {} in central realm {}", providerAlias, memberTenantId, centralTenantId);
+      return;
+    }
+
+    var clientCredentials = keycloakCredentialsService.getClientCredentials(memberTenantId, authToken);
+    var clientConfig = buildIdpClientConfig(keycloakIdpProperties.getBaseUrl(), memberTenantId, clientCredentials.getClientId(), clientCredentials.getSecret());
+
+    var providerDisplayName = StringUtils.capitalize(memberTenantId) + " " + keycloakIdpProperties.getDisplayName();
+    val idp = KeycloakIdentityProvider.builder()
+      .alias(providerAlias)
+      .displayName(providerDisplayName)
+      .providerId(KEYCLOAK_PROVIDER_ID)
+      .config(clientConfig)
+      .build();
+
+    keycloakClient.createIdentityProvider(centralTenantId, idp, authToken);
+  }
+
+  @Override
+  public void deleteIdentityProvider(String centralTenantId, String memberTenantId) {
+    if (isIdpCreationDisabled()) {
+      log.info("deleteIdentityProvider:: Identity provider creation is disabled. Skipping deletion for tenant {}", memberTenantId);
+      return;
+    }
+
+    log.info("deleteIdentityProvider:: Deleting identity provider for realm {}", memberTenantId);
+    var providerAlias = memberTenantId + keycloakIdpProperties.getAlias();
+    var authToken = keycloakCredentialsService.getMasterAuthToken();
+
+    if (!identityProviderExists(centralTenantId, providerAlias, authToken)) {
+      log.info("deleteIdentityProvider:: Identity provider {} does not exist for tenant {} in central realm {}", providerAlias, memberTenantId, centralTenantId);
+      return;
+    }
+
+    keycloakClient.deleteIdentityProvider(centralTenantId, providerAlias, authToken);
+  }
+
+  private boolean identityProviderExists(String realm, String providerAlias, String authToken) {
+    try {
+      keycloakClient.getIdentityProvider(realm, providerAlias, authToken);
+      return true;
+    } catch (FeignException.NotFound ignored) {
+      return false;
+    }
+  }
+
+  private boolean isIdpCreationDisabled() {
+    return BooleanUtils.isNotTrue(keycloakIdpProperties.getEnabled());
   }
 }
