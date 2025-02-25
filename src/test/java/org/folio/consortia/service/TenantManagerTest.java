@@ -37,6 +37,7 @@ import java.util.concurrent.Callable;
 import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
+import org.folio.consortia.domain.dto.IdentityProviderCreateRequest;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantDeleteRequest.DeleteTypeEnum;
 import org.folio.consortia.domain.dto.TenantDetails;
@@ -578,9 +579,10 @@ class TenantManagerTest {
 
   @Test
   void testCreateIdentityProvider() {
+    var idpCreateRequest = new IdentityProviderCreateRequest().createProvider(true).migrateUsers(true);
     when(folioExecutionContext.getTenantId()).thenReturn(CENTRAL_TENANT_ID);
 
-    tenantManager.createIdentityProvider(TENANT_ID);
+    tenantManager.createIdentityProvider(TENANT_ID, idpCreateRequest);
 
     verify(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
   }
@@ -592,6 +594,58 @@ class TenantManagerTest {
     tenantManager.deleteIdentityProvider(TENANT_ID);
 
     verify(keycloakService).deleteIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+  }
+
+  @Test
+  void testSetupCustomLogin() {
+    TenantEntity centralTenant = new TenantEntity();
+    centralTenant.setIsCentral(true);
+    centralTenant.setId(CENTRAL_TENANT_ID);
+
+    when(tenantRepository.findById(CENTRAL_TENANT_ID)).thenReturn(Optional.of(centralTenant));
+
+    tenantManager.setupCustomLogin(CONSORTIUM_ID, centralTenant.getId());
+
+    verify(consortiumService).checkConsortiumExistsOrThrow(CONSORTIUM_ID);
+    verify(tenantRepository).findById(centralTenant.getId());
+    verify(keycloakService).addCustomAuthFlowForCentralTenant(centralTenant.getId());
+  }
+
+  @Test
+  void testSetupCustomLoginTenantIsNotCentral() {
+    TenantEntity centralTenant = new TenantEntity();
+    centralTenant.setIsCentral(false);
+    centralTenant.setId(CENTRAL_TENANT_ID);
+
+    when(tenantRepository.findById(CENTRAL_TENANT_ID)).thenReturn(Optional.of(centralTenant));
+
+    tenantManager.setupCustomLogin(CONSORTIUM_ID, centralTenant.getId());
+
+    verify(consortiumService).checkConsortiumExistsOrThrow(CONSORTIUM_ID);
+    verify(tenantRepository).findById(centralTenant.getId());
+    verify(keycloakService, never()).addCustomAuthFlowForCentralTenant(anyString());
+  }
+
+  @Test
+  void testSetupCustomLoginConsortiumNotExists() {
+    doThrow(ResourceNotFoundException.class).when(consortiumService).checkConsortiumExistsOrThrow(CONSORTIUM_ID);
+
+    assertThrows(ResourceNotFoundException.class, () -> tenantManager.setupCustomLogin(CONSORTIUM_ID, CENTRAL_TENANT_ID));
+
+    verify(consortiumService).checkConsortiumExistsOrThrow(CONSORTIUM_ID);
+    verify(tenantRepository, never()).findById(anyString());
+    verify(keycloakService, never()).addCustomAuthFlowForCentralTenant(anyString());
+  }
+
+  @Test
+  void testSetupCustomLoginTenantNotExists() {
+    when(tenantRepository.findById(CENTRAL_TENANT_ID)).thenReturn(Optional.empty());
+
+    assertThrows(ResourceNotFoundException.class, () -> tenantManager.setupCustomLogin(CONSORTIUM_ID, CENTRAL_TENANT_ID));
+
+    verify(consortiumService).checkConsortiumExistsOrThrow(CONSORTIUM_ID);
+    verify(tenantRepository).findById(anyString());
+    verify(keycloakService, never()).addCustomAuthFlowForCentralTenant(anyString());
   }
 
 }

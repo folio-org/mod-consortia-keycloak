@@ -167,7 +167,7 @@ public class TenantManagerImpl implements TenantManager {
   @Override
   public void setupCustomLogin(UUID consortiumId, String centralTenantId) {
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
-    var centralTenant = tenantService.getByTenantId(centralTenantId);
+    var centralTenant = getTenantById(centralTenantId);
     setUpCentralCustomAuthFlow(centralTenantId, centralTenant.getIsCentral());
   }
 
@@ -247,8 +247,8 @@ public class TenantManagerImpl implements TenantManager {
 
   private void setUpCentralCustomAuthFlow(String centralTenantId, Boolean isCentral) {
     if (BooleanUtils.isNotTrue(isCentral)) {
-      log.warn("setupCustomLogin:: Tenant with id: '{}' is not valid for custom login setup", centralTenantId);
-      throw new IllegalArgumentException("Tenant is not valid for custom login setup");
+      log.info("setupCustomLogin:: Tenant with id: '{}' is central, skipping custom login setup", centralTenantId);
+      return;
     }
     keycloakService.addCustomAuthFlowForCentralTenant(centralTenantId);
   }
