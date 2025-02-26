@@ -216,6 +216,12 @@ components:
         application/json:
           schema:
             $ref: "schemas/tenant.yaml#/TenantDeleteRequest"
+    UserMigrationRequest:
+      description: User migration request object
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/user.yaml#/UserMigrationRequest"
   responses:
     Tenant:
       description: Returns a tenant object

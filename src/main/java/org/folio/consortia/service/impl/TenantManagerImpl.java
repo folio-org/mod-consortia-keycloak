@@ -31,6 +31,7 @@ import org.folio.consortia.service.CleanupService;
 import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.CustomFieldService;
 import org.folio.consortia.service.KeycloakService;
+import org.folio.consortia.service.KeycloakUsersService;
 import org.folio.consortia.service.LockService;
 import org.folio.consortia.service.SyncPrimaryAffiliationService;
 import org.folio.consortia.service.TenantManager;
@@ -56,6 +57,7 @@ public class TenantManagerImpl implements TenantManager {
 
   private final TenantService tenantService;
   private final KeycloakService keycloakService;
+  private final KeycloakUsersService keycloakUsersService;
   private final ConsortiumService consortiumService;
   private final ConsortiaConfigurationClient configurationClient;
   private final SyncPrimaryAffiliationService syncPrimaryAffiliationService;
@@ -155,7 +157,7 @@ public class TenantManagerImpl implements TenantManager {
       keycloakService.createIdentityProvider(folioExecutionContext.getTenantId(), memberTenantId);
     }
     if (idpCreateRequest.getMigrateUsers()) {
-      // TODO: migrate users
+      keycloakUsersService.migrateUsers(memberTenantId);
     }
   }
 
