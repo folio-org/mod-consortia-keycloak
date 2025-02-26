@@ -55,7 +55,6 @@ import feign.FeignException;
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 @EntityScan(basePackageClasses = UserTenantEntity.class)
 class SyncPrimaryAffiliationServiceImplTest {
-  private static final String CQL_GET_USERS = "(cql.allRecords=1 NOT type=\"patron\" NOT type=\"dcb\" NOT type=\"shadow\" NOT type=\"system\")";
 
   @Mock
   private TenantRepository tenantRepository;
@@ -104,7 +103,7 @@ class SyncPrimaryAffiliationServiceImplTest {
     when(tenantService.getByTenantId(anyString())).thenReturn(tenantEntity1);
     when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any())).thenReturn(Optional.empty());
     when(tenantRepository.findById(anyString())).thenReturn(Optional.of(tenantEntity1));
-    when(userService.getUsersByQuery(eq(CQL_GET_USERS), anyInt(), anyInt())).thenReturn(userCollection);
+    when(userService.getPrimaryUsersToLink()).thenReturn(userCollection);
     when(consortiaConfigurationService.getCentralTenantId(anyString())).thenReturn(tenantId);
 
     createPrimaryAffiliationService.createPrimaryUserAffiliations(consortiumId, centralTenantId, tenantId, List.of(syncUser));
@@ -132,7 +131,7 @@ class SyncPrimaryAffiliationServiceImplTest {
     when(tenantService.getByTenantId(anyString())).thenReturn(tenantEntity1);
     when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any())).thenReturn(Optional.empty());
     when(tenantRepository.findById(anyString())).thenReturn(Optional.of(tenantEntity1));
-    when(userService.getUsersByQuery(eq(CQL_GET_USERS), anyInt(), anyInt())).thenReturn(userCollection);
+    when(userService.getPrimaryUsersToLink()).thenReturn(userCollection);
     when(consortiaConfigurationService.getCentralTenantId(anyString())).thenReturn(centralTenantId);
 
     createPrimaryAffiliationService.createPrimaryUserAffiliations(consortiumId, centralTenantId, tenantId, List.of(syncUser));
@@ -166,7 +165,7 @@ class SyncPrimaryAffiliationServiceImplTest {
 
     doNothing().when(tenantService).updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.COMPLETED);
     // stub collection of 2 users
-    when(userService.getUsersByQuery(eq(CQL_GET_USERS), anyInt(), anyInt())).thenReturn(userCollection);
+    when(userService.getPrimaryUsersToLink()).thenReturn(userCollection);
     // stub userTenantRepository to return record for each user to skip affiliation creation
     when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any(UUID.class))).thenReturn(Optional.of(new UserTenantEntity()));
 
@@ -182,7 +181,7 @@ class SyncPrimaryAffiliationServiceImplTest {
     var tenantId = "ABC1";
     var centralTenantId = "diku";
 
-    when(userService.getUsersByQuery(eq(CQL_GET_USERS), anyInt(), anyInt()))
+    when(userService.getPrimaryUsersToLink())
       .thenThrow(FeignException.FeignClientException.class);
 
     syncPrimaryAffiliationService.syncPrimaryAffiliationsInternal(consortiumId, tenantId, centralTenantId);
