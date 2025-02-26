@@ -10,7 +10,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -26,7 +25,6 @@ import org.folio.consortia.config.keycloak.KeycloakIdentityProviderProperties;
 import org.folio.consortia.config.keycloak.KeycloakLoginClientProperties;
 import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
 import org.folio.consortia.domain.dto.RealmExecutions;
-import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.service.impl.KeycloakServiceImpl;
 import org.folio.consortia.support.CopilotGenerated;
 import org.junit.jupiter.api.BeforeEach;
@@ -139,9 +137,6 @@ class KeycloakServiceTest {
 
   @Test
   void addCustomAuthFlowForCentralTenantSuccess() {
-    Tenant tenant = new Tenant();
-    tenant.setId("tenant-id");
-    tenant.setIsCentral(true);
     var executions = List.of(
       new RealmExecutions().withId("id1").withProviderId("auth-username-password-form"),
       new RealmExecutions().withId("id2").withProviderId("ecs-folio-auth-usrnm-pwd-form"));
@@ -151,38 +146,21 @@ class KeycloakServiceTest {
     when(keycloakClient.getExecutions(anyString(), anyString(), anyString())).thenReturn(executions);
     when(keycloakClient.getRealm(anyString(), anyString())).thenReturn(realm);
 
-    keycloakService.addCustomAuthFlowForCentralTenant(tenant);
+    keycloakService.addCustomAuthFlowForCentralTenant(TENANT_ID);
 
-    verify(keycloakClient).copyBrowserFlow(eq("tenant-id"), mapCaptor.capture(), eq(AUTH_TOKEN));
-    verify(keycloakClient).executeBrowserFlow(eq("tenant-id"), eq("custom-browser%20forms"), mapCaptor.capture(), eq(AUTH_TOKEN));
-    verify(keycloakClient).deleteExecution("tenant-id", "id1", AUTH_TOKEN);
-    verify(keycloakClient).raisePriority("tenant-id", "id2", AUTH_TOKEN);
-    verify(keycloakClient).updateRealm(eq("tenant-id"), any(), eq(AUTH_TOKEN));
-  }
-
-  @Test
-  void addCustomAuthFlowForCentralTenantNotCentral() {
-    Tenant tenant = new Tenant();
-    tenant.setId("tenant-id");
-    tenant.setIsCentral(false);
-
-    keycloakService.addCustomAuthFlowForCentralTenant(tenant);
-
-    verifyNoInteractions(keycloakClient);
-    verifyNoInteractions(keycloakCredentialsService);
+    verify(keycloakClient).copyBrowserFlow(eq(TENANT_ID), mapCaptor.capture(), eq(AUTH_TOKEN));
+    verify(keycloakClient).executeBrowserFlow(eq(TENANT_ID), eq("custom-browser%20forms"), mapCaptor.capture(), eq(AUTH_TOKEN));
+    verify(keycloakClient).deleteExecution(TENANT_ID, "id1", AUTH_TOKEN);
+    verify(keycloakClient).raisePriority(TENANT_ID, "id2", AUTH_TOKEN);
+    verify(keycloakClient).updateRealm(eq(TENANT_ID), any(), eq(AUTH_TOKEN));
   }
 
   @Test
   void addCustomAuthFlowForCentralTenantExecutionNotFound() {
-    Tenant tenant = new Tenant();
-    tenant.setId("tenant-id");
-    tenant.setIsCentral(true);
-    String token = "token";
-
-    when(keycloakCredentialsService.getMasterAuthToken()).thenReturn(token);
+    when(keycloakCredentialsService.getMasterAuthToken()).thenReturn("token");
     when(keycloakClient.getExecutions(anyString(), anyString(), anyString())).thenReturn(List.of());
 
-    assertThrows(IllegalStateException.class, () -> keycloakService.addCustomAuthFlowForCentralTenant(tenant));
+    assertThrows(IllegalStateException.class, () -> keycloakService.addCustomAuthFlowForCentralTenant(TENANT_ID));
   }
 
   private static String getTenantClientAlias(String tenant) {

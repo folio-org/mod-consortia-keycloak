@@ -2,6 +2,7 @@ package org.folio.consortia.service;
 
 import java.util.UUID;
 
+import org.folio.consortia.domain.dto.IdentityProviderCreateRequest;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantCollection;
 import org.folio.consortia.domain.dto.TenantDeleteRequest;
@@ -58,8 +59,9 @@ public interface TenantManager {
    * Creates an identity provider for the member tenant in the execution context tenant realm.
    *
    * @param memberTenantId the tenant to create the identity provider for
+   * @param idpCreateRequest the identity provider create request with required parameters
    */
-  void createIdentityProvider(String memberTenantId);
+  void createIdentityProvider(String memberTenantId, IdentityProviderCreateRequest idpCreateRequest);
 
   /**
    * Deletes an identity provider of the member tenant from the execution context tenant realm.
@@ -67,5 +69,13 @@ public interface TenantManager {
    * @param memberTenantId the tenant to delete the identity provider of
    */
   void deleteIdentityProvider(String memberTenantId);
+
+  /**
+   * Sets up custom keycloak login flow for the central tenant.
+   *
+   * @param consortiumId the consortium id
+   * @param centralTenantId the central tenant id
+   */
+	void setupCustomLogin(UUID consortiumId, String centralTenantId);
 
 }

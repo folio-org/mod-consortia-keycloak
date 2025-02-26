@@ -169,3 +169,16 @@ UserCollection:
   required:
     - users
     - totalRecords
+
+UserMigrationRequest:
+  type: object
+  properties:
+    userIds:
+      type: array
+      description: "User ids to migrate"
+      items:
+        type: string
+        description: A globally unique (UUID) identifier for the user
+    tenantId:
+      type: string
+      description: "Tenant id"

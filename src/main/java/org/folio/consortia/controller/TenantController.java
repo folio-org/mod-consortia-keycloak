@@ -5,6 +5,7 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 import java.util.UUID;
 
+import org.folio.consortia.domain.dto.IdentityProviderCreateRequest;
 import org.folio.consortia.domain.dto.SyncPrimaryAffiliationBody;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantCollection;
@@ -86,8 +87,8 @@ public class TenantController implements TenantsApi {
   }
 
   @Override
-  public ResponseEntity<Void> createIdentityProvider(UUID consortiumId, String tenantId) {
-    tenantManager.createIdentityProvider(tenantId);
+  public ResponseEntity<Void> createIdentityProvider(UUID consortiumId, String tenantId, IdentityProviderCreateRequest identityProviderCreateRequest) {
+    tenantManager.createIdentityProvider(tenantId, identityProviderCreateRequest);
     return ResponseEntity.status(CREATED).build();
   }
 
@@ -97,4 +98,9 @@ public class TenantController implements TenantsApi {
     return ResponseEntity.status(NO_CONTENT).build();
   }
 
+  @Override
+  public ResponseEntity<Void> setupCustomLogin(UUID consortiumId, String tenantId) {
+    tenantManager.setupCustomLogin(consortiumId, tenantId);
+    return ResponseEntity.status(CREATED).build();
+  }
 }

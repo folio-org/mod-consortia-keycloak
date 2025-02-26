@@ -53,7 +53,7 @@ public class SyncPrimaryAffiliationServiceImpl implements SyncPrimaryAffiliation
     log.info("Start syncing user primary affiliations for tenant {}", tenantId);
     List<User> users = new ArrayList<>();
     try {
-      users = userService.getUsersByQuery("(cql.allRecords=1 NOT type=\"patron\" NOT type=\"dcb\" NOT type=\"shadow\" NOT type=\"system\")", 0, Integer.MAX_VALUE);
+      users = userService.getPrimaryUsersToLink();
     } catch (Exception e) {
       log.error("syncPrimaryAffiliations:: failed to retrieve '{}' users", tenantId, e);
       tenantService.updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.FAILED);
