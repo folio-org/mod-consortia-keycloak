@@ -27,7 +27,7 @@ public interface UsersKeycloakClient {
   @DeleteMapping(value = "/users/{userId}")
   void deleteUser(@PathVariable String userId);
 
-  @PostMapping(value = "/migrations-keycloak", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(value = "/idp-migrations", consumes = MediaType.APPLICATION_JSON_VALUE)
   void migrateUsers(@RequestBody UserMigrationRequest userMigrationRequest);
 
 }
