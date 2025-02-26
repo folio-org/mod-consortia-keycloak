@@ -113,6 +113,8 @@ class TenantManagerTest {
   private CustomFieldService customFieldService;
   @Mock
   private KeycloakService keycloakService;
+  @Mock
+  private KeycloakUsersService keycloakUsersService;
 
   private TenantManager tenantManager;
   private TenantService tenantService;
@@ -120,8 +122,9 @@ class TenantManagerTest {
   @BeforeEach
   void setUp() {
     tenantService = new TenantServiceImpl(tenantRepository, userTenantRepository, tenantDetailsRepository, conversionService, consortiumService, folioExecutionContext);
-    tenantManager = new TenantManagerImpl(tenantService, keycloakService, consortiumService, consortiaConfigurationClient, syncPrimaryAffiliationService, userService, capabilitiesUserService,
-      customFieldService, cleanupService, lockService, userTenantsClient, systemUserScopedExecutionService, executionContextBuilder, folioExecutionContext);
+    tenantManager = new TenantManagerImpl(tenantService, keycloakService, keycloakUsersService, consortiumService, consortiaConfigurationClient,
+      syncPrimaryAffiliationService, userService, capabilitiesUserService, customFieldService, cleanupService, lockService, userTenantsClient,
+      systemUserScopedExecutionService, executionContextBuilder, folioExecutionContext);
   }
 
   @Test
@@ -585,6 +588,7 @@ class TenantManagerTest {
     tenantManager.createIdentityProvider(TENANT_ID, idpCreateRequest);
 
     verify(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+    verify(keycloakUsersService).migrateUsers(TENANT_ID);
   }
 
   @Test
