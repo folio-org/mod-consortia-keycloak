@@ -24,20 +24,20 @@ import org.folio.consortia.base.BaseIT;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 class SharingInstanceControllerTest extends BaseIT {
 
-  @MockBean
+  @MockitoBean
   private SharingInstanceService sharingInstanceService;
-  @MockBean
+  @MockitoBean
   private SharingInstanceRepository sharingInstanceRepository;
-  @MockBean
+  @MockitoBean
   private ConsortiumRepository consortiumRepository;
-  @MockBean
+  @MockitoBean
   private TenantRepository tenantRepository;
-  @MockBean
+  @MockitoBean
   private ConsortiaConfigurationService configurationService;
 
   /* Success cases */
