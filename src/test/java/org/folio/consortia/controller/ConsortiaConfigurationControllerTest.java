@@ -21,11 +21,11 @@ import org.folio.spring.integration.XOkapiHeaders;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 class ConsortiaConfigurationControllerTest extends BaseIT {
 
-  @MockBean
+  @MockitoBean
   ConsortiaConfigurationRepository configurationRepository;
 
   @Test

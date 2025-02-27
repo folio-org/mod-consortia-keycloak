@@ -74,9 +74,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 @EntityScan(basePackageClasses = TenantEntity.class)
@@ -93,43 +93,43 @@ class TenantControllerTest extends BaseIT {
   public static final String IDENTITY_PROVIDER_URL = "/consortia/%s/tenants/%s/identity-provider";
   public static final String CUSTOM_LOGIN_URL = "/consortia/%s/tenants/%s/custom-login";
 
-  @MockBean
+  @MockitoBean
   ConsortiumRepository consortiumRepository;
-  @MockBean
+  @MockitoBean
   TenantRepository tenantRepository;
-  @MockBean
+  @MockitoBean
   TenantDetailsRepository tenantDetailsRepository;
-  @MockBean
+  @MockitoBean
   UserTenantRepository userTenantRepository;
-  @MockBean
+  @MockitoBean
   ConsortiaConfigurationClient consortiaConfigurationClient;
-  @MockBean
+  @MockitoBean
   KafkaService kafkaService;
-  @MockBean
+  @MockitoBean
   UserTenantService userTenantService;
-  @MockBean
+  @MockitoBean
   UserService userService;
-  @MockBean
+  @MockitoBean
   SystemUserScopedExecutionService systemUserScopedExecutionService;
   @Mock
   FolioModuleMetadata folioModuleMetadata;
   @Mock
   FolioExecutionContext folioExecutionContext = new FolioExecutionContext() {};
-  @MockBean
+  @MockitoBean
   CapabilitySetsClient capabilitySetsClient;
-  @MockBean
+  @MockitoBean
   UserCapabilitySetsClient userCapabilitySetsClient;
-  @MockBean
+  @MockitoBean
   UserTenantsClient userTenantsClient;
-  @MockBean
+  @MockitoBean
   SyncPrimaryAffiliationService syncPrimaryAffiliationService;
-  @MockBean
+  @MockitoBean
   KeycloakService keycloakService;
-  @MockBean
+  @MockitoBean
   UsersKeycloakClient usersKeycloakClient;
-  @MockBean
+  @MockitoBean
   UsersClient usersClient;
-  @MockBean
+  @MockitoBean
   ExecutionContextBuilder executionContextBuilder;
 
   /* Success cases */
