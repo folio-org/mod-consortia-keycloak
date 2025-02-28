@@ -20,15 +20,16 @@ import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
 public class SelfControllerTest extends BaseIT {
 
   @Autowired
   FolioExecutionContext folioExecutionContext;
-  @MockBean
+  @MockitoBean
   ConsortiumRepository consortiumRepository;
-  @MockBean
+  @MockitoBean
   UserTenantService userTenantService;
   private static final String CONSORTIUM_ID = "7698e46-c3e3-11ed-afa1-0242ac120002";
 
