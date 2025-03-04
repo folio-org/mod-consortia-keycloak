@@ -589,7 +589,7 @@ class TenantManagerTest {
     tenantManager.createIdentityProvider(TENANT_ID, idpCreateRequest);
 
     verify(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
-    verify(keycloakUsersService).migrateUsers(CENTRAL_TENANT_ID);
+    verify(keycloakUsersService).migrateUsers(TENANT_ID, CENTRAL_TENANT_ID);
   }
 
   @Test
