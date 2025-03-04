@@ -584,11 +584,12 @@ class TenantManagerTest {
   void testCreateIdentityProvider() {
     var idpCreateRequest = new IdentityProviderCreateRequest().createProvider(true).migrateUsers(true);
     when(folioExecutionContext.getTenantId()).thenReturn(CENTRAL_TENANT_ID);
+    when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(createTenantEntity(CENTRAL_TENANT_ID)));
 
     tenantManager.createIdentityProvider(TENANT_ID, idpCreateRequest);
 
     verify(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
-    verify(keycloakUsersService).migrateUsers(TENANT_ID);
+    verify(keycloakUsersService).migrateUsers(CENTRAL_TENANT_ID);
   }
 
   @Test

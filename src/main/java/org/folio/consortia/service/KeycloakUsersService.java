@@ -5,8 +5,8 @@ public interface KeycloakUsersService {
   /**
    * Migrate users to create identity provider links
    *
-   * @param tenantId tenant id
+   * @param centralTenantId central tenant id
    */
-  void migrateUsers(String tenantId);
+  void migrateUsers(String centralTenantId);
 
 }

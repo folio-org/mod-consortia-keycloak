@@ -175,10 +175,15 @@ UserMigrationRequest:
   properties:
     userIds:
       type: array
-      description: "User ids to migrate"
+      description: "A list of user UUIDs that are to be scheduled for IDP linking in central tenant"
+      uniqueItems: true
       items:
         type: string
         description: A globally unique (UUID) identifier for the user
-    tenantId:
+    centralTenantId:
       type: string
-      description: "Tenant id"
+      description: "Central tenant id that will be used for linking the shadow users"
+  additionalProperties: false
+  required:
+    - userIds
+    - centralTenantId

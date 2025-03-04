@@ -1,5 +1,7 @@
 package org.folio.consortia.service.impl;
 
+import java.util.stream.Collectors;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.consortia.client.UsersKeycloakClient;
 import org.folio.consortia.domain.dto.User;
@@ -20,16 +22,16 @@ public class KeycloakUsersServiceImpl implements KeycloakUsersService {
   private final UsersKeycloakClient usersKeycloakClient;
 
   @Override
-  public void migrateUsers(String tenantId) {
-    log.info("migrateUsers:: Migrating users for tenant: '{}'", tenantId);
+  public void migrateUsers(String centralTenantId) {
+    log.info("migrateUsers:: Migrating users for central tenant: '{}'", centralTenantId);
     var users = userService.getPrimaryUsersToLink();
     if (CollectionUtils.isEmpty(users)) {
-      log.info("migrateUsers:: No users to migrate for tenant: '{}'", tenantId);
+      log.info("migrateUsers:: No users to migrate for central tenant: '{}'", centralTenantId);
       return;
     }
     var userMigrationRequest = new UserMigrationRequest()
-      .userIds(users.stream().map(User::getId).toList())
-      .tenantId(tenantId);
+      .userIds(users.stream().map(User::getId).collect(Collectors.toSet()))
+      .centralTenantId(centralTenantId);
     usersKeycloakClient.migrateUsers(userMigrationRequest);
   }
 
