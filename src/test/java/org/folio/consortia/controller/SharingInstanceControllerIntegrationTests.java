@@ -24,8 +24,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import lombok.SneakyThrows;
 import wiremock.net.minidev.json.JSONObject;
@@ -46,13 +46,13 @@ class SharingInstanceControllerIntegrationTests extends BaseIT {
     {"c3291fa4-b7f0-40c9-ab93-68eec638d9eb", COLLEGE, TENANT, STATUS}
   };
 
-  @MockBean
+  @MockitoBean
   private ConsortiumRepository consortiumRepository;
-  @MockBean
+  @MockitoBean
   private TenantRepository tenantRepository;
-  @MockBean
+  @MockitoBean
   private ConsortiaConfigurationService configurationService;
-  @MockBean
+  @MockitoBean
   private TenantService tenantService;
 
   @BeforeEach

@@ -21,13 +21,13 @@ import org.folio.spring.data.OffsetRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 class ConsortiumControllerTest extends BaseIT {
   private static final String CONSORTIUM_RESOURCE_EXIST_MSG_TEMPLATE = "System can not have more than one consortium record";
 
-  @MockBean
+  @MockitoBean
   ConsortiumRepository consortiumRepository;
 
   @ParameterizedTest
