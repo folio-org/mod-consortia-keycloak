@@ -28,13 +28,13 @@ public class KeycloakUsersServiceImpl implements KeycloakUsersService {
 
   @Override
   public void migrateUsers(String tenantId, String centralTenantId) {
-    log.info("migrateUsers:: Migrating users for central tenant: '{}'", centralTenantId);
+    log.info("migrateUsers:: Migrating users from member tenant: '{}' to central tenant: '{}'", tenantId, centralTenantId);
     var users = getMemberTenantOriginalUsers(tenantId);
     if (CollectionUtils.isEmpty(users)) {
-      log.info("migrateUsers:: No users to migrate for central tenant: '{}'", centralTenantId);
+      log.info("migrateUsers:: No users to migrate from member tenant: '{}' to central tenant: '{}'", tenantId, centralTenantId);
       return;
     }
-    log.info("migrateUsers:: Found '{}' users to migrate for central tenant: '{}'", users.size(), centralTenantId);
+    log.info("migrateUsers:: Found '{}' users to migrate from member tenant: '{}' to central tenant: '{}'", users.size(), tenantId, centralTenantId);
     var userMigrationRequest = new UserMigrationRequest()
       .userIds(users.stream().map(User::getId).collect(Collectors.toSet()))
       .centralTenantId(centralTenantId);
