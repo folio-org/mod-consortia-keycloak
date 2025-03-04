@@ -492,6 +492,7 @@ class TenantControllerTest extends BaseIT {
     var consortiumId = UUID.randomUUID();
     var idpCreateRequest = new IdentityProviderCreateRequest().createProvider(true).migrateUsers(true);
     doNothing().when(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+    when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(createTenantEntity(CENTRAL_TENANT_ID)));
 
     this.mockMvc.perform(post(String.format(IDENTITY_PROVIDER_URL, consortiumId, TENANT_ID))
         .headers(headers)
