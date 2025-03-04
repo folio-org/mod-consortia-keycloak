@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
   private static final String USER_ID = "userId";
   private static final Set<UserType> NOT_APPLICABLE_USER_TYPES = EnumSet.of(UserType.PATRON, UserType.DCB, UserType.SHADOW, UserType.SYSTEM);
+  private static final String LINKABLE_USER_QUERY = "(cql.allRecords=1 NOT type=\"patron\" NOT type=\"dcb\" NOT type=\"shadow\" NOT type=\"system\")";
 
   private final UsersKeycloakClient usersKeycloakClient;
   private final UsersClient usersClient;
@@ -78,8 +79,8 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public List<User> getUsersByQuery(String query, int offset, int limit) {
-    return usersClient.getUserCollection(query, offset, limit).getUsers();
+  public List<User> getPrimaryUsersToLink() {
+    return usersClient.getUserCollection(LINKABLE_USER_QUERY, 0, Integer.MAX_VALUE).getUsers();
   }
 
   @Override

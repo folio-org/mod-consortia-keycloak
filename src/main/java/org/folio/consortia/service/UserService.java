@@ -41,7 +41,12 @@ public interface UserService {
    */
   Optional<User> getByUsername(String username);
 
-  List<User> getUsersByQuery(String query, int offset, int limit);
+  /**
+   * Get primary users of valid type for linking/affiliation sync
+   *
+   * @return list of users.
+   */
+  List<User> getPrimaryUsersToLink();
 
   /**
    * Deletes existing user by id.

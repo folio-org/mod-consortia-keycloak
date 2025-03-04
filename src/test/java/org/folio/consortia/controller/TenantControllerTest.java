@@ -43,6 +43,7 @@ import org.folio.consortia.client.UsersKeycloakClient;
 import org.folio.consortia.config.kafka.KafkaService;
 import org.folio.consortia.domain.dto.CapabilitySet;
 import org.folio.consortia.domain.dto.CapabilitySets;
+import org.folio.consortia.domain.dto.IdentityProviderCreateRequest;
 import org.folio.consortia.domain.dto.SyncPrimaryAffiliationBody;
 import org.folio.consortia.domain.dto.SyncUser;
 import org.folio.consortia.domain.dto.Tenant;
@@ -90,6 +91,7 @@ class TenantControllerTest extends BaseIT {
   public static final String PRIMARY_AFFILIATIONS_URL =
     "/consortia/%s/tenants/%s/create-primary-affiliations?centralTenantId=%s";
   public static final String IDENTITY_PROVIDER_URL = "/consortia/%s/tenants/%s/identity-provider";
+  public static final String CUSTOM_LOGIN_URL = "/consortia/%s/tenants/%s/custom-login";
 
   @MockBean
   ConsortiumRepository consortiumRepository;
@@ -488,10 +490,13 @@ class TenantControllerTest extends BaseIT {
   void testCreateIdentityProvider() throws Exception {
     var headers = defaultHeaders();
     var consortiumId = UUID.randomUUID();
+    var idpCreateRequest = new IdentityProviderCreateRequest().createProvider(true).migrateUsers(true);
     doNothing().when(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+    when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(createTenantEntity(CENTRAL_TENANT_ID)));
 
-    this.mockMvc
-      .perform(post(String.format(IDENTITY_PROVIDER_URL, consortiumId, TENANT_ID)).headers(headers))
+    this.mockMvc.perform(post(String.format(IDENTITY_PROVIDER_URL, consortiumId, TENANT_ID))
+        .headers(headers)
+        .content(new ObjectMapper().writeValueAsString(idpCreateRequest)))
       .andExpectAll(status().isCreated());
   }
 
@@ -504,6 +509,19 @@ class TenantControllerTest extends BaseIT {
     this.mockMvc
       .perform(delete(String.format(IDENTITY_PROVIDER_URL, consortiumId, TENANT_ID)).headers(headers))
       .andExpectAll(status().isNoContent());
+  }
+
+  @Test
+  void testSetUpCustomLogin() throws Exception {
+    var headers = defaultHeaders();
+    var consortiumId = UUID.randomUUID();
+    when(consortiumRepository.existsById(consortiumId)).thenReturn(true);
+    when(tenantRepository.findById(TENANT_ID)).thenReturn(Optional.of(createTenantEntity()));
+    doNothing().when(keycloakService).addCustomAuthFlowForCentralTenant(CENTRAL_TENANT_ID);
+
+    this.mockMvc.perform(post(String.format(CUSTOM_LOGIN_URL, consortiumId, TENANT_ID))
+        .headers(headers))
+      .andExpectAll(status().isCreated());
   }
 
   private static CapabilitySets getCapabilitySets() {
