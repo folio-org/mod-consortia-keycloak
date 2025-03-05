@@ -213,6 +213,8 @@ public class UserTenantServiceImpl implements UserTenantService {
   @Override
   public void updateShadowUsersNameAndEmail(UUID userId, String originalTenantId) {
     List<UserTenantEntity> userTenantEntities = userTenantRepository.getByUserIdAndIsPrimaryFalse(userId);
+    log.info("updateShadowUsersNameAndEmail:: Going to update shadow users in all tenants exist in consortia for the user: {}, userTenantEntities size: {}",
+      userId, userTenantEntities.size());
     if (CollectionUtils.isNotEmpty(userTenantEntities)) {
       String firstName;
       String lastName;
@@ -226,7 +228,7 @@ public class UserTenantServiceImpl implements UserTenantService {
         email = primaryUser.getPersonal().getEmail();
         tenantIds = userTenantEntities.stream().map(userTenantEntity -> userTenantEntity.getTenant().getId()).toList();
       }
-      log.info("Updating shadow users in all tenants exist in consortia for the user: {}", userId);
+      log.info("updateShadowUsersNameAndEmail:: Updating shadow users in tenants: {} exist in consortia for the user: {}", tenantIds, userId);
       tenantIds.forEach(tenantId -> {
         try (var ignored = new FolioExecutionContextSetter(
           TenantContextUtils.prepareContextForTenant(tenantId, folioModuleMetadata, folioExecutionContext))) {
@@ -235,7 +237,7 @@ public class UserTenantServiceImpl implements UserTenantService {
           shadowUser.getPersonal().setLastName(lastName);
           shadowUser.getPersonal().setEmail(email);
           userService.updateUser(shadowUser);
-          log.info("Updated shadow user: {} in tenant : {}", userId, tenantId);
+          log.info("updateShadowUsersNameAndEmail:: Updated shadow user: {} in tenant : {}", userId, tenantId);
         }
       });
     }

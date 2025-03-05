@@ -71,6 +71,7 @@ public class UserAffiliationServiceImpl implements UserAffiliationService {
   @Override
   @Transactional
   public void updatePrimaryUserAffiliation(String eventPayload) {
+    log.info("updatePrimaryUserAffiliation:: Receiving update event with payload: {}", eventPayload);
     String centralTenantId = folioExecutionContext.getTenantId();
     var userEvent = parseUserEvent(eventPayload);
     if (Objects.isNull(userEvent)) {
@@ -108,6 +109,7 @@ public class UserAffiliationServiceImpl implements UserAffiliationService {
         log.info("updatePrimaryUserAffiliation:: Username in primary affiliation has been updated for the user: {}", userEvent.getUserDto().getId());
       }
 
+      log.info("updatePrimaryUserAffiliation:: Going to check is personal data changed: {}", userEvent.getIsPersonalDataChanged());
       if (Boolean.TRUE.equals(userEvent.getIsPersonalDataChanged())) {
         userTenantService.updateShadowUsersNameAndEmail(getUserId(userEvent), userEvent.getTenantId());
       }
