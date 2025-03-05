@@ -87,6 +87,7 @@ public class TenantManagerImpl implements TenantManager {
 
     createCustomFieldIfNeeded(tenantDto.getId());
     setUpCentralCustomAuthFlow(tenantDto.getId(), tenantDto.getIsCentral());
+    createIdentityProvider(tenantDto.getId(), new IdentityProviderCreateRequest(true, true));
 
     var existingTenant = tenantService.getByTenantId(tenantDto.getId());
     return existingTenant != null
