@@ -170,7 +170,7 @@ UserCollection:
     - users
     - totalRecords
 
-UserMigrationRequest:
+UserIdpLinkingRequest:
   type: object
   properties:
     userIds:

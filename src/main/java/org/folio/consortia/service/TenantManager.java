@@ -71,7 +71,7 @@ public interface TenantManager {
   void deleteIdentityProvider(String memberTenantId);
 
   /**
-   * Sets up custom keycloak login flow for the central tenant.
+   * Sets up custom keycloak login flow for the central tenant to be able to authenticate users created in member tenants.
    *
    * @param consortiumId the consortium id
    * @param centralTenantId the central tenant id

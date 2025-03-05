@@ -157,7 +157,7 @@ public class TenantManagerImpl implements TenantManager {
       keycloakService.createIdentityProvider(folioExecutionContext.getTenantId(), memberTenantId);
     }
     if (idpCreateRequest.getMigrateUsers()) {
-      keycloakUsersService.migrateUsers(memberTenantId, tenantService.getCentralTenantId());
+      keycloakUsersService.createUsersIdpLinks(memberTenantId, tenantService.getCentralTenantId());
     }
   }
 

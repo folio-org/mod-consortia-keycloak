@@ -216,12 +216,12 @@ components:
         application/json:
           schema:
             $ref: "schemas/tenant.yaml#/TenantDeleteRequest"
-    UserMigrationRequest:
-      description: User migration request object
+    UserIdpLinkingRequest:
+      description: User IDP linking request object
       content:
         application/json:
           schema:
-            $ref: "schemas/user.yaml#/UserMigrationRequest"
+            $ref: "schemas/user.yaml#/UserIdpLinkingRequest"
   responses:
     Tenant:
       description: Returns a tenant object

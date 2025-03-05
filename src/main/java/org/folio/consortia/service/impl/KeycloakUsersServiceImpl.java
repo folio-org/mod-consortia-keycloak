@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.consortia.client.UsersKeycloakClient;
 import org.folio.consortia.domain.dto.User;
-import org.folio.consortia.domain.dto.UserMigrationRequest;
+import org.folio.consortia.domain.dto.UserIdpLinkingRequest;
 import org.folio.consortia.service.KeycloakUsersService;
 import org.folio.consortia.service.UserService;
 import org.folio.consortia.utils.TenantContextUtils;
@@ -27,18 +27,18 @@ public class KeycloakUsersServiceImpl implements KeycloakUsersService {
   private final FolioExecutionContext folioExecutionContext;
 
   @Override
-  public void migrateUsers(String tenantId, String centralTenantId) {
-    log.info("migrateUsers:: Migrating users from member tenant: '{}' to central tenant: '{}'", tenantId, centralTenantId);
+  public void createUsersIdpLinks(String tenantId, String centralTenantId) {
+    log.info("createUsersIdpLinks:: Creating users IDP links created in member tenant: '{}' in central tenant: '{}'", tenantId, centralTenantId);
     var users = getMemberTenantOriginalUsers(tenantId);
     if (CollectionUtils.isEmpty(users)) {
-      log.info("migrateUsers:: No users to migrate from member tenant: '{}' to central tenant: '{}'", tenantId, centralTenantId);
+      log.info("createUsersIdpLinks:: No users to create links from member tenant: '{}' to central tenant: '{}'", tenantId, centralTenantId);
       return;
     }
-    log.info("migrateUsers:: Found '{}' users to migrate from member tenant: '{}' to central tenant: '{}'", users.size(), tenantId, centralTenantId);
-    var userMigrationRequest = new UserMigrationRequest()
+    log.info("createUsersIdpLinks:: Found '{}' users to create links from member tenant: '{}' to central tenant: '{}'", users.size(), tenantId, centralTenantId);
+    var userIdpLinkingRequest = new UserIdpLinkingRequest()
       .userIds(users.stream().map(User::getId).collect(Collectors.toSet()))
       .centralTenantId(centralTenantId);
-    usersKeycloakClient.migrateUsers(userMigrationRequest);
+    usersKeycloakClient.createUsersIdpLinks(userIdpLinkingRequest);
   }
 
   private List<User> getMemberTenantOriginalUsers(String tenantId) {

@@ -10,7 +10,7 @@ import static org.mockito.Mockito.when;
 
 import org.folio.consortia.client.UsersKeycloakClient;
 import org.folio.consortia.domain.dto.User;
-import org.folio.consortia.domain.dto.UserMigrationRequest;
+import org.folio.consortia.domain.dto.UserIdpLinkingRequest;
 import org.folio.consortia.service.impl.KeycloakUsersServiceImpl;
 import org.folio.consortia.support.CopilotGenerated;
 import org.folio.spring.FolioExecutionContext;
@@ -39,23 +39,23 @@ class KeycloakUsersServiceTest {
   private KeycloakUsersServiceImpl keycloakUsersService;
 
   @Test
-  void migrateUsers_migratesUsersSuccessfully() {
+  void testCreateUsersIdpLinks() {
     User user = new User();
     user.setId("userId");
     when(userService.getPrimaryUsersToLink()).thenReturn(List.of(user));
 
-    keycloakUsersService.migrateUsers(TENANT_ID, CENTRAL_TENANT_ID);
+    keycloakUsersService.createUsersIdpLinks(TENANT_ID, CENTRAL_TENANT_ID);
 
-    verify(usersKeycloakClient).migrateUsers(any(UserMigrationRequest.class));
+    verify(usersKeycloakClient).createUsersIdpLinks(any(UserIdpLinkingRequest.class));
   }
 
   @Test
-  void migrateUsers_doesNothingIfNoUsersToMigrate() {
+  void testCreateUsersIdpLinksNoUsersToLink() {
     when(userService.getPrimaryUsersToLink()).thenReturn(Collections.emptyList());
 
-    keycloakUsersService.migrateUsers(TENANT_ID, CENTRAL_TENANT_ID);
+    keycloakUsersService.createUsersIdpLinks(TENANT_ID, CENTRAL_TENANT_ID);
 
-    verify(usersKeycloakClient, never()).migrateUsers(any(UserMigrationRequest.class));
+    verify(usersKeycloakClient, never()).createUsersIdpLinks(any(UserIdpLinkingRequest.class));
   }
 
 }

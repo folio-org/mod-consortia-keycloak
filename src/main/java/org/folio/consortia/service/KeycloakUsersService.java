@@ -3,11 +3,11 @@ package org.folio.consortia.service;
 public interface KeycloakUsersService {
 
   /**
-   * Migrate users to create identity provider links
+   * Create identity provider links for users
    *
-   * @param tenantId tenant id to migrate users from
-   * @param centralTenantId central tenant id to migrate users to
+   * @param tenantId id to of original tenant
+   * @param centralTenantId central tenant id
    */
-  void migrateUsers(String tenantId, String centralTenantId);
+  void createUsersIdpLinks(String tenantId, String centralTenantId);
 
 }
