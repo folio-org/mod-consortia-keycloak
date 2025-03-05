@@ -5,9 +5,9 @@ public interface KeycloakUsersService {
   /**
    * Create identity provider links for users
    *
-   * @param tenantId id to of original tenant
    * @param centralTenantId central tenant id
+   * @param memberTenantId id to of original tenant
    */
-  void createUsersIdpLinks(String tenantId, String centralTenantId);
+  void createUsersIdpLinks(String centralTenantId, String memberTenantId);
 
 }
