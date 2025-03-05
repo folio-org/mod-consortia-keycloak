@@ -153,11 +153,12 @@ public class TenantManagerImpl implements TenantManager {
 
   @Override
   public void createIdentityProvider(String memberTenantId, IdentityProviderCreateRequest idpCreateRequest) {
+    var centralTenantId = tenantService.getCentralTenantId();
     if (idpCreateRequest.getCreateProvider()) {
-      keycloakService.createIdentityProvider(folioExecutionContext.getTenantId(), memberTenantId);
+      keycloakService.createIdentityProvider(centralTenantId, memberTenantId);
     }
     if (idpCreateRequest.getMigrateUsers()) {
-      keycloakUsersService.createUsersIdpLinks(memberTenantId, tenantService.getCentralTenantId());
+      keycloakUsersService.createUsersIdpLinks(centralTenantId, memberTenantId);
     }
   }
 
@@ -224,7 +225,7 @@ public class TenantManagerImpl implements TenantManager {
       centralTenantId = tenantService.getCentralTenantId();
       shadowAdminUser = userService.prepareShadowUser(adminUserId, folioExecutionContext.getTenantId());
       tenantService.saveUserTenant(consortiumId, shadowAdminUser, tenantDto);
-      keycloakService.createIdentityProvider(centralTenantId, tenantDto.getId());
+      createIdentityProvider(tenantDto.getId(), new IdentityProviderCreateRequest(true, true));
     }
 
     var finalShadowAdminUser = shadowAdminUser;

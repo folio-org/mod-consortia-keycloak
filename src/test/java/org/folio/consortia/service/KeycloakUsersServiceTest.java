@@ -44,7 +44,7 @@ class KeycloakUsersServiceTest {
     user.setId("userId");
     when(userService.getPrimaryUsersToLink()).thenReturn(List.of(user));
 
-    keycloakUsersService.createUsersIdpLinks(TENANT_ID, CENTRAL_TENANT_ID);
+    keycloakUsersService.createUsersIdpLinks(CENTRAL_TENANT_ID, TENANT_ID);
 
     verify(usersKeycloakClient).createUsersIdpLinks(any(UserIdpLinkingRequest.class));
   }
@@ -53,7 +53,7 @@ class KeycloakUsersServiceTest {
   void testCreateUsersIdpLinksNoUsersToLink() {
     when(userService.getPrimaryUsersToLink()).thenReturn(Collections.emptyList());
 
-    keycloakUsersService.createUsersIdpLinks(TENANT_ID, CENTRAL_TENANT_ID);
+    keycloakUsersService.createUsersIdpLinks(CENTRAL_TENANT_ID, TENANT_ID);
 
     verify(usersKeycloakClient, never()).createUsersIdpLinks(any(UserIdpLinkingRequest.class));
   }

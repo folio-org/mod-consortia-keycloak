@@ -27,14 +27,14 @@ public class KeycloakUsersServiceImpl implements KeycloakUsersService {
   private final FolioExecutionContext folioExecutionContext;
 
   @Override
-  public void createUsersIdpLinks(String tenantId, String centralTenantId) {
-    log.info("createUsersIdpLinks:: Creating users IDP links created in member tenant: '{}' in central tenant: '{}'", tenantId, centralTenantId);
-    var users = getMemberTenantOriginalUsers(tenantId);
+  public void createUsersIdpLinks(String centralTenantId, String memberTenantId) {
+    log.info("createUsersIdpLinks:: Creating users IDP links created in member tenant: '{}' in central tenant: '{}'", memberTenantId, centralTenantId);
+    var users = getMemberTenantOriginalUsers(memberTenantId);
     if (CollectionUtils.isEmpty(users)) {
-      log.info("createUsersIdpLinks:: No users to create links from member tenant: '{}' to central tenant: '{}'", tenantId, centralTenantId);
+      log.info("createUsersIdpLinks:: No users to create links from member tenant: '{}' to central tenant: '{}'", memberTenantId, centralTenantId);
       return;
     }
-    log.info("createUsersIdpLinks:: Found '{}' users to create links from member tenant: '{}' to central tenant: '{}'", users.size(), tenantId, centralTenantId);
+    log.info("createUsersIdpLinks:: Found '{}' users to create links from member tenant: '{}' to central tenant: '{}'", users.size(), memberTenantId, centralTenantId);
     var userIdpLinkingRequest = new UserIdpLinkingRequest()
       .userIds(users.stream().map(User::getId).collect(Collectors.toSet()))
       .centralTenantId(centralTenantId);
