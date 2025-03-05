@@ -37,30 +37,25 @@ public class KeycloakServiceImpl implements KeycloakService {
   private final KeycloakCredentialsService keycloakCredentialsService;
 
   @Override
-  public void addCustomAuthFlowForCentralTenant(Tenant tenant) {
-    log.debug("Trying to add custom authentication flow for tenant with id={}", tenant.getId());
+  public void addCustomAuthFlowForCentralTenant(String centralTenantId) {
+    log.debug("Trying to add custom authentication flow for tenant with id={}", centralTenantId);
     if (isUnifiedLoginDisabled()) {
-      log.info("addCustomAuthFlowForCentralTenant:: Identity provider creation is disabled. Skipping creation for tenant {}", tenant.getId());
-      return;
-    }
-    if (Boolean.FALSE.equals(tenant.getIsCentral())) {
-      log.info("addCustomAuthFlowForCentralTenant:: Tenant with id={} is not central, skipping custom authentication flow addition", tenant.getId());
+      log.info("addCustomAuthFlowForCentralTenant:: Identity provider creation is disabled. Skipping creation for tenant {}", centralTenantId);
       return;
     }
 
     var token = keycloakCredentialsService.getMasterAuthToken();
-    var tenantId = tenant.getId();
 
     // 1. Duplicate built-in browser authentication flow
     var browserFlowCopyConfig = Map.of("newName", CUSTOM_BROWSER_FLOW);
-    keycloakClient.copyBrowserFlow(tenantId, browserFlowCopyConfig, token);
+    keycloakClient.copyBrowserFlow(centralTenantId, browserFlowCopyConfig, token);
 
     // 2. Add custom ecs folio authentication form provider to the duplicated flow
     var browserFlowProviderConfig = Map.of("provider", ECS_FOLIO_AUTH_USRNM_PWD_FORM);
-    keycloakClient.executeBrowserFlow(tenantId, CUSTOM_BROWSER_FLOW_FORMS, browserFlowProviderConfig, token);
+    keycloakClient.executeBrowserFlow(centralTenantId, CUSTOM_BROWSER_FLOW_FORMS, browserFlowProviderConfig, token);
 
     // 3. Fetch executions from current flow
-    var executions = keycloakClient.getExecutions(tenantId, CUSTOM_BROWSER_FLOW, token);
+    var executions = keycloakClient.getExecutions(centralTenantId, CUSTOM_BROWSER_FLOW, token);
     var authUsernamePasswordFormExecution = executions.stream()
       .filter(execution -> StringUtils.equals(execution.getProviderId(), AUTH_USERNAME_PASSWORD_FORM))
       .findFirst()
@@ -71,16 +66,16 @@ public class KeycloakServiceImpl implements KeycloakService {
       .orElseThrow(() -> new IllegalStateException("ecs-folio-auth-usrnm-pwd-form execution not found"));
 
     // 4. Delete default auth-username-password-form execution from the flow
-    keycloakClient.deleteExecution(tenant.getId(), authUsernamePasswordFormExecution.getId(), token);
+    keycloakClient.deleteExecution(centralTenantId, authUsernamePasswordFormExecution.getId(), token);
 
     // 5. Raise priority of the custom ecs folio authentication form provider
-    keycloakClient.raisePriority(tenantId, ecsFolioAuthUsernamePasswordFormExecution.getId(), token);
+    keycloakClient.raisePriority(centralTenantId, ecsFolioAuthUsernamePasswordFormExecution.getId(), token);
 
     // 6. Bind the custom flow to the realm
-    ObjectNode realm = keycloakClient.getRealm(tenantId, token);
+    ObjectNode realm = keycloakClient.getRealm(centralTenantId, token);
     realm.put("browserFlow", CUSTOM_BROWSER_FLOW);
-    keycloakClient.updateRealm(tenantId, realm, token);
-    log.info("addCustomAuthFlowForCentralTenant:: Custom authentication flow successfully added for tenant with id={}", tenantId);
+    keycloakClient.updateRealm(centralTenantId, realm, token);
+    log.info("addCustomAuthFlowForCentralTenant:: Custom authentication flow successfully added for tenant with id={}", centralTenantId);
   }
 
   @Override

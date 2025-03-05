@@ -9,10 +9,13 @@ import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
+import org.folio.consortia.domain.dto.IdentityProviderCreateRequest;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantCollection;
 import org.folio.consortia.domain.dto.TenantDeleteRequest;
@@ -28,6 +31,7 @@ import org.folio.consortia.service.CleanupService;
 import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.CustomFieldService;
 import org.folio.consortia.service.KeycloakService;
+import org.folio.consortia.service.KeycloakUsersService;
 import org.folio.consortia.service.LockService;
 import org.folio.consortia.service.SyncPrimaryAffiliationService;
 import org.folio.consortia.service.TenantManager;
@@ -53,6 +57,7 @@ public class TenantManagerImpl implements TenantManager {
 
   private final TenantService tenantService;
   private final KeycloakService keycloakService;
+  private final KeycloakUsersService keycloakUsersService;
   private final ConsortiumService consortiumService;
   private final ConsortiaConfigurationClient configurationClient;
   private final SyncPrimaryAffiliationService syncPrimaryAffiliationService;
@@ -81,7 +86,7 @@ public class TenantManagerImpl implements TenantManager {
     tenantService.checkTenantUniqueNameAndCodeOrThrow(tenantDto);
 
     createCustomFieldIfNeeded(tenantDto.getId());
-    keycloakService.addCustomAuthFlowForCentralTenant(tenantDto);
+    setUpCentralCustomAuthFlow(tenantDto.getId(), tenantDto.getIsCentral());
 
     var existingTenant = tenantService.getByTenantId(tenantDto.getId());
     return existingTenant != null
@@ -147,13 +152,25 @@ public class TenantManagerImpl implements TenantManager {
   }
 
   @Override
-  public void createIdentityProvider(String memberTenantId) {
-    keycloakService.createIdentityProvider(folioExecutionContext.getTenantId(), memberTenantId);
+  public void createIdentityProvider(String memberTenantId, IdentityProviderCreateRequest idpCreateRequest) {
+    if (idpCreateRequest.getCreateProvider()) {
+      keycloakService.createIdentityProvider(folioExecutionContext.getTenantId(), memberTenantId);
+    }
+    if (idpCreateRequest.getMigrateUsers()) {
+      keycloakUsersService.createUsersIdpLinks(memberTenantId, tenantService.getCentralTenantId());
+    }
   }
 
   @Override
   public void deleteIdentityProvider(String memberTenantId) {
     keycloakService.deleteIdentityProvider(folioExecutionContext.getTenantId(), memberTenantId);
+  }
+
+  @Override
+  public void setupCustomLogin(UUID consortiumId, String centralTenantId) {
+    consortiumService.checkConsortiumExistsOrThrow(consortiumId);
+    var centralTenant = getTenantById(centralTenantId);
+    setUpCentralCustomAuthFlow(centralTenantId, centralTenant.getIsCentral());
   }
 
   private void createCustomFieldIfNeeded(String tenant) {
@@ -228,6 +245,14 @@ public class TenantManagerImpl implements TenantManager {
     }
     log.info("save:: saved consortia configuration with centralTenantId={} by tenantId={} context", centralTenantId, tenantDto.getId());
     return savedTenant;
+  }
+
+  private void setUpCentralCustomAuthFlow(String centralTenantId, Boolean isCentral) {
+    if (BooleanUtils.isNotTrue(isCentral)) {
+      log.info("setupCustomLogin:: Tenant with id: '{}' is central, skipping custom login setup", centralTenantId);
+      return;
+    }
+    keycloakService.addCustomAuthFlowForCentralTenant(centralTenantId);
   }
 
   private TenantEntity getTenantById(String tenantId) {

@@ -67,3 +67,17 @@ TenantDeleteRequest:
     required:
       - deleteType
       - deleteOptions
+
+IdentityProviderCreateRequest:
+    type: object
+    properties:
+      createProvider:
+        type: boolean
+        default: true
+      migrateUsers:
+        type: boolean
+        default: true
+    additionalProperties: false
+    required:
+      - createProvider
+      - migrateUsers

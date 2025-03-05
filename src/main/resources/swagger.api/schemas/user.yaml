@@ -169,3 +169,21 @@ UserCollection:
   required:
     - users
     - totalRecords
+
+UserIdpLinkingRequest:
+  type: object
+  properties:
+    userIds:
+      type: array
+      description: "A list of user UUIDs that are to be scheduled for IDP linking in central tenant"
+      uniqueItems: true
+      items:
+        type: string
+        description: A globally unique (UUID) identifier for the user
+    centralTenantId:
+      type: string
+      description: "Central tenant id that will be used for linking the shadow users"
+  additionalProperties: false
+  required:
+    - userIds
+    - centralTenantId

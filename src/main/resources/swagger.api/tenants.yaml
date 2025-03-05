@@ -145,6 +145,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/consortiumId"
         - $ref: "#/components/parameters/tenantId"
+      requestBody:
+        $ref: "#/components/requestBodies/IdentityProviderCreateRequest"
       responses:
         "201":
           $ref: "#/components/responses/Created"
@@ -169,6 +171,22 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /tenants/{tenantId}/custom-login:
+    post:
+      summary: Set up custom keycloak login flow for central tenant
+      operationId: setupCustomLogin
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/tenantId"
+      responses:
+        "201":
+          $ref: "#/components/responses/Created"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 components:
   requestBodies:
     TenantBody:
@@ -185,12 +203,25 @@ components:
         application/json:
           schema:
             $ref: "schemas/primaryAffiliationBody.yaml#/SyncPrimaryAffiliationBody"
+    IdentityProviderCreateRequest:
+      description: IdentityProviderCreateRequest object
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/tenant.yaml#/IdentityProviderCreateRequest"
     TenantDeleteRequest:
       description: Deletes tenant based on delete options
       content:
         application/json:
           schema:
             $ref: "schemas/tenant.yaml#/TenantDeleteRequest"
+    UserIdpLinkingRequest:
+      description: User IDP linking request object
+      content:
+        application/json:
+          schema:
+            $ref: "schemas/user.yaml#/UserIdpLinkingRequest"
   responses:
     Tenant:
       description: Returns a tenant object
