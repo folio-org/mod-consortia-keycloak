@@ -87,7 +87,6 @@ public class TenantManagerImpl implements TenantManager {
 
     createCustomFieldIfNeeded(tenantDto.getId());
     setUpCentralCustomAuthFlow(tenantDto.getId(), tenantDto.getIsCentral());
-    createIdentityProvider(tenantDto.getId(), new IdentityProviderCreateRequest(true, true));
 
     var existingTenant = tenantService.getByTenantId(tenantDto.getId());
     return existingTenant != null
@@ -225,7 +224,7 @@ public class TenantManagerImpl implements TenantManager {
       centralTenantId = tenantService.getCentralTenantId();
       shadowAdminUser = userService.prepareShadowUser(adminUserId, folioExecutionContext.getTenantId());
       tenantService.saveUserTenant(consortiumId, shadowAdminUser, tenantDto);
-      keycloakService.createIdentityProvider(centralTenantId, tenantDto.getId());
+      createIdentityProvider(tenantDto.getId(), new IdentityProviderCreateRequest(true, true));
     }
 
     var finalShadowAdminUser = shadowAdminUser;
