@@ -16,13 +16,13 @@ import org.folio.consortia.domain.dto.SharingPolicyDeleteResponse;
 import org.folio.consortia.domain.dto.SharingPolicyResponse;
 import org.folio.consortia.service.impl.SharingPolicyService;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 class SharingPolicyControllerTest extends BaseIT {
   private static final String BASE_URL = "/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/sharing/policies";
 
-  @MockBean
+  @MockitoBean
   SharingPolicyService sharingPolicyService;
 
   @Test

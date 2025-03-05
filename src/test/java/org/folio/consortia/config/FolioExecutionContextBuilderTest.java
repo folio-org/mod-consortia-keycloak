@@ -12,6 +12,8 @@ import org.folio.spring.model.SystemUser;
 import org.folio.spring.model.UserToken;
 import org.junit.jupiter.api.Test;
 
+import lombok.val;
+
 
 class FolioExecutionContextBuilderTest {
   private final ExecutionContextBuilder builder =
@@ -21,14 +23,14 @@ class FolioExecutionContextBuilderTest {
   void canCreateSystemUserContext() {
     UUID userId = UUID.randomUUID();
 
-    var systemUser = SystemUser.builder()
+    var systemUser1 = SystemUser.builder()
       .userId(userId.toString())
       .okapiUrl("okapi")
       .username("username")
       .tenantId("tenant")
       .token(new UserToken("token", Instant.MAX)).build();
 
-    var context = builder.forSystemUser(systemUser);
+    var context = builder.forSystemUser(systemUser1, () -> systemUser1);
 
     assertThat(context.getTenantId()).isEqualTo("tenant");
     assertThat(context.getToken()).isEqualTo("token");
@@ -39,14 +41,14 @@ class FolioExecutionContextBuilderTest {
     assertThat(context.getOkapiHeaders()).isNotNull();
     assertThat(context.getFolioModuleMetadata()).isNotNull();
 
-    systemUser = SystemUser.builder()
+    var systemUser2 = SystemUser.builder()
       .userId(userId.toString())
       .okapiUrl("okapi")
       .username("username")
       .tenantId("tenant")
       .token(null).build();
 
-    context = builder.forSystemUser(systemUser);
+    context = builder.forSystemUser(systemUser2, () -> systemUser2);
 
     assertThat(context.getTenantId()).isEqualTo("tenant");
     assertThat(context.getToken()).isEqualTo("");

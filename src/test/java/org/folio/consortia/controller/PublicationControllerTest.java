@@ -49,7 +49,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpEntity;
@@ -57,6 +56,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
@@ -70,21 +70,21 @@ public class PublicationControllerTest extends BaseIT {
   public static final String GET_PUBLICATION_BY_ID_URL = "/consortia/%s/publications/%s";
   public static final String GET_PUBLICATION_RESULTS_BY_ID_URL = "/consortia/%s/publications/%s/results";
   public static final String PUBLICATIONS_CLEANUP_URL = "/publications-cleanup";
-  @MockBean
+  @MockitoBean
   TenantService tenantService;
-  @MockBean
+  @MockitoBean
   UserTenantService userTenantService;
   @Autowired
   HttpRequestService httpRequestService;
-  @MockBean
+  @MockitoBean
   RestTemplate restTemplate;
-  @MockBean
+  @MockitoBean
   PublicationStatusRepository publicationStatusRepository;
-  @MockBean
+  @MockitoBean
   PublicationTenantRequestRepository publicationTenantRequestRepository;
-  @MockBean
+  @MockitoBean
   ConsortiumService consortiumService;
-  @MockBean
+  @MockitoBean
   ConsortiumRepository consortiumRepository;
 
   @ParameterizedTest

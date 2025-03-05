@@ -34,8 +34,8 @@ import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 @SpringBootTest
 @CopilotGenerated(partiallyGenerated = true)
@@ -44,14 +44,14 @@ class KeycloakServiceTest {
   private static final String AUTH_TOKEN = "token";
   private static final String CLIENT_SECRET = "secret";
 
-  @MockBean
+  @MockitoBean
   private KeycloakClient keycloakClient;
-  @MockBean
+  @MockitoBean
   private KeycloakCredentialsService keycloakCredentialsService;
 
-  @SpyBean
+  @MockitoSpyBean
   private KeycloakIdentityProviderProperties keycloakIdpProperties;
-  @SpyBean
+  @MockitoSpyBean
   private KeycloakLoginClientProperties keycloakLoginClientProperties;
 
   @Autowired

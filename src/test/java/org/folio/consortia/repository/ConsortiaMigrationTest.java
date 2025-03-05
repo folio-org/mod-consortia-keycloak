@@ -70,7 +70,7 @@ class ConsortiaMigrationTest {
 
   @BeforeAll
   static void beforeAll() {
-    wireMockServer = new WireMockServer(wireMockConfig().port(WIRE_MOCK_PORT)
+    wireMockServer = new WireMockServer(wireMockConfig().port(WIRE_MOCK_PORT).dynamicPort()
       .extensions(new ResponseTemplateTransformer(
         TemplateEngine.defaultTemplateEngine(), true, new ClasspathFileSource("/"), new ArrayList<>())));
     wireMockServer.start();

@@ -26,7 +26,7 @@ public class OkapiExtension implements BeforeAllCallback, AfterAllCallback {
   private static final String OKAPI_URL_PROPERTY = "okapi-url";
   private static final WireMockServer WIRE_MOCK = new WireMockServer(
     wireMockConfig()
-      .port(nextFreePort())
+      .port(nextFreePort()).dynamicPort()
       .extensions(new ResponseTemplateTransformer(TemplateEngine.defaultTemplateEngine(), true, new ClasspathFileSource("/"), new ArrayList<>()))
   );
 

@@ -17,13 +17,13 @@ import org.folio.consortia.domain.dto.SharingRoleCapabilitySetDeleteResponse;
 import org.folio.consortia.domain.dto.SharingRoleCapabilitySetResponse;
 import org.folio.consortia.service.impl.SharingRoleCapabilitySetService;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 class SharingRoleCapabilitySetControllerTest extends BaseIT {
   private static final String BASE_URL = "/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/sharing/roles";
 
-  @MockBean
+  @MockitoBean
   SharingRoleCapabilitySetService sharingRoleCapabilitySetService;
 
   @Test
