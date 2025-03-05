@@ -22,7 +22,7 @@ class FolioTenantControllerTest extends BaseIT {
   static void beforeAll(@Autowired MockMvc mockMvc) {
     //override default tenant setup for integration tests
     wireMockServer = new WireMockServer(wireMockConfig()
-      .port(WIRE_MOCK_PORT)
+      .port(WIRE_MOCK_PORT).dynamicPort()
       .extensions(
         new ResponseTemplateTransformer(TemplateEngine.defaultTemplateEngine(), true, new ClasspathFileSource("/"),
           new ArrayList<>())));
