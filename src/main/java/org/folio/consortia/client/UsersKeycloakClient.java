@@ -1,7 +1,7 @@
 package org.folio.consortia.client;
 
 import org.folio.consortia.domain.dto.User;
-import org.folio.consortia.domain.dto.UserIdpLinkingRequest;
+import org.folio.consortia.domain.dto.UsersIdpLinkOperationRequest;
 import org.folio.spring.config.FeignClientConfiguration;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
@@ -28,6 +28,9 @@ public interface UsersKeycloakClient {
   void deleteUser(@PathVariable String userId);
 
   @PostMapping(value = "/idp-migrations", consumes = MediaType.APPLICATION_JSON_VALUE)
-  void createUsersIdpLinks(@RequestBody UserIdpLinkingRequest userIdpLinkingRequest);
+  void createUsersIdpLinks(@RequestBody UsersIdpLinkOperationRequest usersIdpLinkOperationRequest);
+
+  @DeleteMapping(value = "/idp-migrations", consumes = MediaType.APPLICATION_JSON_VALUE)
+  void deleteUsersIdpLinks(@RequestBody UsersIdpLinkOperationRequest usersIdpLinkOperationRequest);
 
 }

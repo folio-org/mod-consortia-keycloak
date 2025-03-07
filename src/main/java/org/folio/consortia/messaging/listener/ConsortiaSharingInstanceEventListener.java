@@ -1,8 +1,10 @@
 package org.folio.consortia.messaging.listener;
 
+import static org.folio.consortia.utils.TenantContextUtils.createFolioExecutionContext;
+import static org.folio.consortia.utils.TenantContextUtils.runInFolioContext;
+
 import org.apache.commons.lang3.StringUtils;
 import org.folio.consortia.service.SharingInstanceService;
-import org.folio.consortia.utils.TenantContextUtils;
 import org.folio.spring.FolioModuleMetadata;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.MessageHeaders;
@@ -29,9 +31,8 @@ public class ConsortiaSharingInstanceEventListener {
   public void handleConsortiumInstanceSharingCompleting(String data, MessageHeaders messageHeaders) {
     String centralTenantId = eventListenerHelper.getCentralTenantByIdByHeader(messageHeaders);
     if (StringUtils.isNotBlank(centralTenantId)) {
-      TenantContextUtils.runInFolioContext(
-        TenantContextUtils.createFolioExecutionContext(messageHeaders, folioMetadata, centralTenantId), () ->
-        sharingInstanceService.completePromotingLocalInstance(data));
+      runInFolioContext(createFolioExecutionContext(messageHeaders, folioMetadata, centralTenantId),
+        () -> sharingInstanceService.completePromotingLocalInstance(data));
     }
   }
 }

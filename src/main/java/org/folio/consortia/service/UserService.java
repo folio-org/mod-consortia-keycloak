@@ -49,6 +49,14 @@ public interface UserService {
   List<User> getPrimaryUsersToLink();
 
   /**
+   * Get primary users of valid type for linking/affiliation sync associated with tenant
+   *
+   * @param tenantId id of tenant.
+   * @return list of users.
+   */
+  List<User> getPrimaryUsersToLink(String tenantId);
+
+  /**
    * Deletes existing user by id.
    *
    * @param userId id of user.

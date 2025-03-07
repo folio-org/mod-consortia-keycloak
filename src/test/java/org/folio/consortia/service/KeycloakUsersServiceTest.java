@@ -2,7 +2,6 @@ package org.folio.consortia.service;
 
 import static org.folio.consortia.support.EntityUtils.CENTRAL_TENANT_ID;
 import static org.folio.consortia.support.EntityUtils.TENANT_ID;
-import static org.folio.consortia.support.EntityUtils.getFolioExecutionContext;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -10,15 +9,13 @@ import static org.mockito.Mockito.when;
 
 import org.folio.consortia.client.UsersKeycloakClient;
 import org.folio.consortia.domain.dto.User;
-import org.folio.consortia.domain.dto.UserIdpLinkingRequest;
+import org.folio.consortia.domain.dto.UsersIdpLinkOperationRequest;
 import org.folio.consortia.service.impl.KeycloakUsersServiceImpl;
 import org.folio.consortia.support.CopilotGenerated;
-import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -32,8 +29,6 @@ class KeycloakUsersServiceTest {
   private UserService userService;
   @Mock
   private UsersKeycloakClient usersKeycloakClient;
-  @Spy
-  private FolioExecutionContext folioExecutionContext = getFolioExecutionContext();
 
   @InjectMocks
   private KeycloakUsersServiceImpl keycloakUsersService;
@@ -42,20 +37,40 @@ class KeycloakUsersServiceTest {
   void testCreateUsersIdpLinks() {
     User user = new User();
     user.setId("userId");
-    when(userService.getPrimaryUsersToLink()).thenReturn(List.of(user));
+    when(userService.getPrimaryUsersToLink(TENANT_ID)).thenReturn(List.of(user));
 
     keycloakUsersService.createUsersIdpLinks(CENTRAL_TENANT_ID, TENANT_ID);
 
-    verify(usersKeycloakClient).createUsersIdpLinks(any(UserIdpLinkingRequest.class));
+    verify(usersKeycloakClient).createUsersIdpLinks(any(UsersIdpLinkOperationRequest.class));
   }
 
   @Test
   void testCreateUsersIdpLinksNoUsersToLink() {
-    when(userService.getPrimaryUsersToLink()).thenReturn(Collections.emptyList());
+    when(userService.getPrimaryUsersToLink(TENANT_ID)).thenReturn(Collections.emptyList());
 
     keycloakUsersService.createUsersIdpLinks(CENTRAL_TENANT_ID, TENANT_ID);
 
-    verify(usersKeycloakClient, never()).createUsersIdpLinks(any(UserIdpLinkingRequest.class));
+    verify(usersKeycloakClient, never()).createUsersIdpLinks(any(UsersIdpLinkOperationRequest.class));
+  }
+
+  @Test
+  void testRemoveUsersIdpLinks() {
+    User user = new User();
+    user.setId("userId");
+    when(userService.getPrimaryUsersToLink(TENANT_ID)).thenReturn(List.of(user));
+
+    keycloakUsersService.removeUsersIdpLinks(CENTRAL_TENANT_ID, TENANT_ID);
+
+    verify(usersKeycloakClient).deleteUsersIdpLinks(any(UsersIdpLinkOperationRequest.class));
+  }
+
+  @Test
+  void testRemoveUsersIdpLinksNoUsersToUnlink() {
+    when(userService.getPrimaryUsersToLink(TENANT_ID)).thenReturn(Collections.emptyList());
+
+    keycloakUsersService.removeUsersIdpLinks(CENTRAL_TENANT_ID, TENANT_ID);
+
+    verify(usersKeycloakClient, never()).deleteUsersIdpLinks(any(UsersIdpLinkOperationRequest.class));
   }
 
 }

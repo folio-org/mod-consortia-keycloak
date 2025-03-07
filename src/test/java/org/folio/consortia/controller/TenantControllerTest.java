@@ -427,7 +427,7 @@ class TenantControllerTest extends BaseIT {
     String tenantId = "diku";
     var centralTenant = createTenantEntity(tenantId);
     centralTenant.setIsCentral(true);
-    var deleteRequest = createTenantDeleteRequest(TenantDeleteRequest.DeleteTypeEnum.SOFT, false);
+    var deleteRequest = createTenantDeleteRequest(TenantDeleteRequest.DeleteTypeEnum.SOFT, false, false);
     var objectMapper = new ObjectMapper();
 
     when(tenantRepository.findById(any())).thenReturn(Optional.of(centralTenant));
