@@ -10,7 +10,7 @@ import org.folio.consortia.support.CopilotGenerated;
 import org.junit.jupiter.api.Test;
 
 @CopilotGenerated
-public class HelperUtilsTest {
+class HelperUtilsTest {
 
   @Test
   void checkIdenticalOrThrow_IdenticalStrings_NoExceptionThrown() {

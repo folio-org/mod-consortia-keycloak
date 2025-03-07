@@ -1,6 +1,8 @@
 package org.folio.consortia.service.impl;
 
 import static one.util.streamex.MoreCollectors.mapping;
+import static org.apache.commons.lang3.BooleanUtils.isNotTrue;
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 import static org.folio.consortia.service.impl.CustomFieldServiceImpl.ORIGINAL_TENANT_ID_CUSTOM_FIELD;
 import static org.folio.consortia.service.impl.CustomFieldServiceImpl.ORIGINAL_TENANT_ID_NAME;
@@ -14,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import one.util.streamex.StreamEx;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.UserTenantsClient;
@@ -126,9 +127,9 @@ public class TenantManagerImpl implements TenantManager {
     cleanupService.clearPublicationTables();
     if (isHardDelete) {
       cleanupService.clearSharingTables(tenantId);
-      if (deleteOptions.getDeleteRelatedShadowUsers()) {
+      if (isTrue(deleteOptions.getDeleteRelatedShadowUsers())) {
         deleteShadowUsersAndUserTenants(consortiumId, tenantId);
-        if (!tenant.getIsCentral()) {
+        if (isNotTrue(tenant.getIsCentral())) {
           // Delete identity provider and user links for member tenant if it is being hard deleted
           var centralTenantId = tenantService.getCentralTenantId();
           keycloakUsersService.removeUsersIdpLinks(centralTenantId, tenantId);
@@ -147,7 +148,7 @@ public class TenantManagerImpl implements TenantManager {
       // For hard delete, delete user_tenants if deleteUsersUserTenants flag is set and tenant is not already soft deleted
       boolean shouldDeleteUserTenantRecord = !isHardDelete || deleteOptions.getDeleteUsersUserTenants() && !tenant.getIsDeleted();
       // Invoke only for member tenants
-      if (!tenant.getIsCentral() && shouldDeleteUserTenantRecord) {
+      if (isNotTrue(tenant.getIsCentral()) && shouldDeleteUserTenantRecord) {
         log.info("delete:: Deleting user-tenants for tenant '{}'", tenantId);
         userTenantsClient.deleteUserTenants();
       }
@@ -253,7 +254,7 @@ public class TenantManagerImpl implements TenantManager {
   }
 
   private void setUpCentralCustomAuthFlow(String centralTenantId, Boolean isCentral) {
-    if (BooleanUtils.isNotTrue(isCentral)) {
+    if (isNotTrue(isCentral)) {
       log.info("setupCustomLogin:: Tenant with id: '{}' is central, skipping custom login setup", centralTenantId);
       return;
     }

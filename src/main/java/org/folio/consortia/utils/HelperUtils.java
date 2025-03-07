@@ -18,7 +18,7 @@ public class HelperUtils {
   }
 
   public static String randomString(Integer noOfString) {
-    RandomStringGenerator generator = new RandomStringGenerator.Builder().withinRange('a', 'z').build();
+    RandomStringGenerator generator = new RandomStringGenerator.Builder().withinRange('a', 'z').get();
     return generator.generate(noOfString);
   }
 
