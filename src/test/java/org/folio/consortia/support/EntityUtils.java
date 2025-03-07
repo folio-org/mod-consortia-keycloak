@@ -19,6 +19,7 @@ import org.folio.consortia.domain.dto.TenantDeleteRequestDeleteOptions;
 import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
 import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserTenant;
+import org.folio.consortia.domain.dto.UserTenantCollection;
 import org.folio.consortia.domain.entity.ConsortiaConfigurationEntity;
 import org.folio.consortia.domain.entity.ConsortiumEntity;
 import org.folio.consortia.domain.entity.PublicationStatusEntity;
@@ -188,12 +189,27 @@ public class EntityUtils {
     return tenant;
   }
 
-  public static TenantDeleteRequest createTenantDeleteRequest(TenantDeleteRequest.DeleteTypeEnum deleteType, boolean deleteUserTenants) {
+  public static TenantDeleteRequest createTenantDeleteRequest(TenantDeleteRequest.DeleteTypeEnum deleteType, boolean deleteUserTenants, boolean deleteRelatedShadowUsers) {
     return new TenantDeleteRequest()
       .deleteType(deleteType)
       .deleteOptions(new TenantDeleteRequestDeleteOptions()
         .deleteUsersUserTenants(deleteUserTenants)
-        .deleteRelatedShadowUsers(false));
+        .deleteRelatedShadowUsers(deleteRelatedShadowUsers));
+  }
+
+  public static UserTenant createUserTenant(String userId, String username, String tenantId) {
+    UserTenant userTenant = new UserTenant();
+    userTenant.setId(UUID.randomUUID());
+    userTenant.setUserId(UUID.fromString(userId));
+    userTenant.setUsername(username);
+    userTenant.setTenantId(tenantId);
+    userTenant.setIsPrimary(false);
+    return userTenant;
+  }
+
+  public static UserTenantCollection createUserTenantCollection(String userId, String username, List<String> tenantIds) {
+    var userTenants =tenantIds.stream().map(tenantId -> createUserTenant(userId, username, tenantId)).toList();
+    return new UserTenantCollection(userTenants, userTenants.size());
   }
 
   public static UserTenant createUserTenant(UUID associationId) {

@@ -37,7 +37,7 @@ class KeycloakUsersServiceTest {
   void testCreateUsersIdpLinks() {
     User user = new User();
     user.setId("userId");
-    when(userService.getPrimaryUsersToLink()).thenReturn(List.of(user));
+    when(userService.getPrimaryUsersToLink(TENANT_ID)).thenReturn(List.of(user));
 
     keycloakUsersService.createUsersIdpLinks(CENTRAL_TENANT_ID, TENANT_ID);
 
@@ -46,11 +46,31 @@ class KeycloakUsersServiceTest {
 
   @Test
   void testCreateUsersIdpLinksNoUsersToLink() {
-    when(userService.getPrimaryUsersToLink()).thenReturn(Collections.emptyList());
+    when(userService.getPrimaryUsersToLink(TENANT_ID)).thenReturn(Collections.emptyList());
 
     keycloakUsersService.createUsersIdpLinks(CENTRAL_TENANT_ID, TENANT_ID);
 
     verify(usersKeycloakClient, never()).createUsersIdpLinks(any(UsersIdpLinkOperationRequest.class));
+  }
+
+  @Test
+  void testRemoveUsersIdpLinks() {
+    User user = new User();
+    user.setId("userId");
+    when(userService.getPrimaryUsersToLink(TENANT_ID)).thenReturn(List.of(user));
+
+    keycloakUsersService.removeUsersIdpLinks(CENTRAL_TENANT_ID, TENANT_ID);
+
+    verify(usersKeycloakClient).deleteUsersIdpLinks(any(UsersIdpLinkOperationRequest.class));
+  }
+
+  @Test
+  void testRemoveUsersIdpLinksNoUsersToUnlink() {
+    when(userService.getPrimaryUsersToLink(TENANT_ID)).thenReturn(Collections.emptyList());
+
+    keycloakUsersService.removeUsersIdpLinks(CENTRAL_TENANT_ID, TENANT_ID);
+
+    verify(usersKeycloakClient, never()).deleteUsersIdpLinks(any(UsersIdpLinkOperationRequest.class));
   }
 
 }
