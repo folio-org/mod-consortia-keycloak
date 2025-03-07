@@ -135,18 +135,21 @@ public class TenantManagerImpl implements TenantManager {
           keycloakService.deleteIdentityProvider(centralTenantId, tenantId);
         }
       }
-      if (deleteOptions.getDeleteUsersUserTenants() && !tenant.getIsDeleted()) {
-        log.info("delete:: Deleting user-tenants for tenant '{}'", tenantId);
-        userTenantsClient.deleteUserTenantsByTenantId(tenantId);
-      }
     }
     tenantService.deleteTenant(tenant, tenantDeleteRequest.getDeleteType());
 
     runInFolioContext(tenantId, folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext, () -> {
-      userTenantsClient.deleteUserTenants();
       if (isHardDelete) {
         log.info("delete:: Deleting configuration for tenant '{}'", tenantId);
         configurationClient.deleteConfiguration();
+      }
+      // Delete user-tenants always for soft delete.
+      // For hard delete, delete user_tenants if deleteUsersUserTenants flag is set and tenant is not already soft deleted
+      boolean shouldDeleteUserTenantRecord = !isHardDelete || deleteOptions.getDeleteUsersUserTenants() && !tenant.getIsDeleted();
+      // Invoke only for member tenants
+      if (!tenant.getIsCentral() && shouldDeleteUserTenantRecord) {
+        log.info("delete:: Deleting user-tenants for tenant '{}'", tenantId);
+        userTenantsClient.deleteUserTenants();
       }
     });
     log.info("delete:: Tenant '{}' in consortium '{}' was successfully deleted", tenantId, consortiumId);
@@ -271,7 +274,7 @@ public class TenantManagerImpl implements TenantManager {
 
   private void deleteShadowUsersAndUserTenants(UUID consortiumId, String tenantId) {
     // 1. Get all user tenant associations for primary users of the tenant
-    StreamEx.of(userService.getPrimaryUsersToLink(tenantId).stream())
+    StreamEx.of(userService.getPrimaryUsersToLink(tenantId))
       .map(user -> userTenantService.getByUserId(consortiumId, UUID.fromString(user.getId()), 0, Integer.MAX_VALUE))
       .flatMap(userTenantCollection -> userTenantCollection.getUserTenants().stream())
       .groupingBy(UserTenant::getTenantId, mapping(userTenant -> userTenant.getUserId().toString()))
