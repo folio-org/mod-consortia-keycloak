@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 @UtilityClass
 @Log4j2
@@ -56,8 +57,21 @@ public class TenantContextUtils {
   }
 
   public static void runInFolioContext(FolioExecutionContext context, Runnable runnable) {
-    try (var fec = new FolioExecutionContextSetter(context)) {
+    try (var ignored = new FolioExecutionContextSetter(context)) {
       runnable.run();
+    }
+  }
+
+  public static void runInFolioContext(String tenantId, FolioModuleMetadata folioModuleMetadata, FolioExecutionContext folioExecutionContext, Runnable runnable) {
+    runInFolioContext(tenantId, folioModuleMetadata, folioExecutionContext, () -> {
+      runnable.run();
+      return null;
+    });
+  }
+
+  public static <R> R runInFolioContext(String tenantId, FolioModuleMetadata folioModuleMetadata, FolioExecutionContext folioExecutionContext, Supplier<R> supplier) {
+    try (var ignored = new FolioExecutionContextSetter(prepareContextForTenant(tenantId, folioModuleMetadata, folioExecutionContext))) {
+      return supplier.get();
     }
   }
 
