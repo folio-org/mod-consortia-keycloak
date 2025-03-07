@@ -98,6 +98,8 @@ class TenantManagerTest {
   @Mock
   private UserService userService;
   @Mock
+  private UserTenantService userTenantService;
+  @Mock
   private ExecutionContextBuilder executionContextBuilder;
   @Mock
   private UserTenantsClient userTenantsClient;
@@ -123,7 +125,7 @@ class TenantManagerTest {
   void setUp() {
     tenantService = new TenantServiceImpl(tenantRepository, userTenantRepository, tenantDetailsRepository, conversionService, consortiumService, folioExecutionContext);
     tenantManager = new TenantManagerImpl(tenantService, keycloakService, keycloakUsersService, consortiumService, consortiaConfigurationClient,
-      syncPrimaryAffiliationService, userService, capabilitiesUserService, customFieldService, cleanupService, lockService, userTenantsClient,
+      syncPrimaryAffiliationService, userService, userTenantService, capabilitiesUserService, customFieldService, cleanupService, lockService, userTenantsClient,
       systemUserScopedExecutionService, executionContextBuilder, folioExecutionContext);
   }
 
