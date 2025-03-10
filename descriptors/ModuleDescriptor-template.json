@@ -235,7 +235,8 @@
             "perms.users.assign.immutable",
             "perms.users.assign.mutable",
             "users.collection.get",
-            "user-tenants.collection.get"
+            "user-tenants.collection.get",
+            "users-keycloak.idp-migrations.post"
           ]
         },
         {
@@ -259,7 +260,10 @@
             "consortia.tenants.item.delete"
           ],
           "modulePermissions": [
-            "consortia.consortia-configuration.item.delete"
+            "consortia.consortia-configuration.item.delete",
+            "users-keycloak.idp-migrations.delete",
+            "users-keycloak.item.delete",
+            "user-tenants.item.delete"
           ]
         },
         {
@@ -311,7 +315,9 @@
           "permissionsRequired": [
             "consortia.identity-provider.item.post"
           ],
-          "modulePermissions": []
+          "modulePermissions": [
+            "users-keycloak.idp-migrations.post"
+          ]
         },
         {
           "methods": [
@@ -321,7 +327,9 @@
           "permissionsRequired": [
             "consortia.identity-provider.item.delete"
           ],
-          "modulePermissions": []
+          "modulePermissions": [
+            "users-keycloak.idp-migrations.delete"
+          ]
         },
         {
           "methods": [

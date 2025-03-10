@@ -1,6 +1,7 @@
 package org.folio.consortia.service.impl;
 
 import static org.folio.consortia.utils.TenantContextUtils.prepareContextForTenant;
+import static org.folio.consortia.utils.TenantContextUtils.runInFolioContext;
 
 import feign.FeignException;
 
@@ -81,6 +82,11 @@ public class UserServiceImpl implements UserService {
   @Override
   public List<User> getPrimaryUsersToLink() {
     return usersClient.getUserCollection(LINKABLE_USER_QUERY, 0, Integer.MAX_VALUE).getUsers();
+  }
+
+  @Override
+  public List<User> getPrimaryUsersToLink(String tenantId) {
+    return runInFolioContext(tenantId, folioModuleMetadata, folioExecutionContext, () -> getPrimaryUsersToLink());
   }
 
   @Override

@@ -1,16 +1,21 @@
 package org.folio.consortia.service.impl;
 
+import static one.util.streamex.MoreCollectors.mapping;
+import static org.apache.commons.lang3.BooleanUtils.isNotTrue;
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 import static org.folio.consortia.service.impl.CustomFieldServiceImpl.ORIGINAL_TENANT_ID_CUSTOM_FIELD;
 import static org.folio.consortia.service.impl.CustomFieldServiceImpl.ORIGINAL_TENANT_ID_NAME;
 import static org.folio.consortia.utils.HelperUtils.checkIdenticalOrThrow;
+import static org.folio.consortia.utils.HelperUtils.createDummyUserTenant;
+import static org.folio.consortia.utils.TenantContextUtils.runInFolioContext;
 
 import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import one.util.streamex.StreamEx;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.UserTenantsClient;
@@ -37,6 +42,7 @@ import org.folio.consortia.service.SyncPrimaryAffiliationService;
 import org.folio.consortia.service.TenantManager;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
+import org.folio.consortia.service.UserTenantService;
 import org.folio.consortia.utils.TenantContextUtils;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.context.ExecutionContextBuilder;
@@ -62,6 +68,7 @@ public class TenantManagerImpl implements TenantManager {
   private final ConsortiaConfigurationClient configurationClient;
   private final SyncPrimaryAffiliationService syncPrimaryAffiliationService;
   private final UserService userService;
+  private final UserTenantService userTenantService;
   private final CapabilitiesUserService capabilitiesUserService;
   private final CustomFieldService customFieldService;
   private final CleanupService cleanupService;
@@ -70,7 +77,6 @@ public class TenantManagerImpl implements TenantManager {
   private final SystemUserScopedExecutionService systemUserScopedExecutionService;
   private final ExecutionContextBuilder contextBuilder;
   private final FolioExecutionContext folioExecutionContext;
-
 
   @Override
   public TenantCollection get(UUID consortiumId, Integer offset, Integer limit) {
@@ -110,44 +116,44 @@ public class TenantManagerImpl implements TenantManager {
   @Transactional
   public void delete(UUID consortiumId, String tenantId, TenantDeleteRequest tenantDeleteRequest) {
     log.info("delete:: Trying to delete tenant '{}' in consortium '{}'", tenantId, consortiumId);
-    consortiumService.checkConsortiumExistsOrThrow(consortiumId);
     var tenant = getTenantById(tenantId);
     var deleteType = tenantDeleteRequest.getDeleteType();
     var deleteOptions = tenantDeleteRequest.getDeleteOptions();
+    var isHardDelete = deleteType.equals(DeleteTypeEnum.HARD); // Delete internal data only if it is a hard delete
 
-    // Delete internal data only if it is a hard delete
-    var isHardDelete = deleteType.equals(DeleteTypeEnum.HARD);
-    // Delete users user-tenants always for soft delete and if deleteUsersUserTenants flag is set for hard delete
-
-    validateTenantForDeleteOperation(tenantDeleteRequest.getDeleteType(), tenant);
+    validateTenantForDeleteOperation(tenantDeleteRequest.getDeleteType(), tenant, consortiumId);
 
     // Clean publish coordinator tables first, because after tenant removal it will be ignored by cleanup service
     cleanupService.clearPublicationTables();
-    // Clean sharing tables or shadow users if needed
     if (isHardDelete) {
       cleanupService.clearSharingTables(tenantId);
-      // Delete identity provider for member tenant if it is being hard deleted
-//      TODO: Disabled temporarily until tested
-//      if (!folioExecutionContext.getTenantId().equals(tenantId)) {
-//        keycloakService.deleteIdentityProvider(folioExecutionContext.getTenantId(), tenantId);
-//      }
+      if (isTrue(deleteOptions.getDeleteRelatedShadowUsers())) {
+        deleteShadowUsersAndUserTenants(consortiumId, tenantId);
+        userTenantsClient.deleteUserTenantsByTenantId(tenantId);
+        if (isNotTrue(tenant.getIsCentral())) {
+          // Delete identity provider and user links for member tenant if it is being hard deleted
+          var centralTenantId = tenantService.getCentralTenantId();
+          keycloakUsersService.removeUsersIdpLinks(centralTenantId, tenantId);
+          keycloakService.deleteIdentityProvider(centralTenantId, tenantId);
+        }
+      }
     }
     tenantService.deleteTenant(tenant, tenantDeleteRequest.getDeleteType());
 
-    var memberTenantContext = TenantContextUtils.prepareContextForTenant(tenantId, folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext);
-    try (var ignored = new FolioExecutionContextSetter(memberTenantContext)) {
+    runInFolioContext(tenantId, folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext, () -> {
       if (isHardDelete) {
         log.info("delete:: Deleting configuration for tenant '{}'", tenantId);
         configurationClient.deleteConfiguration();
       }
       // Delete user-tenants always for soft delete.
-      // For hard delete, delete user-tenants if deleteUsersUserTenants flag is set and tenant is not already soft deleted
-      if (!isHardDelete || deleteOptions.getDeleteUsersUserTenants() && !tenant.getIsDeleted()) {
+      // For hard delete, delete user_tenants if deleteUsersUserTenants flag is set and tenant is not already soft deleted
+      boolean shouldDeleteUserTenantRecord = !isHardDelete || deleteOptions.getDeleteUsersUserTenants() && !tenant.getIsDeleted();
+      // Invoke only for member tenants
+      if (isNotTrue(tenant.getIsCentral()) && shouldDeleteUserTenantRecord) {
         log.info("delete:: Deleting user-tenants for tenant '{}'", tenantId);
         userTenantsClient.deleteUserTenants();
       }
-    }
-
+    });
     log.info("delete:: Tenant '{}' in consortium '{}' was successfully deleted", tenantId, consortiumId);
   }
 
@@ -249,7 +255,7 @@ public class TenantManagerImpl implements TenantManager {
   }
 
   private void setUpCentralCustomAuthFlow(String centralTenantId, Boolean isCentral) {
-    if (BooleanUtils.isNotTrue(isCentral)) {
+    if (isNotTrue(isCentral)) {
       log.info("setupCustomLogin:: Tenant with id: '{}' is central, skipping custom login setup", centralTenantId);
       return;
     }
@@ -268,6 +274,21 @@ public class TenantManagerImpl implements TenantManager {
     return userTenantsClient.getUserTenants().getTotalRecords().equals(0);
   }
 
+  private void deleteShadowUsersAndUserTenants(UUID consortiumId, String tenantId) {
+    // 1. Get all user tenant associations for primary users of the tenant
+    StreamEx.of(userService.getPrimaryUsersToLink(tenantId))
+      .map(user -> userTenantService.getByUserId(consortiumId, UUID.fromString(user.getId()), 0, Integer.MAX_VALUE))
+      // 2. Filter out user tenant associations for other tenants
+      .flatMap(userTenantCollection -> userTenantCollection.getUserTenants().stream()
+        .filter(userTenant -> !userTenant.getTenantId().equals(tenantId)))
+      .groupingBy(UserTenant::getTenantId, mapping(userTenant -> userTenant.getUserId().toString()))
+      // 3. Delete shadow users and user tenants for each remaining tenant
+      .forEach((shadowTenantId, shadowUserIds) ->
+        runInFolioContext(shadowTenantId, folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext, () -> {
+          shadowUserIds.forEach(userService::deleteById);
+        }));
+  }
+
   /**
    * Dummy user will be used to support cross-tenant requests checking in mod-authtoken,
    * if user-tenant table contains some record in institutional tenant - it means mod-consortia enabled for
@@ -278,14 +299,7 @@ public class TenantManagerImpl implements TenantManager {
    * @param consortiumId    consortium id
    */
   private void createUserTenantWithDummyUser(String tenantId, String centralTenantId, UUID consortiumId) {
-    UserTenant userTenant = new UserTenant();
-    userTenant.setId(UUID.randomUUID());
-    userTenant.setTenantId(tenantId);
-    userTenant.setUserId(UUID.randomUUID());
-    userTenant.setUsername(DUMMY_USERNAME);
-    userTenant.setCentralTenantId(centralTenantId);
-    userTenant.setConsortiumId(consortiumId);
-
+    var userTenant = createDummyUserTenant(DUMMY_USERNAME, tenantId, centralTenantId, consortiumId);
     log.info("Creating userTenant with dummy user with id {}.", userTenant.getId());
     userTenantsClient.postUserTenant(userTenant);
   }
@@ -312,7 +326,8 @@ public class TenantManagerImpl implements TenantManager {
   }
 
   // During soft delete central or already deleted tenant cannot proceed
-  private void validateTenantForDeleteOperation(DeleteTypeEnum deleteType, TenantEntity tenant) {
+  private void validateTenantForDeleteOperation(DeleteTypeEnum deleteType, TenantEntity tenant, UUID consortiumId) {
+    consortiumService.checkConsortiumExistsOrThrow(consortiumId);
     if (DeleteTypeEnum.HARD.equals(deleteType)) {
       return;
     }

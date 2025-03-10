@@ -3,12 +3,15 @@ package org.folio.consortia.service;
 import static org.folio.consortia.service.impl.CustomFieldServiceImpl.ORIGINAL_TENANT_ID_CUSTOM_FIELD;
 import static org.folio.consortia.support.EntityUtils.CENTRAL_TENANT_ID;
 import static org.folio.consortia.support.EntityUtils.TENANT_ID;
+import static org.folio.consortia.support.EntityUtils.TENANT_ID_1;
+import static org.folio.consortia.support.EntityUtils.TENANT_ID_2;
 import static org.folio.consortia.support.EntityUtils.createOkapiHeaders;
 import static org.folio.consortia.support.EntityUtils.createTenant;
 import static org.folio.consortia.support.EntityUtils.createTenantDeleteRequest;
 import static org.folio.consortia.support.EntityUtils.createTenantDetailsEntity;
 import static org.folio.consortia.support.EntityUtils.createTenantEntity;
 import static org.folio.consortia.support.EntityUtils.createUser;
+import static org.folio.consortia.support.EntityUtils.createUserTenantCollection;
 import static org.folio.consortia.support.EntityUtils.getFolioExecutionContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -98,6 +101,8 @@ class TenantManagerTest {
   @Mock
   private UserService userService;
   @Mock
+  private UserTenantService userTenantService;
+  @Mock
   private ExecutionContextBuilder executionContextBuilder;
   @Mock
   private UserTenantsClient userTenantsClient;
@@ -123,7 +128,7 @@ class TenantManagerTest {
   void setUp() {
     tenantService = new TenantServiceImpl(tenantRepository, userTenantRepository, tenantDetailsRepository, conversionService, consortiumService, folioExecutionContext);
     tenantManager = new TenantManagerImpl(tenantService, keycloakService, keycloakUsersService, consortiumService, consortiaConfigurationClient,
-      syncPrimaryAffiliationService, userService, capabilitiesUserService, customFieldService, cleanupService, lockService, userTenantsClient,
+      syncPrimaryAffiliationService, userService, userTenantService, capabilitiesUserService, customFieldService, cleanupService, lockService, userTenantsClient,
       systemUserScopedExecutionService, executionContextBuilder, folioExecutionContext);
   }
 
@@ -296,7 +301,7 @@ class TenantManagerTest {
   void testDeleteTenantNonExistent() {
     UUID consortiumId = UUID.randomUUID();
     String tenantId = "123";
-    var deleteRequest = createTenantDeleteRequest(DeleteTypeEnum.SOFT, false);
+    var deleteRequest = createTenantDeleteRequest(DeleteTypeEnum.SOFT, false, false);
 
     // Mock repository method calls
     when(tenantRepository.existsById(tenantId)).thenReturn(false);
@@ -312,7 +317,7 @@ class TenantManagerTest {
     var tenant = createTenantEntity(TENANT_ID);
     var deletingTenant = createTenantEntity(TENANT_ID);
     deletingTenant.setIsDeleted(true);
-    var deleteRequest = createTenantDeleteRequest(DeleteTypeEnum.SOFT, true);
+    var deleteRequest = createTenantDeleteRequest(DeleteTypeEnum.SOFT, true, false);
 
     doNothing().when(consortiumService).checkConsortiumExistsOrThrow(consortiumId);
     doNothing().when(cleanupService).clearPublicationTables();
@@ -338,7 +343,7 @@ class TenantManagerTest {
     tenant.setIsCentral(true);
     var deletingTenant = createTenantEntity(TENANT_ID);
     deletingTenant.setIsDeleted(true);
-    var deleteRequest = createTenantDeleteRequest(DeleteTypeEnum.SOFT, false);
+    var deleteRequest = createTenantDeleteRequest(DeleteTypeEnum.SOFT, false, false);
 
     doNothing().when(consortiumService).checkConsortiumExistsOrThrow(consortiumId);
     when(tenantRepository.findById(tenant.getId())).thenReturn(Optional.of(tenant));
@@ -354,15 +359,29 @@ class TenantManagerTest {
   }
 
   @ParameterizedTest
-  @CsvSource({"true, false", "false, false", "true, true", "false, true"})
-  void testDeleteTenantHard(boolean deleteUserTenants, boolean isCentral) {
+  @CsvSource({"true, true, false", "false, false, false", "true, true, true", "false, false, true"})
+  void testDeleteTenantHard(boolean deleteUserTenants, boolean deleteRelatedShadowUsers, boolean isCentral) {
     UUID consortiumId = UUID.randomUUID();
     var tenant = createTenantEntity(TENANT_ID);
     tenant.setIsCentral(isCentral);
-    var deleteRequest = createTenantDeleteRequest(DeleteTypeEnum.HARD, deleteUserTenants);
+    var deleteRequest = createTenantDeleteRequest(DeleteTypeEnum.HARD, deleteUserTenants, deleteRelatedShadowUsers);
 
-    if (deleteUserTenants) {
+    var users = List.of(createUser("user1"), createUser("user2"), createUser("user3"));
+    when(userService.getPrimaryUsersToLink(TENANT_ID)).thenReturn(users);
+
+    var userTenantIds = List.of(TENANT_ID_1, TENANT_ID_2);
+    users.forEach(user ->
+      when(userTenantService.getByUserId(consortiumId, UUID.fromString(user.getId()), 0, Integer.MAX_VALUE))
+        .thenReturn(createUserTenantCollection(user.getId(), user.getUsername(), userTenantIds)));
+
+    if (deleteUserTenants && !isCentral) {
       doNothing().when(userTenantsClient).deleteUserTenants();
+    }
+    if (deleteRelatedShadowUsers) {
+      when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(createTenantEntity(CENTRAL_TENANT_ID)));
+      doNothing().when(keycloakService).deleteIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+      doNothing().when(keycloakUsersService).removeUsersIdpLinks(CENTRAL_TENANT_ID, TENANT_ID);
+      doNothing().when(userTenantsClient).deleteUserTenantsByTenantId(TENANT_ID);
     }
     doNothing().when(consortiaConfigurationClient).deleteConfiguration();
     doNothing().when(cleanupService).clearSharingTables(TENANT_ID);
@@ -370,7 +389,6 @@ class TenantManagerTest {
     doNothing().when(cleanupService).clearPublicationTables();
     doNothing().when(tenantRepository).delete(tenant);
     doNothing().when(userTenantRepository).deleteUserTenantsByTenantId(TENANT_ID);
-//    doNothing().when(keycloakService).deleteIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
     mockOkapiHeaders();
     when(tenantRepository.findById(tenant.getId())).thenReturn(Optional.of(tenant));
     when(executionContextBuilder.buildContext(anyString())).thenReturn(folioExecutionContext);
@@ -378,9 +396,18 @@ class TenantManagerTest {
 
     tenantManager.delete(consortiumId, TENANT_ID, deleteRequest);
 
-    var verifyTimes = deleteUserTenants ? times(1) : never();
-    verify(userTenantsClient, verifyTimes).deleteUserTenants();
-
+    if (deleteUserTenants && !isCentral) {
+      verify(userTenantsClient).deleteUserTenants();
+    }
+    if (deleteRelatedShadowUsers) {
+      if (!isCentral) {
+        verify(keycloakService).deleteIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+        verify(keycloakUsersService).removeUsersIdpLinks(CENTRAL_TENANT_ID, TENANT_ID);
+      }
+      verify(userTenantsClient).deleteUserTenantsByTenantId(TENANT_ID);
+      verify(userTenantService, times(users.size())).getByUserId(eq(consortiumId), any(), eq(0), eq(Integer.MAX_VALUE));
+      verify(userService, times(users.size() * userTenantIds.size())).deleteById(any());
+    }
     verify(consortiaConfigurationClient).deleteConfiguration();
     verify(cleanupService).clearSharingTables(TENANT_ID);
     verify(consortiumService).checkConsortiumExistsOrThrow(consortiumId);
@@ -388,7 +415,6 @@ class TenantManagerTest {
     verify(cleanupService).clearPublicationTables();
     verify(tenantRepository).delete(tenant);
     verify(userTenantRepository).deleteUserTenantsByTenantId(TENANT_ID);
-//    verify(keycloakService).deleteIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
   }
 
   @Test
