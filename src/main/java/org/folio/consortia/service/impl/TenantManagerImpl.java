@@ -129,6 +129,7 @@ public class TenantManagerImpl implements TenantManager {
       cleanupService.clearSharingTables(tenantId);
       if (isTrue(deleteOptions.getDeleteRelatedShadowUsers())) {
         deleteShadowUsersAndUserTenants(consortiumId, tenantId);
+        userTenantsClient.deleteUserTenantsByTenantId(tenantId);
         if (isNotTrue(tenant.getIsCentral())) {
           // Delete identity provider and user links for member tenant if it is being hard deleted
           var centralTenantId = tenantService.getCentralTenantId();
@@ -277,13 +278,14 @@ public class TenantManagerImpl implements TenantManager {
     // 1. Get all user tenant associations for primary users of the tenant
     StreamEx.of(userService.getPrimaryUsersToLink(tenantId))
       .map(user -> userTenantService.getByUserId(consortiumId, UUID.fromString(user.getId()), 0, Integer.MAX_VALUE))
-      .flatMap(userTenantCollection -> userTenantCollection.getUserTenants().stream())
+      // 2. Filter out user tenant associations for other tenants
+      .flatMap(userTenantCollection -> userTenantCollection.getUserTenants().stream()
+        .filter(userTenant -> !userTenant.getTenantId().equals(tenantId)))
       .groupingBy(UserTenant::getTenantId, mapping(userTenant -> userTenant.getUserId().toString()))
-      // 2. Delete shadow users and user tenants for each tenant
+      // 3. Delete shadow users and user tenants for each remaining tenant
       .forEach((shadowTenantId, shadowUserIds) ->
         runInFolioContext(shadowTenantId, folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext, () -> {
           shadowUserIds.forEach(userService::deleteById);
-          userTenantsClient.deleteUserTenantsByTenantId(shadowTenantId);
         }));
   }
 
