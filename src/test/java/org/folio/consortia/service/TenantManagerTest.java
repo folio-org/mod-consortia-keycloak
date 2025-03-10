@@ -404,9 +404,9 @@ class TenantManagerTest {
         verify(keycloakService).deleteIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
         verify(keycloakUsersService).removeUsersIdpLinks(CENTRAL_TENANT_ID, TENANT_ID);
       }
+      verify(userTenantsClient).deleteUserTenantsByTenantId(TENANT_ID);
       verify(userTenantService, times(users.size())).getByUserId(eq(consortiumId), any(), eq(0), eq(Integer.MAX_VALUE));
       verify(userService, times(users.size() * userTenantIds.size())).deleteById(any());
-      verify(userTenantsClient, times(userTenantIds.size())).deleteUserTenantsByTenantId(any());
     }
     verify(consortiaConfigurationClient).deleteConfiguration();
     verify(cleanupService).clearSharingTables(TENANT_ID);
