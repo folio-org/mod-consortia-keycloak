@@ -1,4 +1,21 @@
-## v1.7.0 - Unreleased
+## 1.8.0 - Unreleased
+
+## 1.7.0 - Released (Sunflower R1 2025)
+The purpose of this release is to implement sharing features and fixing module permissions
+[Full Changelog](https://github.com/folio-org/mod-consortia/compare/v1.6.0...v1.7.0)
+
+### Stories
+* [MODCONSKC-56](https://folio-org.atlassian.net/browse/MODCONSKC-56) - Remove self endpoints invocations
+* [MODCONSKC-57](https://folio-org.atlassian.net/browse/MODCONSKC-57) - Replace approach with using env varibaly for users module for custom-fields integration
+* [MODCONSKC-61](https://folio-org.atlassian.net/browse/MODCONSKC-61) - ECS | Update Member tenant user email value on Central tenant
+* [MODCONSKC-62](https://folio-org.atlassian.net/browse/MODCONSKC-62) - ECS - Improve Tenant Manager CRUD operations based on FSE feedback
+* [MODCONSKC-63(https://folio-org.atlassian.net/browse/MODCONSKC-63) - Create an identity provider in keycloak when adding a tenant to the consortia
+* [MODCONSKC-65](https://folio-org.atlassian.net/browse/MODCONSKC-65) - Custom Authentication Flow Configuration
+* [MODCONSKC-68](https://folio-org.atlassian.net/browse/MODCONSKC-68) - PII in logs cleanup
+* [MODCONSKC-69](https://folio-org.atlassian.net/browse/MODCONSKC-69) - Add support for deleting related module's data for consortia tenant hard delete
+* [MODCONSKC-70](https://folio-org.atlassian.net/browse/MODCONSKC-70) - Create endpoints to add new Keycloak configuration for an existing consortia tenants
+* [FOLIO-4204](https://folio-org.atlassian.net/browse/FOLIO-4204) - Update to mod-consortia Java 21
+
 
 ## 1.6.0 - Released (Ramsons R2 2024)
 The purpose of this release is to implement sharing features and fixing module permissions
