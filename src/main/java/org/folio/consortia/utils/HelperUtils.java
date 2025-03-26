@@ -11,15 +11,17 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class HelperUtils {
 
+  private static final Integer RANDOM_STRING_COUNT = 5;
+
   public static void checkIdenticalOrThrow(String firstString, String secondString, String errorMsg) {
     if (!StringUtils.equals(firstString, secondString)) {
       throw new IllegalArgumentException(errorMsg);
     }
   }
 
-  public static String randomString(Integer noOfString) {
+  public static String generateShadowUsername(String realUsername) {
     RandomStringGenerator generator = new RandomStringGenerator.Builder().withinRange('a', 'z').get();
-    return generator.generate(noOfString);
+    return "%s_%s".formatted(realUsername, generator.generate(RANDOM_STRING_COUNT));
   }
 
   public static UserTenant createDummyUserTenant(String username, String tenantId, String centralTenantId, UUID consortiumId) {

@@ -21,6 +21,7 @@ import org.folio.consortia.service.CapabilitiesUserService;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
 import org.folio.consortia.service.UserTenantService;
+import org.folio.consortia.utils.HelperUtils;
 import org.folio.consortia.utils.TenantContextUtils;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
@@ -151,6 +152,7 @@ public class UserTenantServiceImpl implements UserTenantService {
   @Override
   public void updateUsernameInPrimaryUserTenantAffiliation(UUID userId, String username, String tenantId) {
     userTenantRepository.setUsernameByUserIdAndTenantId(username, userId, tenantId);
+    log.info("updatePrimaryUserAffiliation:: Username in primary affiliation has been updated for the user: {}", userId);
   }
 
   @Override
@@ -214,6 +216,7 @@ public class UserTenantServiceImpl implements UserTenantService {
   public void updateShadowUsersNameAndEmail(UUID userId, String originalTenantId) {
     List<UserTenantEntity> userTenantEntities = userTenantRepository.getByUserIdAndIsPrimaryFalse(userId);
     if (CollectionUtils.isNotEmpty(userTenantEntities)) {
+      String username;
       String firstName;
       String lastName;
       String email;
@@ -221,6 +224,7 @@ public class UserTenantServiceImpl implements UserTenantService {
       try (var ignored = new FolioExecutionContextSetter(
         TenantContextUtils.prepareContextForTenant(originalTenantId, folioModuleMetadata, folioExecutionContext))) {
         User primaryUser = userService.getById(userId);
+        username = primaryUser.getUsername();
         firstName = primaryUser.getPersonal().getFirstName();
         lastName = primaryUser.getPersonal().getLastName();
         email = primaryUser.getPersonal().getEmail();
@@ -231,6 +235,7 @@ public class UserTenantServiceImpl implements UserTenantService {
         try (var ignored = new FolioExecutionContextSetter(
           TenantContextUtils.prepareContextForTenant(tenantId, folioModuleMetadata, folioExecutionContext))) {
           User shadowUser = userService.getById(userId);
+          shadowUser.setUsername(HelperUtils.generateShadowUsername(username));
           shadowUser.getPersonal().setFirstName(firstName);
           shadowUser.getPersonal().setLastName(lastName);
           shadowUser.getPersonal().setEmail(email);
