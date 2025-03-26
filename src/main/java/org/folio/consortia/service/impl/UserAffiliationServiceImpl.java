@@ -12,6 +12,7 @@ import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserEvent;
 import org.folio.consortia.domain.dto.UserType;
 import org.folio.consortia.domain.entity.UserTenantEntity;
+import org.folio.consortia.service.KeycloakUsersService;
 import org.folio.consortia.service.PrimaryAffiliationService;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserAffiliationService;
@@ -35,6 +36,7 @@ public class UserAffiliationServiceImpl implements UserAffiliationService {
   private final UserTenantService userTenantService;
   private final TenantService tenantService;
   private final KafkaService kafkaService;
+  private final KeycloakUsersService keycloakUsersService;
   private final FolioExecutionContext folioExecutionContext;
   private final PrimaryAffiliationService primaryAffiliationService;
   private final ObjectMapper objectMapper = new ObjectMapper();
@@ -105,6 +107,7 @@ public class UserAffiliationServiceImpl implements UserAffiliationService {
 
       if (isUsernameChanged) {
         userTenantService.updateUsernameInPrimaryUserTenantAffiliation(userId, newUsername, userEvent.getTenantId());
+        keycloakUsersService.recreateUserIdpLink(userId.toString(), centralTenantId);
       }
 
       if (isUsernameChanged || Boolean.TRUE.equals(userEvent.getIsPersonalDataChanged())) {

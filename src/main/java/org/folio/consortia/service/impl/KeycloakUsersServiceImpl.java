@@ -1,5 +1,6 @@
 package org.folio.consortia.service.impl;
 
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -32,6 +33,13 @@ public class KeycloakUsersServiceImpl implements KeycloakUsersService {
   public void removeUsersIdpLinks(String centralTenantId, String memberTenantId) {
     log.info("removeUsersIdpLinks:: Removing IDP links for users from original member tenant: '{}' in central tenant: '{}'", memberTenantId, centralTenantId);
     applyUsersIdpLinkOperation(centralTenantId, memberTenantId, usersKeycloakClient::deleteUsersIdpLinks);
+  }
+
+  @Override
+  public void recreateUserIdpLink(String centralTenantId, String userId) {
+    log.info("recreateUserIdpLink:: Recreating IDP link for user: '{}' in central tenant: '{}'", userId, centralTenantId);
+    var request = new UsersIdpLinkOperationRequest().userIds(Set.of(userId)).centralTenantId(centralTenantId);
+    usersKeycloakClient.createUsersIdpLinks(request);
   }
 
   private void applyUsersIdpLinkOperation(String centralTenantId, String memberTenantId, Consumer<UsersIdpLinkOperationRequest> linkOperation) {
