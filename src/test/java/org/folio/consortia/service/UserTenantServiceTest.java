@@ -37,6 +37,7 @@ import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.exception.UserAffiliationException;
 import org.folio.consortia.repository.UserTenantRepository;
 import org.folio.consortia.service.impl.UserTenantServiceImpl;
+import org.folio.consortia.utils.HelperUtils;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.data.OffsetRequest;
@@ -199,6 +200,7 @@ class UserTenantServiceTest {
     shadowUser.getPersonal().setFirstName("notUpdatedLastName");
     shadowUser.getPersonal().setEmail("notUpdatedEmail");
     User updatedShadowUser = createUserEntity(userId);
+    updatedShadowUser.setUsername(HelperUtils.generateShadowUsername(primaryUser.getUsername()));
     UserTenantEntity userTenant = createUserTenantEntity(associationId, userId, "user", "shadowTenantId");
     userTenant.setIsPrimary(false);
 
