@@ -235,7 +235,7 @@ public class UserTenantServiceImpl implements UserTenantService {
         try (var ignored = new FolioExecutionContextSetter(
           TenantContextUtils.prepareContextForTenant(tenantId, folioModuleMetadata, folioExecutionContext))) {
           User shadowUser = userService.getById(userId);
-          shadowUser.setUsername(HelperUtils.generateShadowUsername(username));
+          shadowUser.setUsername(HelperUtils.generateShadowUsernameOrDefault(username, shadowUser.getUsername()));
           shadowUser.getPersonal().setFirstName(firstName);
           shadowUser.getPersonal().setLastName(lastName);
           shadowUser.getPersonal().setEmail(email);

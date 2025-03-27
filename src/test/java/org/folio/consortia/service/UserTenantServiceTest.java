@@ -195,6 +195,7 @@ class UserTenantServiceTest {
     String tenantId = "diku";
     User primaryUser = createUserEntity(userId);
     User shadowUser = createUserEntity(userId);
+    shadowUser.setUsername(HelperUtils.generateShadowUsername(primaryUser.getUsername()));
     shadowUser.getPersonal().setFirstName("notUpdatedFirstName");
     shadowUser.getPersonal().setFirstName("notUpdatedLastName");
     shadowUser.getPersonal().setEmail("notUpdatedEmail");

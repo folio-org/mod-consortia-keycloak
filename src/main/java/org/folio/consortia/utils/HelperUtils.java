@@ -24,6 +24,13 @@ public class HelperUtils {
     return "%s_%s".formatted(realUsername, generator.generate(RANDOM_STRING_COUNT));
   }
 
+  public static String generateShadowUsernameOrDefault(String realUsername, String shadowUsername) {
+    var shadowUsernameOriginal = shadowUsername.substring(0, shadowUsername.length() - RANDOM_STRING_COUNT - 1);
+    return shadowUsernameOriginal.equals(realUsername)
+      ? shadowUsername
+      : generateShadowUsername(realUsername);
+  }
+
   public static UserTenant createDummyUserTenant(String username, String tenantId, String centralTenantId, UUID consortiumId) {
     return new UserTenant()
       .id(UUID.randomUUID())
