@@ -105,14 +105,15 @@ public class UserAffiliationServiceImpl implements UserAffiliationService {
       UserTenantEntity userTenant = userTenantService.getByUserIdAndTenantId(userId, userEvent.getTenantId());
       boolean isUsernameChanged = ObjectUtils.notEqual(userTenant.getUsername(), newUsername);
 
+      if (isUsernameChanged || Boolean.TRUE.equals(userEvent.getIsPersonalDataChanged())) {
+        userTenantService.updateShadowUsersNameAndEmail(getUserId(userEvent), userEvent.getTenantId());
+      }
+
       if (isUsernameChanged) {
         userTenantService.updateUsernameInPrimaryUserTenantAffiliation(userId, newUsername, userEvent.getTenantId());
         keycloakUsersService.recreateUserIdpLink(centralTenantId, userId.toString());
       }
 
-      if (isUsernameChanged || Boolean.TRUE.equals(userEvent.getIsPersonalDataChanged())) {
-        userTenantService.updateShadowUsersNameAndEmail(getUserId(userEvent), userEvent.getTenantId());
-      }
       PrimaryAffiliationEvent affiliationEvent = createPrimaryAffiliationEvent(userEvent, centralTenantId, null);
       String data = objectMapper.writeValueAsString(affiliationEvent);
 

@@ -190,16 +190,17 @@ class UserTenantServiceTest {
   }
 
   @Test
-  void shouldUpdateEmailAndName() {
+  void testUpdateShadowUsersNameAndEmail() {
     UUID userId = USER_ID;
     String tenantId = "diku";
     User primaryUser = createUserEntity(userId);
+    primaryUser.setUsername("testuser");
     User shadowUser = createUserEntity(userId);
     shadowUser.setUsername(HelperUtils.generateShadowUsername(primaryUser.getUsername()));
     shadowUser.getPersonal().setFirstName("notUpdatedFirstName");
     shadowUser.getPersonal().setFirstName("notUpdatedLastName");
     shadowUser.getPersonal().setEmail("notUpdatedEmail");
-    UserTenantEntity userTenant = createUserTenantEntity(UUID.randomUUID(), userId, "user", "shadowTenantId");
+    UserTenantEntity userTenant = createUserTenantEntity(UUID.randomUUID(), userId, primaryUser.getUsername(), "shadowTenantId");
     userTenant.setIsPrimary(false);
 
     // validation part
