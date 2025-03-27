@@ -107,7 +107,7 @@ public class UserAffiliationServiceImpl implements UserAffiliationService {
 
       if (isUsernameChanged) {
         userTenantService.updateUsernameInPrimaryUserTenantAffiliation(userId, newUsername, userEvent.getTenantId());
-        keycloakUsersService.recreateUserIdpLink(userId.toString(), centralTenantId);
+        keycloakUsersService.recreateUserIdpLink(centralTenantId, userId.toString());
       }
 
       if (isUsernameChanged || Boolean.TRUE.equals(userEvent.getIsPersonalDataChanged())) {
