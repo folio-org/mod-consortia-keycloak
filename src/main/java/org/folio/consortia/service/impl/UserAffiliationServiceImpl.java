@@ -12,6 +12,7 @@ import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserEvent;
 import org.folio.consortia.domain.dto.UserType;
 import org.folio.consortia.domain.entity.UserTenantEntity;
+import org.folio.consortia.service.KeycloakUsersService;
 import org.folio.consortia.service.PrimaryAffiliationService;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserAffiliationService;
@@ -35,6 +36,7 @@ public class UserAffiliationServiceImpl implements UserAffiliationService {
   private final UserTenantService userTenantService;
   private final TenantService tenantService;
   private final KafkaService kafkaService;
+  private final KeycloakUsersService keycloakUsersService;
   private final FolioExecutionContext folioExecutionContext;
   private final PrimaryAffiliationService primaryAffiliationService;
   private final ObjectMapper objectMapper = new ObjectMapper();
@@ -103,14 +105,15 @@ public class UserAffiliationServiceImpl implements UserAffiliationService {
       UserTenantEntity userTenant = userTenantService.getByUserIdAndTenantId(userId, userEvent.getTenantId());
       boolean isUsernameChanged = ObjectUtils.notEqual(userTenant.getUsername(), newUsername);
 
-      if (isUsernameChanged) {
-        userTenantService.updateUsernameInPrimaryUserTenantAffiliation(userId, newUsername, userEvent.getTenantId());
-        log.info("updatePrimaryUserAffiliation:: Username in primary affiliation has been updated for the user: {}", userEvent.getUserDto().getId());
-      }
-
-      if (Boolean.TRUE.equals(userEvent.getIsPersonalDataChanged())) {
+      if (isUsernameChanged || Boolean.TRUE.equals(userEvent.getIsPersonalDataChanged())) {
         userTenantService.updateShadowUsersNameAndEmail(getUserId(userEvent), userEvent.getTenantId());
       }
+
+      if (isUsernameChanged) {
+        userTenantService.updateUsernameInPrimaryUserTenantAffiliation(userId, newUsername, userEvent.getTenantId());
+        keycloakUsersService.recreateUserIdpLink(centralTenantId, userId.toString());
+      }
+
       PrimaryAffiliationEvent affiliationEvent = createPrimaryAffiliationEvent(userEvent, centralTenantId, null);
       String data = objectMapper.writeValueAsString(affiliationEvent);
 

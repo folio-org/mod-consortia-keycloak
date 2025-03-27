@@ -1,7 +1,9 @@
 package org.folio.consortia.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.UUID;
 
@@ -24,15 +26,31 @@ class HelperUtilsTest {
   }
 
   @Test
-  void randomString_GeneratesStringOfCorrectLength() {
-    String randomStr = HelperUtils.randomString(10);
-    assertEquals(10, randomStr.length());
+  void generateShadowUsername_GeneratesCorrectString() {
+    String randomStr = HelperUtils.generateShadowUsername("username");
+    assertEquals(14, randomStr.length());
+    assertTrue(randomStr.matches("username_[a-z]{5}"));
   }
 
   @Test
-  void randomString_GeneratesEmptyStringForZeroLength() {
-    String randomStr = HelperUtils.randomString(0);
-    assertEquals(0, randomStr.length());
+  void generateShadowUsernameOrDefault_ShouldReturnExistingShadowUsername() {
+    String realUsername = "username";
+    String existingShadowUsername = "username_abcde";
+
+    String newShadowUsername = HelperUtils.generateShadowUsernameOrDefault(realUsername, existingShadowUsername);
+
+    assertEquals(existingShadowUsername, newShadowUsername);
+  }
+
+  @Test
+  void generateShadowUsernameOrDefault_ShouldGenerateNewShadowUsernameWhenOriginalChanged() {
+    String realUsername = "newusername";
+    String oldShadowUsername = "oldusername_abcde";
+
+    String newShadowUsername = HelperUtils.generateShadowUsernameOrDefault(realUsername, oldShadowUsername);
+
+    assertNotEquals(oldShadowUsername, newShadowUsername);
+    assertTrue(newShadowUsername.matches("newusername_[a-z]{5}"));
   }
 
   @Test
