@@ -193,15 +193,12 @@ class UserTenantServiceTest {
   void shouldUpdateEmailAndName() {
     UUID userId = USER_ID;
     String tenantId = "diku";
-    UUID associationId = UUID.randomUUID();
     User primaryUser = createUserEntity(userId);
     User shadowUser = createUserEntity(userId);
     shadowUser.getPersonal().setFirstName("notUpdatedFirstName");
     shadowUser.getPersonal().setFirstName("notUpdatedLastName");
     shadowUser.getPersonal().setEmail("notUpdatedEmail");
-    User updatedShadowUser = createUserEntity(userId);
-    updatedShadowUser.setUsername(HelperUtils.generateShadowUsername(primaryUser.getUsername()));
-    UserTenantEntity userTenant = createUserTenantEntity(associationId, userId, "user", "shadowTenantId");
+    UserTenantEntity userTenant = createUserTenantEntity(UUID.randomUUID(), userId, "user", "shadowTenantId");
     userTenant.setIsPrimary(false);
 
     // validation part
@@ -211,11 +208,11 @@ class UserTenantServiceTest {
     when(userTenantRepository.getByUserIdAndIsPrimaryFalse(userId)).thenReturn(List.of(userTenant));
     // In first call it return primary User, in second call it return shadow user.
     when(userService.getById(userId)).thenReturn(primaryUser).thenReturn(shadowUser);
-    doNothing().when(userService).updateUser(updatedShadowUser);
+    doNothing().when(userService).updateUser(shadowUser);
     userTenantService.updateShadowUsersNameAndEmail(userId, tenantId);
 
     verify(userService, times(2)).getById(userId);
-    verify(userService, times(1)).updateUser(updatedShadowUser);
+    verify(userService, times(1)).updateUser(shadowUser);
   }
 
   @Test
