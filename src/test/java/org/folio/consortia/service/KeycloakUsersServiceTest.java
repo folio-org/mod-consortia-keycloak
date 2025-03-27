@@ -20,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Collections;
+import java.util.Set;
 
 @ExtendWith(MockitoExtension.class)
 @CopilotGenerated
@@ -71,6 +72,15 @@ class KeycloakUsersServiceTest {
     keycloakUsersService.removeUsersIdpLinks(CENTRAL_TENANT_ID, TENANT_ID);
 
     verify(usersKeycloakClient, never()).deleteUsersIdpLinks(any(UsersIdpLinkOperationRequest.class));
+  }
+
+  @Test
+  void testRecreateUserIdpLink() {
+    var userIdpLinkOperationRequest = new UsersIdpLinkOperationRequest(Set.of("userId"), CENTRAL_TENANT_ID);
+
+    keycloakUsersService.recreateUserIdpLink(CENTRAL_TENANT_ID, "userId");
+
+    verify(usersKeycloakClient).createUsersIdpLinks(userIdpLinkOperationRequest);
   }
 
 }

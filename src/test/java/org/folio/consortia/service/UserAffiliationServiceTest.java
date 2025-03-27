@@ -51,6 +51,8 @@ class UserAffiliationServiceTest {
   @Mock
   KafkaService kafkaService;
   @Mock
+  KeycloakUsersService keycloakUsersService;
+  @Mock
   PrimaryAffiliationService primaryAffiliationService;
   @Mock
   FolioExecutionContext folioExecutionContext;
