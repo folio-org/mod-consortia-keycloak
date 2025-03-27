@@ -38,8 +38,7 @@ public class KeycloakUsersServiceImpl implements KeycloakUsersService {
   @Override
   public void recreateUserIdpLink(String centralTenantId, String userId) {
     log.info("recreateUserIdpLink:: Recreating IDP link for user: '{}' in central tenant: '{}'", userId, centralTenantId);
-    var request = new UsersIdpLinkOperationRequest().userIds(Set.of(userId)).centralTenantId(centralTenantId);
-    usersKeycloakClient.createUsersIdpLinks(request);
+    usersKeycloakClient.createUsersIdpLinks(new UsersIdpLinkOperationRequest(Set.of(userId), centralTenantId));
   }
 
   private void applyUsersIdpLinkOperation(String centralTenantId, String memberTenantId, Consumer<UsersIdpLinkOperationRequest> linkOperation) {
