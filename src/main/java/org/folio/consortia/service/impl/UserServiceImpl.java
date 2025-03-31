@@ -41,7 +41,6 @@ public class UserServiceImpl implements UserService {
   private final UsersClient usersClient;
   private final FolioExecutionContext folioExecutionContext;
   private final FolioModuleMetadata folioModuleMetadata;
-  private static final Integer RANDOM_STRING_COUNT = 5;
   private static final String ORIGINAL_TENANT_ID_REF_ID = "originaltenantid";
 
   @Override
@@ -112,7 +111,7 @@ public class UserServiceImpl implements UserService {
 
       var shadowUser = new User();
       shadowUser.setId(userId.toString());
-      shadowUser.setUsername(String.format("%s_%s", realUser.getUsername(), HelperUtils.randomString(RANDOM_STRING_COUNT)));
+      shadowUser.setUsername(HelperUtils.generateShadowUsername(realUser.getUsername()));
       shadowUser.setType(UserType.SHADOW.getName());
       shadowUser.setActive(true);
 

@@ -18,4 +18,12 @@ public interface KeycloakUsersService {
    */
   void removeUsersIdpLinks(String centralTenantId, String memberTenantId);
 
+  /**
+   * Recreate identity provider link for a user
+   *
+   * @param centralTenantId central tenant id
+   * @param userId user id
+   */
+  void recreateUserIdpLink(String centralTenantId, String userId);
+
 }
