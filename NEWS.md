@@ -1,5 +1,13 @@
 ## 1.8.0 - Unreleased
 
+## 1.7.1 - Released (Sunflower R1 2025 Bug Fix)
+The purpose of this release is to implement the relinking of identity provider links when usernames change.
+Additionally, the shadow user's username is now updated after the real user's username is changed.
+[Full Changelog](https://github.com/folio-org/mod-consortia/compare/v1.7.0...v1.7.1)
+
+### Bug Fixes
+* [MODCONSKC-73](https://folio-org.atlassian.net/browse/MODCONSKC-73) - Implement possibility for user to login with updated username
+
 ## 1.7.0 - Released (Sunflower R1 2025)
 The purpose of this release is to implement sharing features and fixing module permissions
 [Full Changelog](https://github.com/folio-org/mod-consortia/compare/v1.6.0...v1.7.0)
