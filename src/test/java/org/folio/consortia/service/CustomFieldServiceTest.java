@@ -13,6 +13,7 @@ import org.folio.consortia.domain.dto.CustomFieldType;
 import org.folio.consortia.service.impl.CustomFieldServiceImpl;
 import java.util.List;
 
+import org.folio.consortia.support.CopilotGenerated;
 import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -22,9 +23,11 @@ import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.env.Environment;
 
 @SpringBootTest
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
+@CopilotGenerated(partiallyGenerated = true)
 class CustomFieldServiceTest {
 
   @InjectMocks
@@ -35,6 +38,8 @@ class CustomFieldServiceTest {
   ModuleTenantService moduleTenantService;
   @Mock
   FolioExecutionContext folioExecutionContext;
+  @Mock
+  Environment environment;
 
   private static final CustomField ORIGINAL_TENANT_ID_CUSTOM_FIELD = CustomField.builder()
     .name("originalTenantId")
@@ -69,5 +74,19 @@ class CustomFieldServiceTest {
     Assertions.assertEquals("originalTenantId", customFields.getName());
     Mockito.verify(customFieldsClient, times(1)).getByQuery(any(), any());
     Mockito.verify(moduleTenantService, times(1)).getModUsersModuleId();
+  }
+
+  @Test
+  void shouldGetCustomFieldWhenUsingModUsersIdEnvVariable() {
+    CustomFieldCollection customFieldCollection = new CustomFieldCollection();
+    customFieldCollection.setCustomFields(List.of(ORIGINAL_TENANT_ID_CUSTOM_FIELD));
+    customFieldCollection.setTotalRecords(1);
+    when(environment.getProperty("MOD_USERS_MODULE_ID")).thenReturn("USERS");
+    when(customFieldsClient.getByQuery(any(), eq("name==originalTenantId"))).thenReturn(customFieldCollection);
+    var customFields = customFieldService.getCustomFieldByName("originalTenantId");
+
+    Assertions.assertEquals("originalTenantId", customFields.getName());
+    Mockito.verify(customFieldsClient, times(1)).getByQuery(any(), any());
+    Mockito.verify(environment, times(1)).getProperty("MOD_USERS_MODULE_ID");
   }
 }
