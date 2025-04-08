@@ -179,11 +179,14 @@ public class TenantManagerImpl implements TenantManager {
   }
 
   private void createCustomFieldIfNeeded(String tenant) {
-    if (isNotEmpty(customFieldService.getCustomFieldByName(ORIGINAL_TENANT_ID_NAME))) {
-      log.info("createOriginalTenantIdCustomField:: custom-field already available in tenant {} with name {}",
-        tenant, ORIGINAL_TENANT_ID_NAME);
-    } else {
-      customFieldService.createCustomField(ORIGINAL_TENANT_ID_CUSTOM_FIELD);
+    try (var ignored = new FolioExecutionContextSetter(TenantContextUtils.prepareContextForTenant(tenant,
+      folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext))) {
+      if (isNotEmpty(customFieldService.getCustomFieldByName(ORIGINAL_TENANT_ID_NAME))) {
+        log.info("createOriginalTenantIdCustomField:: custom-field already available in tenant {} with name {}",
+          tenant, ORIGINAL_TENANT_ID_NAME);
+      } else {
+        customFieldService.createCustomField(ORIGINAL_TENANT_ID_CUSTOM_FIELD);
+      }
     }
   }
 
