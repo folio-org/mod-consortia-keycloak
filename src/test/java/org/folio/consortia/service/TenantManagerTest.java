@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
@@ -60,7 +59,6 @@ import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.context.ExecutionContextBuilder;
 import org.folio.spring.data.OffsetRequest;
 import org.folio.spring.integration.XOkapiHeaders;
-import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -112,8 +110,7 @@ class TenantManagerTest {
   private CleanupService cleanupService;
   @Mock
   private LockService lockService;
-  @Mock
-  private SystemUserScopedExecutionService systemUserScopedExecutionService;
+
   @Mock
   private CustomFieldService customFieldService;
   @Mock
@@ -128,8 +125,7 @@ class TenantManagerTest {
   void setUp() {
     tenantService = new TenantServiceImpl(tenantRepository, userTenantRepository, tenantDetailsRepository, conversionService, consortiumService, folioExecutionContext);
     tenantManager = new TenantManagerImpl(tenantService, keycloakService, keycloakUsersService, consortiumService, consortiaConfigurationClient,
-      syncPrimaryAffiliationService, userService, userTenantService, capabilitiesUserService, customFieldService, cleanupService, lockService, userTenantsClient,
-      systemUserScopedExecutionService, executionContextBuilder, folioExecutionContext);
+      syncPrimaryAffiliationService, userService, userTenantService, capabilitiesUserService, customFieldService, cleanupService, lockService, userTenantsClient, executionContextBuilder, folioExecutionContext);
   }
 
   @Test
@@ -186,11 +182,6 @@ class TenantManagerTest {
     when(conversionService.convert(localTenantDetailsEntity, Tenant.class)).thenReturn(tenant);
     when(folioExecutionContext.getTenantId()).thenReturn(TENANT_ID);
     when(customFieldService.getCustomFieldByName("originalTenantId")).thenReturn(ORIGINAL_TENANT_ID_CUSTOM_FIELD);
-    when(systemUserScopedExecutionService.executeSystemUserScoped(eq("TestID"), any(Callable.class)))
-      .thenAnswer(invocation -> {
-        Callable<?> action = invocation.getArgument(1);
-        return action.call();
-      });
 
     var tenant1 = tenantManager.save(CONSORTIUM_ID, UUID.fromString(adminUser.getId()), tenant);
 
@@ -200,8 +191,7 @@ class TenantManagerTest {
     verify(userTenantsClient).postUserTenant(any());
     verify(userService, times(1)).createUser(any());
     verify(lockService).lockTenantSetupWithinTransaction();
-    verify(systemUserScopedExecutionService).executeSystemUserScoped(eq("TestID"), any());
-    verify(customFieldService, never()).createCustomField(any());
+    verify(customFieldService).getCustomFieldByName(any());
 
     assertEquals(tenant, tenant1);
   }
@@ -228,11 +218,6 @@ class TenantManagerTest {
     doReturn(folioExecutionContext).when(executionContextBuilder).buildContext(anyString());
     mockOkapiHeaders();
     when(customFieldService.getCustomFieldByName("originalTenantId")).thenReturn(null);
-    when(systemUserScopedExecutionService.executeSystemUserScoped(eq("TestID"), any(Callable.class)))
-      .thenAnswer(invocation -> {
-        Callable<?> action = invocation.getArgument(1);
-        return action.call();
-      });
 
     var tenant1 = tenantManager.save(CONSORTIUM_ID, UUID.randomUUID(), tenant);
 
@@ -243,7 +228,6 @@ class TenantManagerTest {
     verify(userTenantRepository, never()).save(any());
     verify(userTenantsClient, never()).postUserTenant(any());
     verify(userService, never()).createUser(any());
-    verify(systemUserScopedExecutionService).executeSystemUserScoped(eq("TestID"), any());
     verify(customFieldService).createCustomField(ORIGINAL_TENANT_ID_CUSTOM_FIELD);
     verify(capabilitiesUserService, never()).createWithPermissionSetsFromFile(any(), any());
 
@@ -530,11 +514,6 @@ class TenantManagerTest {
     User adminUser = createUser("diku_admin");
 
     when(customFieldService.getCustomFieldByName("originalTenantId")).thenReturn(null);
-    when(systemUserScopedExecutionService.executeSystemUserScoped(eq("TestID"), any(Callable.class)))
-      .thenAnswer(invocation -> {
-        Callable<?> action = invocation.getArgument(1);
-        return action.call();
-      });
     doThrow(new RuntimeException("Error")).when(customFieldService).createCustomField(ORIGINAL_TENANT_ID_CUSTOM_FIELD);
 
     var adminUserId = UUID.fromString(adminUser.getId());
@@ -575,7 +554,7 @@ class TenantManagerTest {
     verify(userService, never()).getById(any());
     verify(userService, never()).createUser(any());
     verify(capabilitiesUserService, never()).createWithPermissionSetsFromFile(any(), any());
-    verify(customFieldService, never()).createCustomField(any());
+    verify(customFieldService).createCustomField(any());
 
     assertEquals(tenant, tenant1);
   }
@@ -600,7 +579,7 @@ class TenantManagerTest {
     var tenant1 = tenantManager.save(CONSORTIUM_ID, UUID.fromString(adminUser.getId()), tenant);
 
     verify(userTenantsClient, never()).postUserTenant(any());
-    verify(customFieldService, never()).createCustomField(any());
+    verify(customFieldService).createCustomField(any());
     verify(keycloakService, never()).createIdentityProvider(any(), any());
 
     assertEquals(tenant, tenant1);

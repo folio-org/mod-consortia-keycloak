@@ -47,7 +47,6 @@ import org.folio.consortia.utils.TenantContextUtils;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.context.ExecutionContextBuilder;
 import org.folio.spring.scope.FolioExecutionContextSetter;
-import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,7 +73,6 @@ public class TenantManagerImpl implements TenantManager {
   private final CleanupService cleanupService;
   private final LockService lockService;
   private final UserTenantsClient userTenantsClient;
-  private final SystemUserScopedExecutionService systemUserScopedExecutionService;
   private final ExecutionContextBuilder contextBuilder;
   private final FolioExecutionContext folioExecutionContext;
 
@@ -181,16 +179,12 @@ public class TenantManagerImpl implements TenantManager {
   }
 
   private void createCustomFieldIfNeeded(String tenant) {
-    systemUserScopedExecutionService.executeSystemUserScoped(tenant, () -> {
-        if (isNotEmpty(customFieldService.getCustomFieldByName(ORIGINAL_TENANT_ID_NAME))) {
-          log.info("createOriginalTenantIdCustomField:: custom-field already available in tenant {} with name {}",
-            tenant, ORIGINAL_TENANT_ID_NAME);
-        } else {
-          customFieldService.createCustomField(ORIGINAL_TENANT_ID_CUSTOM_FIELD);
-        }
-        return null;
-      }
-    );
+    if (isNotEmpty(customFieldService.getCustomFieldByName(ORIGINAL_TENANT_ID_NAME))) {
+      log.info("createOriginalTenantIdCustomField:: custom-field already available in tenant {} with name {}",
+        tenant, ORIGINAL_TENANT_ID_NAME);
+    } else {
+      customFieldService.createCustomField(ORIGINAL_TENANT_ID_CUSTOM_FIELD);
+    }
   }
 
   private Tenant reAddSoftDeletedTenant(UUID consortiumId, TenantEntity existingTenant, Tenant tenantDto) {
