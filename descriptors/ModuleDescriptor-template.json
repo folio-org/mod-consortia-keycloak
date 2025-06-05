@@ -19,10 +19,6 @@
       "version": "1.0"
     },
     {
-      "id": "inventory",
-      "version": "14.0"
-    },
-    {
       "id": "capability-sets",
       "version": "2.0"
     },
@@ -60,6 +56,10 @@
     }
   ],
   "optional": [
+    {
+      "id": "inventory",
+      "version": "14.0"
+    },
     {
       "id": "custom-fields",
       "version": "3.0"
