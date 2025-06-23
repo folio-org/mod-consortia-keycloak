@@ -911,6 +911,12 @@
       "permissionName": "consortia.sharing-roles-capabilities.item.delete",
       "displayName": "delete sharing role capabilities",
       "description": "Delete sharing role capabilities"
+    },
+    {
+      "permissionName": "consortia.data-import.central-record-update.execute",
+      "displayName": "Data Import - update shared record",
+      "description": "Update shared instance and MARC record",
+      "visible": true
     }
   ],
   "metadata": {
