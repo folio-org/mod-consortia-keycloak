@@ -1,5 +1,9 @@
 ## 1.8.0 - Unreleased
 
+### Stories
+* [MODCONSKC-79](https://folio-org.atlassian.net/browse/MODCONSKC-79) - Add permission to restrict update of instance and its MARC on central tenant
+
+
 ## 1.7.0 - Released (Sunflower R1 2025)
 The purpose of this release is to implement sharing features and fixing module permissions
 [Full Changelog](https://github.com/folio-org/mod-consortia/compare/v1.6.0...v1.7.0)
