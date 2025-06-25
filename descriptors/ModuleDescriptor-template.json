@@ -913,21 +913,18 @@
       "description": "Delete sharing role capabilities"
     },
     {
-      "permissionName": "data-import.central-record-two.item.put",
-      "displayName": "Data Import - update shared record",
-      "description": "Update shared instance and MARC record",
-      "visible": true
-    },
-    {
       "permissionName": "consortia.data-import.central-record-update.execute",
       "displayName": "Data Import - update shared record",
       "description": "Update shared instance and MARC record",
       "visible": true
     },
     {
-      "permissionName": "consortia.data-import.central-record.update.execute",
-      "displayName": "Data Import - shared record update",
-      "description": "Update shared instance and MARC record",
+      "permissionName": "consortia.data-import.central-record-update.all",
+      "displayName": "All Data Import shared record update permissions",
+      "description": "All permissions for shared instance and MARC record update",
+      "subPermissions": [
+        "consortia.data-import.central-record-update.execute"
+      ],
       "visible": true
     }
   ],
