@@ -53,6 +53,10 @@
     {
       "id": "users-bl",
       "version": "6.0"
+    },
+    {
+      "id": "okapi",
+      "version": "1.9"
     }
   ],
   "optional": [
