@@ -68,6 +68,9 @@ public class SharingInstanceServiceImpl implements SharingInstanceService {
     String centralTenantId = tenantService.getCentralTenantId();
     String sourceTenantId = sharingInstance.getSourceTenantId();
     String targetTenantId = sharingInstance.getTargetTenantId();
+    if (Objects.isNull(sharingInstance.getId())) {
+      sharingInstance.setId(UUID.randomUUID());
+    }
     checkTenantsExistAndContainCentralTenantOrThrow(sourceTenantId, targetTenantId);
 
     if (Objects.equals(centralTenantId, sourceTenantId)) {
@@ -215,7 +218,7 @@ public class SharingInstanceServiceImpl implements SharingInstanceService {
 
   private SharingInstanceEntity toEntity(SharingInstance dto) {
     SharingInstanceEntity entity = new SharingInstanceEntity();
-    entity.setId(UUID.randomUUID());
+    entity.setId(dto.getId());
     entity.setInstanceId(dto.getInstanceIdentifier());
     entity.setSourceTenantId(dto.getSourceTenantId());
     entity.setTargetTenantId(dto.getTargetTenantId());
