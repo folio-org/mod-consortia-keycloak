@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -102,6 +103,31 @@ class SharingInstanceServiceTest {
   @Test
   void shouldSaveSharingInstanceWhenSourceTenantNotEqualCentralTenant() throws Exception{
     SharingInstance sharingInstance = createSharingInstance(instanceIdentifier, "college", "mobius");
+    SharingInstanceEntity savedSharingInstance = createSharingInstanceEntity(instanceIdentifier, "college", "mobius");
+    String event = objectMapper.writeValueAsString(sharingInstance);
+
+    when(consortiumRepository.existsById(any())).thenReturn(true);
+    when(conversionService.convert(any(), eq(SharingInstance.class))).thenReturn(toDto(savedSharingInstance));
+    doNothing().when(tenantService).checkTenantExistsOrThrow(anyString());
+    when(tenantService.getCentralTenantId()).thenReturn("mobius");
+    when(sharingInstanceRepository.save(any())).thenReturn(savedSharingInstance);
+    when(objectMapper.writeValueAsString(any())).thenReturn(event);
+
+    var expectedSharingInstance = createSharingInstance(instanceIdentifier, "college", "mobius");
+    var actualSharingInstance = sharingInstanceService.start(UUID.randomUUID(), sharingInstance);
+
+    assertThat(actualSharingInstance.getInstanceIdentifier()).isEqualTo(expectedSharingInstance.getInstanceIdentifier());
+    assertThat(actualSharingInstance.getSourceTenantId()).isEqualTo(expectedSharingInstance.getSourceTenantId());
+    assertThat(actualSharingInstance.getTargetTenantId()).isEqualTo(expectedSharingInstance.getTargetTenantId());
+
+    verify(kafkaService, times(1)).send(any(), ArgumentMatchers.eq(sharingInstance.getId().toString()), any());
+    verify(sharingInstanceRepository, times(1)).save(any());
+  }
+
+  @Test
+  void shouldSaveSharingInstanceWhenSourceTenantNotEqualCentralTenantAndKeyIsNull() throws Exception{
+    SharingInstance sharingInstance = createSharingInstance(instanceIdentifier, "college", "mobius");
+    sharingInstance.setId(null);
     SharingInstanceEntity savedSharingInstance = createSharingInstanceEntity(instanceIdentifier, "college", "mobius");
     String event = objectMapper.writeValueAsString(sharingInstance);
 
