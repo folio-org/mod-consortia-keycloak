@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.4.3</version>
+    <version>3.5.4</version>
     <relativePath />
   </parent>
 
@@ -62,29 +62,29 @@
 
     <!--Folio dependencies properties-->
     <folio-module-descriptor-validator.version>1.0.1</folio-module-descriptor-validator.version>
-    <folio-spring-base.version>9.0.0</folio-spring-base.version>
+    <folio-spring-base.version>10.0.0-SNAPSHOT</folio-spring-base.version>
     <folio-service-tools.version>5.0.0</folio-service-tools.version>
-    <applications-poc-tools.version>3.0.0</applications-poc-tools.version>
+    <applications-poc-tools.version>3.0.2</applications-poc-tools.version>
 
     <!-- runtime dependencies -->
-    <openapi-generator.version>7.11.0</openapi-generator.version>
+    <openapi-generator.version>7.14.0</openapi-generator.version>
     <mapstruct.version>1.6.3</mapstruct.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
-    <streamex.version>0.8.3</streamex.version>
+    <streamex.version>0.8.4</streamex.version>
 
     <!-- test dependencies -->
     <wiremock-standalone.version>3.0.1</wiremock-standalone.version>
-    <testcontainers.version>1.20.5</testcontainers.version>
+    <testcontainers.version>1.21.3</testcontainers.version>
     <awaitility.version>4.3.0</awaitility.version>
 
     <!--Maven plugin dependencies-->
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
-    <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
-    <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
+    <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
+    <maven-enforcer-plugin.version>3.6.1</maven-enforcer-plugin.version>
     <copy-rename-maven-plugin.version>1.0.1</copy-rename-maven-plugin.version>
     <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
-    <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
   </properties>
 
   <dependencyManagement>
