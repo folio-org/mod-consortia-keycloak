@@ -10,8 +10,8 @@ import org.folio.consortia.config.keycloak.KeycloakProperties;
 import org.folio.consortia.domain.dto.KeycloakClientCredentials;
 import org.folio.consortia.service.KeycloakCredentialsService;
 import org.folio.tools.store.SecureStore;
-import org.folio.tools.store.exception.NotFoundException;
-import org.springframework.beans.factory.annotation.Value;
+import org.folio.tools.store.exception.SecretNotFoundException;
+import org.folio.tools.store.properties.SecureStoreProperties;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -28,9 +28,7 @@ public class KeycloakCredentialsServiceImpl implements KeycloakCredentialsServic
   private final KeycloakProperties keycloakProperties;
   private final KeycloakLoginClientProperties keycloakClientProperties;
   private final SecureStore secureStore;
-
-  @Value("${folio.environment}")
-  private String folioEnvironment;
+  private final SecureStoreProperties secureStoreProperties;
 
   public KeycloakClientCredentials getClientCredentials(String tenantId, String token) {
     var clientId = tenantId + keycloakClientProperties.getClientNameSuffix();
@@ -59,8 +57,8 @@ public class KeycloakCredentialsServiceImpl implements KeycloakCredentialsServic
   private String getBackendAdminClientSecret(String clientId) {
     try {
       log.info("getBackendAdminClientSecret:: Retrieving backend admin client secret from secure store");
-      return secureStore.get("%s_%s_%s".formatted(folioEnvironment, MASTER_REALM, clientId));
-    } catch (NotFoundException e) {
+      return secureStore.get("%s_%s_%s".formatted(secureStoreProperties.getEnvironment(), MASTER_REALM, clientId));
+    } catch (SecretNotFoundException e) {
       log.error("getBackendAdminClientSecret:: Backend admin client secret not found in secure store for clientId: {}", clientId);
       throw new IllegalStateException("Failed to get value from secure store [clientId: %s]".formatted(clientId), e);
     }
