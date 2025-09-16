@@ -129,6 +129,10 @@ requires and provides, the permissions, and the additional module metadata.
 
 ### Secure storage environment variables
 
+| Name                | Default value | Description                                                                                                                                                    |
+|:--------------------|:--------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| SECURE_STORE_ENV    | folio         | First segment of the secure store key, for example `prod` or `test`. Defaults to `folio`. In Ramsons and Sunflower defaults to ENV with fall-back `folio`.     |
+
 #### AWS-SSM
 
 Required when `SECRET_STORE_TYPE=AWS_SSM`

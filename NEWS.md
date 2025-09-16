@@ -2,7 +2,7 @@
 
 ### Stories
 * [MODCONSKC-79](https://folio-org.atlassian.net/browse/MODCONSKC-79) - Add permission to restrict update of instance and its MARC on central tenant
-
+* [MODCONSKC-86](https://folio-org.atlassian.net/browse/MODCONSKC-86) - Use SECURE_STORE_ENV, not ENV, for secure store key
 
 ## 1.7.0 - Released (Sunflower R1 2025)
 The purpose of this release is to implement sharing features and fixing module permissions
