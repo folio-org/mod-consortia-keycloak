@@ -1,5 +1,11 @@
 ## 1.8.0 - Unreleased
 
+## 1.7.2 - Released (Sunflower R1 2025 Bug Fix)
+### Bug Fixes
+* [MODCONSKC-76](https://folio-org.atlassian.net/browse/MODCONSKC-76) - Use SECURE_STORE_ENV, not ENV, for secure store key
+
+[Full Changelog](https://github.com/folio-org/mod-consortia/compare/v1.7.1...v1.7.2)
+
 ## 1.7.1 - Released (Sunflower R1 2025 Bug Fix)
 The purpose of this release is to implement the relinking of identity provider links when usernames change.
 Additionally, the shadow user's username is now updated after the real user's username is changed.
