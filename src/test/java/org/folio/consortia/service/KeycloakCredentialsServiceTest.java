@@ -11,7 +11,7 @@ import org.folio.consortia.domain.dto.KeycloakTokenResponse;
 import org.folio.consortia.service.impl.KeycloakCredentialsServiceImpl;
 import org.folio.consortia.support.CopilotGenerated;
 import org.folio.tools.store.SecureStore;
-import org.folio.tools.store.exception.SecretNotFoundException;
+import org.folio.tools.store.exception.NotFoundException;
 import org.folio.tools.store.properties.SecureStoreProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -102,7 +102,7 @@ class KeycloakCredentialsServiceTest {
     String clientId = "clientId";
     var secureStoreEnv = "folio";
     when(keycloakProperties.getClientId()).thenReturn(clientId);
-    when(secureStore.get(anyString())).thenThrow(new SecretNotFoundException("Not found"));
+    when(secureStore.get(anyString())).thenThrow(new NotFoundException("Not found"));
     when(secureStoreProperties.getEnvironment()).thenReturn(secureStoreEnv);
 
     assertThrows(IllegalStateException.class, () -> keycloakCredentialsService.getMasterAuthToken());
