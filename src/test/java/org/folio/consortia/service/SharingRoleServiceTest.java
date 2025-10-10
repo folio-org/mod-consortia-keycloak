@@ -44,12 +44,14 @@ import static org.folio.consortia.support.EntityUtils.createPublicationResultCol
 import static org.folio.consortia.support.EntityUtils.createSharingRoleEntity;
 import static org.folio.consortia.support.TestConstants.CONSORTIUM_ID;
 import static org.folio.consortia.utils.InputOutputTestUtils.getMockDataObject;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.mockito.ArgumentCaptor;
 
 @SpringBootTest
 class SharingRoleServiceTest extends BaseSharingConfigServiceTest {
@@ -197,6 +199,31 @@ class SharingRoleServiceTest extends BaseSharingConfigServiceTest {
 
     verify(publicationService, times(1)).publishRequest(any(), any());
     verify(rolesClient).getRolesByQuery(any());
+  }
+
+  @Test
+  void shouldSyncSharingRoleWithSpecialCharacters() {
+    var roleNameWithSpecialChars = "test (duplicate) - 10/10/2025, 10:07:54 AM";
+    var roleIdForTenant1 = UUID.randomUUID();
+    var role = new Role().id(roleIdForTenant1).name(roleNameWithSpecialChars);
+    var roles = new Roles().roles(List.of(role));
+    var expectedSharingRoleEntity = createSharingRoleEntity(roleIdForTenant1, TENANT_ID_1);
+
+    when(systemUserScopedExecutionService.executeSystemUserScoped(eq(TENANT_ID_1), any()))
+      .then(this::callSecondArgument);
+    when(rolesClient.getRolesByQuery(any())).thenReturn(roles);
+    when(roleCapabilitiesClient.getRoleCapabilitiesByRoleId(any())).thenReturn(new Capabilities());
+    when(roleCapabilitySetsClient.getRoleCapabilitySetsRoleId(any())).thenReturn(new CapabilitySets());
+    when(sharingRoleRepository.findByRoleNameAndTenantId(roleNameWithSpecialChars, TENANT_ID_1)).thenReturn(Optional.empty());
+    when(sharingRoleRepository.save(any())).thenReturn(expectedSharingRoleEntity);
+
+    sharingRoleService.syncSharingRoleWithTenant(roleNameWithSpecialChars, TENANT_ID_1);
+
+    ArgumentCaptor<String> cqlQueryCaptor = ArgumentCaptor.forClass(String.class);
+    verify(rolesClient).getRolesByQuery(cqlQueryCaptor.capture());
+
+    String capturedQuery = cqlQueryCaptor.getValue();
+    assertEquals("name==\"test (duplicate) - 10/10/2025, 10:07:54 AM\"", capturedQuery);
   }
 
   @Test

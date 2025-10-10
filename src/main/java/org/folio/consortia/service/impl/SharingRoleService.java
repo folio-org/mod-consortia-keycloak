@@ -29,6 +29,7 @@ import org.folio.consortia.service.PublicationService;
 import org.folio.consortia.service.TenantService;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.service.SystemUserScopedExecutionService;
+import org.folio.util.StringUtil;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
@@ -132,10 +133,10 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
     syncSharingRoleWithTenant(roleName, centralTenantId);
   }
 
-  private void syncSharingRoleWithTenant(String roleName, String tenantId) {
+  public void syncSharingRoleWithTenant(String roleName, String tenantId) {
     systemUserScopedExecutionService.executeSystemUserScoped(tenantId, () -> {
       try {
-        String cqlQuery = String.format("name==%s", roleName);
+        String cqlQuery = String.format("name==%s", StringUtil.cqlEncode(roleName));
         var roles = rolesClient.getRolesByQuery(cqlQuery);
         var roleList = roles.getRoles();
         if (CollectionUtils.isEmpty(roleList)) {
