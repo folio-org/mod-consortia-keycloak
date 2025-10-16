@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
@@ -28,6 +29,7 @@ import org.folio.consortia.repository.PublicationStatusRepository;
 import org.folio.consortia.repository.PublicationTenantRequestRepository;
 import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.HttpRequestService;
+import org.folio.consortia.service.PublicationStorageService;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserTenantService;
 import org.folio.spring.FolioExecutionContext;
@@ -57,6 +59,8 @@ class PublicationServiceImplTest extends BaseUnitTest {
   @Mock
   PublicationStatusRepository publicationStatusRepository;
   @Mock
+  PublicationStorageService publicationStorageService;
+  @Mock
   HttpRequestService httpRequestService;
   @Mock
   ObjectMapper objectMapper;
@@ -83,13 +87,13 @@ class PublicationServiceImplTest extends BaseUnitTest {
     doNothing().when(tenantService).checkTenantsAndConsortiumExistsOrThrow(eq(consortiumId), any());
     when(userTenantService.checkUserIfHasPrimaryAffiliationByUserId(any(), anyString())).thenReturn(true);
     when(folioExecutionContext.getUserId()).thenReturn(UUID.randomUUID());
-    when(publicationStatusRepository.save(any(PublicationStatusEntity.class))).thenReturn(publicationStatusEntity);
+    when(publicationStorageService.savePublicationStatusEntity(any(PublicationStatusEntity.class))).thenReturn(publicationStatusEntity);
     doNothing().when(asyncTaskExecutor).execute(any(Runnable.class));
 
     try (var ignored = new FolioExecutionContextSetter(folioExecutionContext)) {
       var response = publicationService.publishRequest(consortiumId, publicationRequest);
 
-      verify(publicationStatusRepository).save(any(PublicationStatusEntity.class));
+      verify(publicationStorageService).savePublicationStatusEntity(any(PublicationStatusEntity.class));
       verify(asyncTaskExecutor).execute(any(Runnable.class));
 
       Assertions.assertEquals(publicationStatusEntity.getId(), response.getId());
@@ -106,10 +110,11 @@ class PublicationServiceImplTest extends BaseUnitTest {
     ReflectionTestUtils.setField(publicationService, "maxActiveThreads", 1);
     when(objectMapper.writeValueAsString(any())).thenReturn(payload);
     when(publicationTenantRequestRepository.save(any(PublicationTenantRequestEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+    when(publicationStatusRepository.findById(any())).thenReturn(Optional.of(publicationStatusEntity));
     when(httpRequestService.performRequest(anyString(), eq(HttpMethod.POST), any()))
       .thenReturn(new PublicationHttpResponse(payload, HttpStatusCode.valueOf(201)));
 
-    publicationService.processTenantRequests(publicationRequest, publicationStatusEntity);
+    publicationService.processTenantRequests(publicationRequest, publicationStatusEntity.getId());
 
     verify(publicationStatusRepository).save(pseCaptor.capture());
     PublicationStatusEntity capturedStatusEntity = pseCaptor.getValue();
@@ -125,10 +130,11 @@ class PublicationServiceImplTest extends BaseUnitTest {
     ReflectionTestUtils.setField(publicationService, "maxActiveThreads", 1);
     when(objectMapper.writeValueAsString(any())).thenReturn(payload);
     when(publicationTenantRequestRepository.save(any(PublicationTenantRequestEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+    when(publicationStatusRepository.findById(any())).thenReturn(Optional.of(publicationStatusEntity));
     when(httpRequestService.performRequest(anyString(), eq(HttpMethod.POST), any()))
       .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
 
-    publicationService.processTenantRequests(publicationRequest, publicationStatusEntity);
+    publicationService.processTenantRequests(publicationRequest, publicationStatusEntity.getId());
 
     verify(publicationStatusRepository).save(pseCaptor.capture());
     PublicationStatusEntity capturedStatusEntity = pseCaptor.getValue();

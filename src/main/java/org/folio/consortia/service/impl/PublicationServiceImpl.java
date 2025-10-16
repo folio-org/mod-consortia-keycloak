@@ -36,6 +36,7 @@ import org.folio.consortia.repository.PublicationTenantRequestRepository;
 import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.HttpRequestService;
 import org.folio.consortia.service.PublicationService;
+import org.folio.consortia.service.PublicationStorageService;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserTenantService;
 import org.folio.consortia.utils.TenantContextUtils;
@@ -67,6 +68,7 @@ public class PublicationServiceImpl implements PublicationService {
 
   private final PublicationStatusRepository publicationStatusRepository;
   private final PublicationTenantRequestRepository publicationTenantRequestRepository;
+  private final PublicationStorageService publicationStorageService;
   private final ObjectMapper objectMapper;
   private final ConsortiumService consortiumService;
 
@@ -79,14 +81,13 @@ public class PublicationServiceImpl implements PublicationService {
     validatePublicationRequest(consortiumId, publicationRequest, folioExecutionContext);
 
     PublicationStatusEntity createdPublicationEntity = createPublicationStatusEntity(publicationRequest.getTenants().size());
-    var savedPublicationEntity = publicationStatusRepository.save(createdPublicationEntity);
-    log.info("publishRequest:: Publication with id {} and status {} was created",
-      savedPublicationEntity.getId(), savedPublicationEntity.getStatus());
+    var savedEntity = publicationStorageService.savePublicationStatusEntity(createdPublicationEntity);
+    log.info("publishRequest:: Publication with id {} and status {} was created", savedEntity.getId(), savedEntity.getStatus());
 
     asyncTaskExecutor.execute(getRunnableWithCurrentFolioContext(
-      () -> processTenantRequests(publicationRequest, savedPublicationEntity)));
+      () -> processTenantRequests(publicationRequest, savedEntity.getId())));
 
-    return buildPublicationResponse(savedPublicationEntity.getId());
+    return buildPublicationResponse(savedEntity.getId());
   }
 
   @Override
@@ -132,7 +133,9 @@ public class PublicationServiceImpl implements PublicationService {
       .toList();
   }
 
-  void processTenantRequests(PublicationRequest publicationRequest, PublicationStatusEntity createdPublicationEntity) {
+  void processTenantRequests(PublicationRequest publicationRequest, UUID publicationId) {
+    var createdPublicationEntity = publicationStatusRepository.findById(publicationId)
+      .orElseThrow(() -> new ResourceNotFoundException(PUBLICATION_ID_FIELD, publicationId.toString()));
     List<Future<PublicationTenantRequestEntity>> futures = new ArrayList<>();
     ExecutorService executor = Executors.newFixedThreadPool(maxActiveThreads);
 
