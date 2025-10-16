@@ -1,19 +1,26 @@
 package org.folio.consortia.service.impl;
 
 import static org.folio.consortia.utils.InputOutputTestUtils.getMockDataObject;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CompletionException;
+import org.folio.consortia.base.BaseUnitTest;
 import org.folio.consortia.domain.dto.PublicationHttpResponse;
+import org.folio.consortia.domain.dto.PublicationRequest;
+import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.entity.PublicationStatusEntity;
 import org.folio.consortia.domain.entity.PublicationTenantRequestEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
@@ -21,16 +28,10 @@ import org.folio.consortia.repository.PublicationStatusRepository;
 import org.folio.consortia.repository.PublicationTenantRequestRepository;
 import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.HttpRequestService;
-import java.time.LocalDateTime;
-import java.util.UUID;
-import java.util.concurrent.CompletionException;
-
-import org.folio.consortia.domain.dto.PublicationRequest;
-import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserTenantService;
-import org.folio.consortia.base.BaseUnitTest;
 import org.folio.spring.FolioExecutionContext;
+import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -38,15 +39,13 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 class PublicationServiceImplTest extends BaseUnitTest {
   private static final String PUBLICATION_REQUEST_SAMPLE = "mockdata/publications/publication_request.json";
@@ -65,36 +64,81 @@ class PublicationServiceImplTest extends BaseUnitTest {
   ConsortiumService consortiumService;
   @Captor
   ArgumentCaptor<PublicationTenantRequestEntity> ptreCaptor;
+  @Captor
+  ArgumentCaptor<PublicationStatusEntity> pseCaptor;
   @Mock
   private UserTenantService userTenantService;
   @Mock
   private TenantService tenantService;
+  @Mock
+  private TaskExecutor asyncTaskExecutor;
 
   @Test
-  void createTenantRequestEntitiesSuccess() throws JsonProcessingException {
-    ReflectionTestUtils.setField(publicationService, "maxActiveThreads", 5);
-
-    PublicationRequest pr = getMockDataObject(PUBLICATION_REQUEST_SAMPLE, PublicationRequest.class);
+  void publishRequest_shouldSavePublicationStatusAndTriggerAsyncProcess() {
+    var consortiumId = UUID.randomUUID();
+    var publicationRequest = getMockDataObject(PUBLICATION_REQUEST_SAMPLE, PublicationRequest.class);
     var publicationStatusEntity = getMockDataObject(PUBLICATION_STATUS_ENTITY_SAMPLE, PublicationStatusEntity.class);
-    publicationStatusEntity.setCreatedDate(LocalDateTime.now());
+    publicationStatusEntity.setId(UUID.randomUUID());
 
-    when(objectMapper.writeValueAsString(anyString())).thenReturn(RandomStringUtils.random(10));
-    when(publicationTenantRequestRepository.save(any(PublicationTenantRequestEntity.class))).thenReturn(new PublicationTenantRequestEntity());
+    doNothing().when(tenantService).checkTenantsAndConsortiumExistsOrThrow(eq(consortiumId), any());
+    when(userTenantService.checkUserIfHasPrimaryAffiliationByUserId(any(), anyString())).thenReturn(true);
+    when(folioExecutionContext.getUserId()).thenReturn(UUID.randomUUID());
+    when(publicationStatusRepository.save(any(PublicationStatusEntity.class))).thenReturn(publicationStatusEntity);
+    doNothing().when(asyncTaskExecutor).execute(any(Runnable.class));
 
-    publicationService.processTenantRequests(pr, publicationStatusEntity);
+    try (var ignored = new FolioExecutionContextSetter(folioExecutionContext)) {
+      var response = publicationService.publishRequest(consortiumId, publicationRequest);
 
-    verify(publicationTenantRequestRepository, atLeast(pr.getTenants().size())).save(any());
+      verify(publicationStatusRepository).save(any(PublicationStatusEntity.class));
+      verify(asyncTaskExecutor).execute(any(Runnable.class));
+
+      Assertions.assertEquals(publicationStatusEntity.getId(), response.getId());
+      Assertions.assertEquals(PublicationStatus.IN_PROGRESS, response.getStatus());
+    }
+  }
+
+  @Test
+  void processTenantRequests_shouldUpdateStatusToCompleteOnSuccess() throws JsonProcessingException {
+    var publicationRequest = getMockDataObject(PUBLICATION_REQUEST_SAMPLE, PublicationRequest.class);
+    var publicationStatusEntity = getMockDataObject(PUBLICATION_STATUS_ENTITY_SAMPLE, PublicationStatusEntity.class);
+    var payload = "{\"id\":\"123\"}";
+
+    ReflectionTestUtils.setField(publicationService, "maxActiveThreads", 1);
+    when(objectMapper.writeValueAsString(any())).thenReturn(payload);
+    when(publicationTenantRequestRepository.save(any(PublicationTenantRequestEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+    when(httpRequestService.performRequest(anyString(), eq(HttpMethod.POST), any()))
+      .thenReturn(new PublicationHttpResponse(payload, HttpStatusCode.valueOf(201)));
+
+    publicationService.processTenantRequests(publicationRequest, publicationStatusEntity);
+
+    verify(publicationStatusRepository).save(pseCaptor.capture());
+    PublicationStatusEntity capturedStatusEntity = pseCaptor.getValue();
+    assertEquals(PublicationStatus.COMPLETE, capturedStatusEntity.getStatus());
+  }
+
+  @Test
+  void processTenantRequests_shouldUpdateStatusToErrorOnFailure() throws JsonProcessingException {
+    var publicationRequest = getMockDataObject(PUBLICATION_REQUEST_SAMPLE, PublicationRequest.class);
+    var publicationStatusEntity = getMockDataObject(PUBLICATION_STATUS_ENTITY_SAMPLE, PublicationStatusEntity.class);
+    var payload = "{\"id\":\"123\"}";
+
+    ReflectionTestUtils.setField(publicationService, "maxActiveThreads", 1);
+    when(objectMapper.writeValueAsString(any())).thenReturn(payload);
+    when(publicationTenantRequestRepository.save(any(PublicationTenantRequestEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+    when(httpRequestService.performRequest(anyString(), eq(HttpMethod.POST), any()))
+      .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+
+    publicationService.processTenantRequests(publicationRequest, publicationStatusEntity);
+
+    verify(publicationStatusRepository).save(pseCaptor.capture());
+    PublicationStatusEntity capturedStatusEntity = pseCaptor.getValue();
+    assertEquals(PublicationStatus.ERROR, capturedStatusEntity.getStatus());
   }
 
   @Test
   void executeAsyncHttpRequestSuccess() throws JsonProcessingException {
     var pr = getMockDataObject(PUBLICATION_REQUEST_SAMPLE, PublicationRequest.class);
     var payload = objectMapper.writeValueAsString(pr.getPayload());
-    var publicationStatusEntity = getMockDataObject(PUBLICATION_STATUS_ENTITY_SAMPLE, PublicationStatusEntity.class);
-    publicationStatusEntity.setCreatedDate(LocalDateTime.now());
-
-    when(objectMapper.writeValueAsString(anyString())).thenReturn(RandomStringUtils.random(10));
-    when(publicationTenantRequestRepository.save(any(PublicationTenantRequestEntity.class))).thenReturn(new PublicationTenantRequestEntity());
 
     var restTemplateResponse = new PublicationHttpResponse(payload, HttpStatusCode.valueOf(201));
     when(httpRequestService.performRequest(anyString(), eq(HttpMethod.POST), any())).thenReturn(restTemplateResponse);
@@ -105,8 +149,6 @@ class PublicationServiceImplTest extends BaseUnitTest {
   void executeAsyncHttpWithErrorResponse() throws JsonProcessingException {
     var pr = getMockDataObject(PUBLICATION_REQUEST_SAMPLE, PublicationRequest.class);
     var payload = objectMapper.writeValueAsString(pr.getPayload());
-    var publicationStatusEntity = getMockDataObject(PUBLICATION_STATUS_ENTITY_SAMPLE, PublicationStatusEntity.class);
-    publicationStatusEntity.setCreatedDate(LocalDateTime.now());
 
     var restTemplateResponse = new PublicationHttpResponse(payload, HttpStatusCode.valueOf(301));
     when(httpRequestService.performRequest(anyString(), eq(HttpMethod.POST), any())).thenReturn(restTemplateResponse);
@@ -117,8 +159,6 @@ class PublicationServiceImplTest extends BaseUnitTest {
   @Test
   void executeAsyncHttpFailure() {
     var pr = getMockDataObject(PUBLICATION_REQUEST_SAMPLE, PublicationRequest.class);
-    var publicationStatusEntity = getMockDataObject(PUBLICATION_STATUS_ENTITY_SAMPLE, PublicationStatusEntity.class);
-    publicationStatusEntity.setCreatedDate(LocalDateTime.now());
 
     doThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.getReasonPhrase()))
       .when(httpRequestService).performRequest(anyString(), eq(HttpMethod.POST), any());
