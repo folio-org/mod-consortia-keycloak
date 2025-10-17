@@ -241,6 +241,7 @@ public class PublicationControllerTest extends BaseIT {
     when(userTenantService.checkUserIfHasPrimaryAffiliationByUserId(any(UUID.class), any())).thenReturn(true);
     when(publicationStatusRepository.save(any())).thenReturn(publicationStatusEntity);
     when(publicationTenantRequestRepository.save(any())).thenReturn(ptre);
+    when(publicationStatusRepository.findById(any(UUID.class))).thenReturn(Optional.of(publicationStatusEntity));
 
     // prepare a list of different tenants for making publish coordinator tenant requests
     var listOfTenantNames = IntStream.rangeClosed(1, tenantsAmount)
