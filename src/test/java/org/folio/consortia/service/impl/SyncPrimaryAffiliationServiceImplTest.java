@@ -230,4 +230,19 @@ class SyncPrimaryAffiliationServiceImplTest {
     verify(lockService).lockTenantSetupWithinTransaction();
   }
 
+  @Test
+  void syncPrimaryAffiliationsWithNoUsersToSync() {
+    var consortiumId = UUID.randomUUID();
+    var tenantId = "ABC1";
+    var centralTenantId = "diku";
+
+    when(userService.getPrimaryUsersToLink()).thenReturn(List.of());
+    doNothing().when(tenantService).updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.COMPLETED);
+
+    syncPrimaryAffiliationService.syncPrimaryAffiliationsInternal(consortiumId, tenantId, centralTenantId);
+
+    verify(tenantService).updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.COMPLETED);
+    verifyNoInteractions(createPrimaryAffiliationService);
+  }
+
 }
