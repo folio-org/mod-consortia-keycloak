@@ -153,6 +153,9 @@ public class KafkaService {
     if (Objects.nonNull(folioExecutionContext.getUserId())) {
       producerRecord.headers().add(XOkapiHeaders.USER_ID, folioExecutionContext.getUserId().toString().getBytes(StandardCharsets.UTF_8));
     }
+    if (Objects.nonNull(folioExecutionContext.getRequestId())) {
+      producerRecord.headers().add(XOkapiHeaders.REQUEST_ID, folioExecutionContext.getRequestId().getBytes(StandardCharsets.UTF_8));
+    }
     return producerRecord;
   }
 }
