@@ -1,5 +1,13 @@
 ## 1.8.0 - Unreleased
 
+## 1.7.3 - Released (Sunflower R1 2025 Bug Fix)
+### Bug Fixes
+* [MODCONSKC-98](https://folio-org.atlassian.net/browse/MODCONSKC-98) - Sunflower Backport - Tenant is not updated to 'Complete' status when no staff users exist on the tenant
+* [MODCONSKC-97](https://folio-org.atlassian.net/browse/MODCONSKC-97) - Sunflower Backport - Enhance the process of sharing roles containing special characters
+* [MODCONSKC-96](https://folio-org.atlassian.net/browse/MODCONSKC-96) - Sunflower Backport - (ECS) Cannot share a role or save edits to a shared role
+
+[Full Changelog](https://github.com/folio-org/mod-consortia/compare/v1.7.2...v1.7.3)
+
 ## 1.7.2 - Released (Sunflower R1 2025 Bug Fix)
 ### Bug Fixes
 * [MODCONSKC-76](https://folio-org.atlassian.net/browse/MODCONSKC-76) - Use SECURE_STORE_ENV, not ENV, for secure store key
