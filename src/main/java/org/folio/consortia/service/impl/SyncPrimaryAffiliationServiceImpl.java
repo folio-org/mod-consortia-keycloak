@@ -67,6 +67,9 @@ public class SyncPrimaryAffiliationServiceImpl implements SyncPrimaryAffiliation
         tenantService.updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.FAILED);
         throw e;
       }
+    } else {
+      log.info("syncPrimaryAffiliations:: No users to sync for tenant {}, updating status to COMPLETED", tenantId);
+      tenantService.updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.COMPLETED);
     }
   }
 
