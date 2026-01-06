@@ -102,6 +102,7 @@ public class KeycloakServiceImpl implements KeycloakService {
       .displayName(providerDisplayName)
       .providerId(KEYCLOAK_PROVIDER_ID)
       .config(clientConfig)
+      .hideOnLogin(true)
       .build();
 
     keycloakClient.createIdentityProvider(centralTenantId, idp, authToken);

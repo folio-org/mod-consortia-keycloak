@@ -17,6 +17,7 @@ public class KeycloakIdentityProvider {
   private String displayName;
   private String providerId;
   private ClientConfig config;
+  private Boolean hideOnLogin;
 
   @AllArgsConstructor
   @NoArgsConstructor
