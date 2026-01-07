@@ -3,7 +3,9 @@ package org.folio.consortia.service;
 import static org.folio.consortia.service.KeycloakCredentialsServiceTest.createClientCredentials;
 import static org.folio.consortia.support.EntityUtils.CENTRAL_TENANT_ID;
 import static org.folio.consortia.support.EntityUtils.TENANT_ID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -61,6 +63,8 @@ class KeycloakServiceTest {
 
   @Captor
   private ArgumentCaptor<Map<String, String>> mapCaptor;
+  @Captor
+  private ArgumentCaptor<KeycloakIdentityProvider> idpCaptor;
 
   @BeforeEach
   void setUp() {
@@ -80,7 +84,12 @@ class KeycloakServiceTest {
     keycloakService.createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
 
     verify(keycloakClient).getIdentityProvider(CENTRAL_TENANT_ID, alias, AUTH_TOKEN);
-    verify(keycloakClient).createIdentityProvider(eq(CENTRAL_TENANT_ID), any(KeycloakIdentityProvider.class), eq(AUTH_TOKEN));
+    verify(keycloakClient).createIdentityProvider(eq(CENTRAL_TENANT_ID), idpCaptor.capture(), eq(AUTH_TOKEN));
+
+    var capturedIdp = idpCaptor.getValue();
+    assertTrue(capturedIdp.getHideOnLogin());
+    assertEquals(alias, capturedIdp.getAlias());
+    assertEquals("keycloak-oidc", capturedIdp.getProviderId());
   }
 
   @Test
