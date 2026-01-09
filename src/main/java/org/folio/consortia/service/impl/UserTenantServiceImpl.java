@@ -130,7 +130,12 @@ public class UserTenantServiceImpl implements UserTenantService {
     log.info("User affiliation added and user created or activated for user id: {} in the tenant: {}", userTenantDto.getUserId(), userTenantDto.getTenantId());
 
     return converter.convert(userTenantEntity, UserTenant.class);
-}
+  }
+
+  @Override
+  public void save(UUID consortiumId, User user, TenantEntity tenantEntity) {
+    userTenantRepository.save(createUserTenantEntity(user, tenantEntity));
+  }
 
   @Override
   @Transactional
@@ -315,11 +320,6 @@ public class UserTenantServiceImpl implements UserTenantService {
     }
   }
 
-  @Override
-  public boolean userHasPrimaryAffiliationByUsernameAndTenantId(String username, String tenantId) {
-    return userTenantRepository.existsByUsernameAndTenantIdAndIsPrimaryTrue(username, tenantId);
-  }
-
   private UserTenantEntity toEntity(UserTenant userTenantDto, UUID consortiumId, User user) {
     UserTenantEntity entity = new UserTenantEntity();
     TenantEntity tenant = new TenantEntity();
@@ -339,4 +339,13 @@ public class UserTenantServiceImpl implements UserTenantService {
     entity.setIsPrimary(IS_PRIMARY_FALSE);
     return entity;
   }
+
+  private UserTenantEntity createUserTenantEntity(User user, TenantEntity tenantEntity) {
+    return new UserTenantEntity().setId(UUID.randomUUID())
+      .setUserId(UUID.fromString(user.getId()))
+      .setIsPrimary(Boolean.FALSE)
+      .setUsername(user.getUsername())
+      .setTenant(tenantEntity);
+  }
+
 }

@@ -100,7 +100,7 @@ public class TenantServiceImpl implements TenantService {
 
   @Override
   public Tenant saveTenant(UUID consortiumId, Tenant tenantDto) {
-    return saveTenant(toTenantEntity(consortiumId, tenantDto));
+    return saveTenant(getTenantEntity(consortiumId, tenantDto));
   }
 
   @Override
@@ -111,11 +111,6 @@ public class TenantServiceImpl implements TenantService {
     TenantDetailsEntity savedTenant = tenantDetailsRepository.save(entity);
     log.info("saveTenant: Tenant '{}' successfully saved, setupStatus={}", savedTenant.getId(), savedTenant.getSetupStatus());
     return converter.convert(savedTenant, Tenant.class);
-  }
-
-  @Override
-  public void saveUserTenant(UUID consortiumId, User user, Tenant tenant) {
-    userTenantRepository.save(createUserTenantEntity(consortiumId, user, tenant));
   }
 
   @Override
@@ -177,7 +172,8 @@ public class TenantServiceImpl implements TenantService {
     }
   }
 
-  private TenantEntity toTenantEntity(UUID consortiumId, Tenant tenantDto) {
+  @Override
+  public TenantEntity getTenantEntity(UUID consortiumId, Tenant tenantDto) {
     TenantEntity entity = new TenantEntity();
     entity.setId(tenantDto.getId());
     entity.setName(tenantDto.getName());
@@ -198,18 +194,6 @@ public class TenantServiceImpl implements TenantService {
     entity.setSetupStatus(setupStatus);
     entity.setIsDeleted(tenantDto.getIsDeleted());
     return entity;
-  }
-
-  private UserTenantEntity createUserTenantEntity(UUID consortiumId, User user, Tenant tenant) {
-    UserTenantEntity userTenantEntity = new UserTenantEntity();
-    TenantEntity tenantEntity = toTenantEntity(consortiumId, tenant);
-
-    userTenantEntity.setUserId(UUID.fromString(user.getId()));
-    userTenantEntity.setId(UUID.randomUUID());
-    userTenantEntity.setIsPrimary(Boolean.FALSE);
-    userTenantEntity.setUsername(user.getUsername());
-    userTenantEntity.setTenant(tenantEntity);
-    return userTenantEntity;
   }
 
 }

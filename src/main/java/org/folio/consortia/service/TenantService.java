@@ -1,7 +1,6 @@
 package org.folio.consortia.service;
 
 import org.folio.consortia.domain.dto.TenantDeleteRequest;
-import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.exception.ResourceAlreadyExistException;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import java.util.List;
@@ -24,6 +23,15 @@ public interface TenantService {
    * @return tenant collection
    */
   TenantCollection get(UUID consortiumId, Integer offset, Integer limit);
+
+  /**
+   * Converts tenant dto to tenant entity
+   *
+   * @param consortiumId  the consortiumId
+   * @param tenant  the tenant
+   * @return tenant entity
+   */
+  TenantEntity getTenantEntity(UUID consortiumId, Tenant tenant);
 
   /**
    * Gets all tenant collection based on consortiumId.
@@ -58,15 +66,6 @@ public interface TenantService {
    * @return tenantDto
    */
   Tenant saveTenantDetails(UUID consortiumId, Tenant tenantDto, TenantDetails.SetupStatusEnum setupStatus);
-
-  /**
-   * Inserts single user tenant based on consortiumId
-   *
-   * @param consortiumId  the consortiumId
-   * @param user  the user
-   * @param tenantDto  the tenantDto
-   */
-  void saveUserTenant(UUID consortiumId, User user, Tenant tenantDto);
 
   /**
    * Updates tenant's setup status.

@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @Setter
 @ToString
 @RequiredArgsConstructor
+@Accessors(chain = true)
 @Entity
 @Table(name = "user_tenant")
 public class UserTenantEntity extends AuditableEntity {

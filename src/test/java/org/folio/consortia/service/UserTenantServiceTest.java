@@ -1,6 +1,5 @@
 package org.folio.consortia.service;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.folio.consortia.support.EntityUtils.createUserEntity;
 import static org.folio.consortia.support.TestConstants.USER_ID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -525,14 +524,6 @@ class UserTenantServiceTest {
     var result = userTenantService.checkUserIfHasPrimaryAffiliationByUserId(UUID.randomUUID(), String.valueOf(UUID.randomUUID()));
 
     assertTrue(result);
-  }
-
-  @Test
-  void userHasPrimaryAffiliationByUsernameAndTenantId_positive() {
-    when(userTenantRepository.existsByUsernameAndTenantIdAndIsPrimaryTrue(anyString(), anyString())).thenReturn(true);
-
-    var result = userTenantService.userHasPrimaryAffiliationByUsernameAndTenantId("username", "tenantId");
-    assertThat(result).isTrue();
   }
 
   private UserTenantEntity createUserTenantEntity(UUID associationId, UUID userId, String username, String tenantId) {
