@@ -34,6 +34,7 @@ import org.folio.consortia.domain.entity.UserTenantEntity;
 import org.folio.consortia.exception.ConsortiumClientException;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.exception.UserAffiliationException;
+import org.folio.consortia.repository.InactiveUserTenantRepository;
 import org.folio.consortia.repository.UserTenantRepository;
 import org.folio.consortia.service.impl.UserTenantServiceImpl;
 import org.folio.consortia.utils.HelperUtils;
@@ -69,6 +70,8 @@ class UserTenantServiceTest {
   private UserTenantServiceImpl userTenantService;
   @Mock
   private UserTenantRepository userTenantRepository;
+  @Mock
+  private InactiveUserTenantRepository inactiveUserTenantRepository;
   @Mock
   private FolioExecutionContext folioExecutionContext;
   @Mock
