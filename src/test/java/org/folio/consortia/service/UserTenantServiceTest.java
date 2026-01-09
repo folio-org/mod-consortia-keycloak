@@ -13,6 +13,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -310,6 +311,22 @@ class UserTenantServiceTest {
   }
 
   @Test
+  void shouldSaveUserTenantForShadowAdmin() {
+    UUID userId = UUID.randomUUID();
+    User user = createUserEntity(userId);
+    TenantEntity tenantEntity = new TenantEntity();
+    tenantEntity.setId("shadowTenantId");
+
+    when(inactiveUserTenantRepository.findByUserIdAndTenantId(any(), any())).thenReturn(Optional.empty());
+    mockOkapiHeaders();
+
+    assertDoesNotThrow(() -> userTenantService.save(UUID.fromString(CONSORTIUM_ID), user, tenantEntity));
+
+    verify(inactiveUserTenantRepository, never()).delete(any());
+    verify(userTenantRepository).save(any());
+  }
+
+  @Test
   void shouldUpdateUserAndSaveUserTenant() {
     UserTenant tenant = createUserTenantDtoEntity();
     UUID associationId = UUID.randomUUID();
@@ -367,6 +384,20 @@ class UserTenantServiceTest {
   }
 
   @Test
+  void shouldRemoveOrphanedShadowUsersEmptyList() {
+    UUID userId1 = UUID.randomUUID();
+
+    when(userTenantRepository.getOrphansByUserIdAndIsPrimaryFalse(any())).thenReturn(List.of());
+    when(inactiveUserTenantRepository.getOrphansByUserIdAndIsPrimaryFalse(any())).thenReturn(List.of());
+    mockOkapiHeaders();
+
+    assertDoesNotThrow(() -> userTenantService.deleteShadowUsers(userId1));
+    verify(capabilitiesUserService, never()).deleteUserCapabilitiesAndRoles(userId1.toString());
+    verify(userTenantRepository, never()).deleteOrphansByUserIdAndIsPrimaryFalse(any());
+    verify(inactiveUserTenantRepository, never()).deleteOrphansByUserIdAndIsPrimaryFalse(any());
+  }
+
+  @Test
   void shouldDeleteUserTenantByUserIdAndTenantId() {
     UUID userId = UUID.randomUUID();
     String tenantId = "dikue";
@@ -378,13 +409,14 @@ class UserTenantServiceTest {
     when(userService.getById(any())).thenReturn(createNullUserEntity());
     when(userService.prepareShadowUser(any(), any())).thenReturn(createNullUserEntity());
     when(userTenantRepository.findByUserIdAndTenantId(userId, tenantId)).thenReturn(Optional.of(userTenant));
-    when(inactiveUserTenantRepository.findByUserIdAndTenantId(userId, tenantId)).thenReturn(Optional.empty());
+    when(inactiveUserTenantRepository.findByUserIdAndTenantId(userId, tenantId)).thenReturn(Optional.of(inactiveUserTenantEntity));
     doNothing().when(userTenantRepository).deleteByUserIdAndTenantId(userId, tenantId);
     mockOkapiHeaders();
 
     assertDoesNotThrow(() -> userTenantService.deleteByUserIdAndTenantId(UUID.fromString(CONSORTIUM_ID), tenantId, userId));
 
     verify(inactiveUserTenantRepository).findByUserIdAndTenantId(userId, tenantId);
+    verify(inactiveUserTenantRepository).delete(inactiveUserTenantEntity);
     verify(inactiveUserTenantRepository).save(inactiveUserTenantEntity);
   }
 
