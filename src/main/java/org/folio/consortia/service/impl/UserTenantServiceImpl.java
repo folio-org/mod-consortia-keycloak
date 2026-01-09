@@ -203,9 +203,7 @@ public class UserTenantServiceImpl implements UserTenantService {
         UserAffiliationException.AFFILIATION_FROM_CENTRAL_TENANT_CAN_NOT_BE_DELETED, userId, centralTenantId));
     }
 
-    var inactiveUserTenant = InactiveUserTenantEntity.from(userTenantEntity);
-    deleteInactiveUserTenant(inactiveUserTenant.getUserId(), inactiveUserTenant.getTenant().getId());
-    inactiveUserTenantRepository.save(inactiveUserTenant);
+    inactiveUserTenantRepository.save(InactiveUserTenantEntity.from(userTenantEntity));
     log.info("Moved user affiliation to inactive table for user id: {} in the tenant: {}", userId.toString(), tenantId);
 
     userTenantRepository.deleteByUserIdAndTenantId(userId, tenantId);
