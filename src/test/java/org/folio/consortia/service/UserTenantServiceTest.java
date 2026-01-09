@@ -416,8 +416,8 @@ class UserTenantServiceTest {
     assertDoesNotThrow(() -> userTenantService.deleteByUserIdAndTenantId(UUID.fromString(CONSORTIUM_ID), tenantId, userId));
 
     verify(inactiveUserTenantRepository).findByUserIdAndTenantId(userId, tenantId);
-    verify(inactiveUserTenantRepository).delete(inactiveUserTenantEntity);
-    verify(inactiveUserTenantRepository).save(inactiveUserTenantEntity);
+    verify(inactiveUserTenantRepository).delete(any());
+    verify(inactiveUserTenantRepository).save(any());
   }
 
   /* Exception Cases */

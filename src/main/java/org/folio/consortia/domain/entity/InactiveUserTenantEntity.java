@@ -7,11 +7,11 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "inactive_user_tenant")
-public class InactiveUserTenantEntity extends UserTenantEntity {
+public class InactiveUserTenantEntity extends BaseUserTenantEntity {
   // Empty entity that simply maps to a different table
   // Inherits all fields and behavior from UserTenantEntity
 
-  public static InactiveUserTenantEntity from(UserTenantEntity userTenantEntity) {
+  public static InactiveUserTenantEntity from(BaseUserTenantEntity userTenantEntity) {
     return (InactiveUserTenantEntity) new InactiveUserTenantEntity()
       .setId(UUID.randomUUID())
       .setUserId(userTenantEntity.getUserId())

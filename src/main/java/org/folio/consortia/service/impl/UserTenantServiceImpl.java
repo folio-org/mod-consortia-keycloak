@@ -377,7 +377,8 @@ public class UserTenantServiceImpl implements UserTenantService {
   }
 
   private UserTenantEntity createUserTenantEntity(User user, TenantEntity tenantEntity) {
-    return new UserTenantEntity().setId(UUID.randomUUID())
+    return (UserTenantEntity) new UserTenantEntity()
+      .setId(UUID.randomUUID())
       .setUserId(UUID.fromString(user.getId()))
       .setIsPrimary(Boolean.FALSE)
       .setUsername(user.getUsername())
