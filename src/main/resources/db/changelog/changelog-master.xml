@@ -18,4 +18,5 @@
   <include file="changes/migrate-tenant-data-from-mod-consortia.xml" relativeToChangelogFile="true"/>
   <include file="changes/migrate-user-tenant-data-from-mod-consortia.xml" relativeToChangelogFile="true"/>
   <include file="changes/migrate-safely-data-from-mod-consortia.xml" relativeToChangelogFile="true"/>
+  <include file="changes/create-inactive-user-tenant-table.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

@@ -1,0 +1,44 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
+
+  <changeSet id="MODUSERSKC-124@@create-inactive-user-tenant-table" author="saba_zedginidze">
+
+    <createTable tableName="inactive_user_tenant">
+      <column name="id" type="uuid">
+        <constraints primaryKey="true" primaryKeyName="pk_inactive_user_tenant_id"/>
+      </column>
+      <column name="user_id" type="uuid">
+        <constraints unique="false" nullable="false"/>
+      </column>
+      <column name="username" type="text">
+        <constraints unique="false" nullable="false"/>
+      </column>
+      <column name="tenant_id" type="text">
+        <constraints unique="false" nullable="false"
+                     foreignKeyName="fk_inactive_user_tenant_id" referencedTableName="tenant" referencedColumnNames="id" />
+      </column>
+      <column name="is_primary" type="boolean" defaultValueBoolean="false">
+        <constraints unique="false" nullable="false"/>
+      </column>
+      <column name="created_by" type="uuid"/>
+      <column name="created_date" type="timestamp without time zone" defaultValueComputed="now()">
+        <constraints nullable="false"/>
+      </column>
+      <column name="updated_by" type="uuid"/>
+      <column name="updated_date" type="timestamp without time zone"/>
+    </createTable>
+
+    <createIndex indexName="inactive_user_id_idx" tableName="inactive_user_tenant">
+      <column name="user_id"/>
+    </createIndex>
+    <createIndex indexName="inactive_user_id_tenant_id_idx" unique="true" tableName="inactive_user_tenant">
+      <column name="user_id"/>
+      <column name="tenant_id"/>
+    </createIndex>
+
+  </changeSet>
+</databaseChangeLog>
+

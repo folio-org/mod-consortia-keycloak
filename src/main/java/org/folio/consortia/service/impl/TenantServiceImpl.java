@@ -10,14 +10,13 @@ import org.folio.consortia.domain.dto.TenantCollection;
 import org.folio.consortia.domain.dto.TenantDeleteRequest;
 import org.folio.consortia.domain.dto.TenantDetails;
 import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
-import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.entity.TenantDetailsEntity;
 import org.folio.consortia.domain.entity.TenantEntity;
-import org.folio.consortia.domain.entity.UserTenantEntity;
 import org.folio.consortia.exception.ResourceAlreadyExistException;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.TenantDetailsRepository;
 import org.folio.consortia.repository.TenantRepository;
+import org.folio.consortia.repository.InactiveUserTenantRepository;
 import org.folio.consortia.repository.UserTenantRepository;
 import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.TenantService;
@@ -38,6 +37,7 @@ public class TenantServiceImpl implements TenantService {
 
   private final TenantRepository tenantRepository;
   private final UserTenantRepository userTenantRepository;
+  private final InactiveUserTenantRepository inactiveUserTenantRepository;
   private final TenantDetailsRepository tenantDetailsRepository;
   private final ConversionService converter;
   private final ConsortiumService consortiumService;
@@ -162,6 +162,7 @@ public class TenantServiceImpl implements TenantService {
       case HARD -> {
         log.info("deleteTenant:: Hard deleting tenant with id={}", tenant.getId());
         userTenantRepository.deleteUserTenantsByTenantId(tenant.getId());
+        inactiveUserTenantRepository.deleteInactiveUserTenantsByTenantId(tenant.getId());
         tenantRepository.delete(tenant);
       }
       case SOFT -> {
