@@ -11,7 +11,6 @@ public class InactiveUserTenantEntity extends UserTenantEntity {
 
   public static InactiveUserTenantEntity from(UserTenantEntity userTenantEntity) {
     return (InactiveUserTenantEntity) new InactiveUserTenantEntity()
-      .setId(userTenantEntity.getId())
       .setUserId(userTenantEntity.getUserId())
       .setUsername(userTenantEntity.getUsername())
       .setTenant(userTenantEntity.getTenant())
