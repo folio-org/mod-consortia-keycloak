@@ -321,22 +321,31 @@ public class UserTenantServiceImpl implements UserTenantService {
   @Override
   public void deleteShadowUsers(UUID userId) {
     List<UserTenantEntity> userTenantEntities = userTenantRepository.getOrphansByUserIdAndIsPrimaryFalse(userId);
-    if (CollectionUtils.isNotEmpty(userTenantEntities)) {
-      List<String> tenantIds = userTenantEntities.stream().map(userTenantEntity -> userTenantEntity.getTenant().getId()).toList();
+    List<UserTenantEntity> inactiveUserTenantEntities = inactiveUserTenantRepository.getOrphansByUserIdAndIsPrimaryFalse(userId);
 
-      log.info("Removing orphaned shadow users from all tenants exist in consortia for the user: {}", userId);
-      tenantIds.forEach(tenantId -> {
-        try (var ignored = new FolioExecutionContextSetter(prepareContextForTenant(tenantId, folioModuleMetadata, folioExecutionContext))) {
-          userService.deleteById(userId.toString());
-          log.info("Trying to delete permission user for userId={}", userId.toString());
-          capabilitiesUserService.deleteUserCapabilitiesAndRoles(userId.toString());
-          log.info("Removed shadow user: {} from tenant : {}", userId, tenantId);
-        }
-      });
-
-      userTenantRepository.deleteOrphansByUserIdAndIsPrimaryFalse(userId);
-      inactiveUserTenantRepository.deleteOrphansByUserIdAndIsPrimaryFalse(userId);
+    if (CollectionUtils.isEmpty(userTenantEntities) && CollectionUtils.isEmpty(inactiveUserTenantEntities)) {
+      log.info("No orphaned shadow users found for user: {}", userId);
+      return;
     }
+
+    List<String> tenantIds = StreamEx.of(userTenantEntities).append(inactiveUserTenantEntities)
+      .map(UserTenantEntity::getTenant)
+      .map(TenantEntity::getId)
+      .toList();
+
+    log.info("Removing orphaned shadow users from all tenants exist in consortia for the user: {}", userId);
+    tenantIds.forEach(tenantId -> {
+      try (var ignored = new FolioExecutionContextSetter(prepareContextForTenant(tenantId, folioModuleMetadata, folioExecutionContext))) {
+        userService.deleteById(userId.toString());
+        log.info("Trying to delete permission user for userId={}", userId.toString());
+        capabilitiesUserService.deleteUserCapabilitiesAndRoles(userId.toString());
+        log.info("Removed shadow user: {} from tenant : {}", userId, tenantId);
+      }
+    });
+
+    userTenantRepository.deleteOrphansByUserIdAndIsPrimaryFalse(userId);
+    inactiveUserTenantRepository.deleteOrphansByUserIdAndIsPrimaryFalse(userId);
+
   }
 
   private void deleteInactiveUserTenant(UUID userId, String tenantId) {

@@ -20,6 +20,9 @@ public interface InactiveUserTenantRepository extends JpaRepository<InactiveUser
   @Query("SELECT iut FROM InactiveUserTenantEntity iut WHERE iut.userId= ?1 AND iut.isPrimary= false")
   List<UserTenantEntity> getByUserIdAndIsPrimaryFalse(UUID userId);
 
+  @Query("SELECT iut FROM InactiveUserTenantEntity iut WHERE iut.userId NOT IN (SELECT ut.userId FROM UserTenantEntity ut WHERE ut.userId= ?1 AND ut.isPrimary=true) AND iut.userId= ?1")
+  List<UserTenantEntity> getOrphansByUserIdAndIsPrimaryFalse(UUID userId);
+
   @Modifying
   @Query("DELETE FROM InactiveUserTenantEntity iut WHERE iut.userId NOT IN (SELECT ut.userId FROM UserTenantEntity ut WHERE ut.userId= ?1 AND ut.isPrimary=true) AND iut.userId= ?1")
   void deleteOrphansByUserIdAndIsPrimaryFalse(UUID userId);

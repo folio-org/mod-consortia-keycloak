@@ -29,6 +29,7 @@ import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserEvent;
 import org.folio.consortia.domain.dto.UserTenant;
 import org.folio.consortia.domain.dto.UserTenantCollection;
+import org.folio.consortia.domain.entity.InactiveUserTenantEntity;
 import org.folio.consortia.domain.entity.TenantEntity;
 import org.folio.consortia.domain.entity.UserTenantEntity;
 import org.folio.consortia.exception.ConsortiumClientException;
@@ -355,11 +356,14 @@ class UserTenantServiceTest {
     userTenant1.setIsPrimary(false);
     userTenant2.setIsPrimary(false);
     userTenant3.setIsPrimary(false);
-    when(userTenantRepository.getOrphansByUserIdAndIsPrimaryFalse(any())).thenReturn(List.of(userTenant1, userTenant2, userTenant3));
+    when(userTenantRepository.getOrphansByUserIdAndIsPrimaryFalse(any())).thenReturn(List.of(userTenant1, userTenant2));
+    when(inactiveUserTenantRepository.getOrphansByUserIdAndIsPrimaryFalse(any())).thenReturn(List.of(userTenant3));
     mockOkapiHeaders();
 
     assertDoesNotThrow(() -> userTenantService.deleteShadowUsers(userId1));
     verify(capabilitiesUserService, times(3)).deleteUserCapabilitiesAndRoles(userId1.toString());
+    verify(userTenantRepository).deleteOrphansByUserIdAndIsPrimaryFalse(any());
+    verify(inactiveUserTenantRepository).deleteOrphansByUserIdAndIsPrimaryFalse(any());
   }
 
   @Test
@@ -369,14 +373,19 @@ class UserTenantServiceTest {
     UUID associationId = UUID.randomUUID();
     UserTenantEntity userTenant = createUserTenantEntity(associationId, userId, "user", tenantId);
     userTenant.setIsPrimary(false);
+    InactiveUserTenantEntity inactiveUserTenantEntity = InactiveUserTenantEntity.from(userTenant);
 
     when(userService.getById(any())).thenReturn(createNullUserEntity());
     when(userService.prepareShadowUser(any(), any())).thenReturn(createNullUserEntity());
     when(userTenantRepository.findByUserIdAndTenantId(userId, tenantId)).thenReturn(Optional.of(userTenant));
+    when(inactiveUserTenantRepository.findByUserIdAndTenantId(userId, tenantId)).thenReturn(Optional.empty());
     doNothing().when(userTenantRepository).deleteByUserIdAndTenantId(userId, tenantId);
     mockOkapiHeaders();
 
     assertDoesNotThrow(() -> userTenantService.deleteByUserIdAndTenantId(UUID.fromString(CONSORTIUM_ID), tenantId, userId));
+
+    verify(inactiveUserTenantRepository).findByUserIdAndTenantId(userId, tenantId);
+    verify(inactiveUserTenantRepository).save(inactiveUserTenantEntity);
   }
 
   /* Exception Cases */
