@@ -51,6 +51,7 @@ import org.folio.consortia.domain.entity.TenantEntity;
 import org.folio.consortia.domain.entity.UserTenantEntity;
 import org.folio.consortia.exception.ResourceAlreadyExistException;
 import org.folio.consortia.exception.ResourceNotFoundException;
+import org.folio.consortia.repository.InactiveUserTenantRepository;
 import org.folio.consortia.repository.TenantDetailsRepository;
 import org.folio.consortia.repository.TenantRepository;
 import org.folio.consortia.repository.UserTenantRepository;
@@ -89,6 +90,8 @@ class TenantManagerTest {
   @Mock
   private UserTenantRepository userTenantRepository;
   @Mock
+  private InactiveUserTenantRepository inactiveUserTenantRepository;
+  @Mock
   private ConversionService conversionService;
   @Mock
   private ConsortiumService consortiumService;
@@ -126,7 +129,7 @@ class TenantManagerTest {
 
   @BeforeEach
   void setUp() {
-    tenantService = new TenantServiceImpl(tenantRepository, userTenantRepository, tenantDetailsRepository, conversionService, consortiumService, folioExecutionContext);
+    tenantService = new TenantServiceImpl(tenantRepository, userTenantRepository, inactiveUserTenantRepository, tenantDetailsRepository, conversionService, consortiumService, folioExecutionContext);
     tenantManager = new TenantManagerImpl(tenantService, keycloakService, keycloakUsersService, consortiumService, consortiaConfigurationClient,
       syncPrimaryAffiliationService, userService, userTenantService, capabilitiesUserService, customFieldService, cleanupService, lockService, userTenantsClient,
       systemUserScopedExecutionService, executionContextBuilder, folioExecutionContext);
@@ -195,7 +198,7 @@ class TenantManagerTest {
     var tenant1 = tenantManager.save(CONSORTIUM_ID, UUID.fromString(adminUser.getId()), tenant);
 
     verify(userService, times(1)).prepareShadowUser(UUID.fromString(adminUser.getId()), "diku");
-    verify(userTenantRepository, times(1)).save(any());
+    verify(userTenantService, times(1)).save(any(), any(), any());
     verify(consortiaConfigurationClient).saveConfiguration(any());
     verify(userTenantsClient).postUserTenant(any());
     verify(userService, times(1)).createUser(any());
@@ -567,7 +570,7 @@ class TenantManagerTest {
     var tenant1 = tenantManager.save(CONSORTIUM_ID, UUID.fromString(adminUser.getId()), tenant);
 
     verify(userService, times(1)).prepareShadowUser(UUID.fromString(adminUser.getId()), "diku");
-    verify(userTenantRepository, times(1)).save(any());
+    verify(userTenantService, times(1)).save(any(), any(), any());
     verify(consortiaConfigurationClient).saveConfiguration(any());
     verify(lockService).lockTenantSetupWithinTransaction();
     verify(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);

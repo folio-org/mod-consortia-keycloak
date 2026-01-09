@@ -230,7 +230,8 @@ public class TenantManagerImpl implements TenantManager {
       checkAdminUserIdPresentOrThrow(adminUserId);
       centralTenantId = tenantService.getCentralTenantId();
       shadowAdminUser = userService.prepareShadowUser(adminUserId, folioExecutionContext.getTenantId());
-      tenantService.saveUserTenant(consortiumId, shadowAdminUser, tenantDto);
+      var tenantEntity = tenantService.getTenantEntity(consortiumId, tenantDto);
+      userTenantService.save(consortiumId, shadowAdminUser, tenantEntity);
       createIdentityProvider(tenantDto.getId(), new IdentityProviderCreateRequest(true, true));
     }
 

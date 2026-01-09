@@ -1,6 +1,7 @@
 package org.folio.consortia.service;
 
 import java.util.UUID;
+import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserTenant;
 import org.folio.consortia.domain.dto.UserTenantCollection;
 import org.folio.consortia.domain.entity.TenantEntity;
@@ -82,6 +83,15 @@ public interface UserTenantService {
   UserTenant save(UUID consortiumId, UserTenant userTenantDto, boolean isSystemUserContextRequired);
 
   /**
+   * Inserts single user tenant based on consortiumId
+   *
+   * @param consortiumId  the consortiumId
+   * @param user  the user
+   * @param tenantEntity  the tenant entity
+   */
+  void save(UUID consortiumId, User user, TenantEntity tenantEntity);
+
+  /**
    * Inserts single user_tenant based on kafka userEventDto.
    *
    * @param consortiumId    the consortiumId
@@ -140,11 +150,4 @@ public interface UserTenantService {
    */
   void deleteShadowUsers(UUID userId);
 
-  /**
-   * Check if user has primary affiliation.
-   *
-   * @param username the username
-   * @param tenantId the tenant id
-   */
-  boolean userHasPrimaryAffiliationByUsernameAndTenantId(String username, String tenantId);
 }
