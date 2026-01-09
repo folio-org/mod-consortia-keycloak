@@ -364,12 +364,13 @@ class UserTenantServiceTest {
   @Test
   void shouldRemoveAllOrphanedShadowUsers() {
     UUID associationId = UUID.randomUUID();
-    UUID userId1 = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
     String tenantId1 = String.valueOf(UUID.randomUUID());
     String tenantId2 = String.valueOf(UUID.randomUUID());
-    UserTenantEntity userTenant1 = createUserTenantEntity(associationId, userId1, "testuser1", tenantId1);
-    UserTenantEntity userTenant2 = createUserTenantEntity(associationId, userId1, "testuser2", tenantId1);
-    UserTenantEntity userTenant3 = createUserTenantEntity(associationId, userId1, "testuser3", tenantId2);
+    String tenantId3 = String.valueOf(UUID.randomUUID());
+    UserTenantEntity userTenant1 = createUserTenantEntity(associationId, userId, "testuser1", tenantId1);
+    UserTenantEntity userTenant2 = createUserTenantEntity(associationId, userId, "testuser2", tenantId2);
+    InactiveUserTenantEntity userTenant3 = InactiveUserTenantEntity.from(createUserTenantEntity(associationId, userId, "testuser3", tenantId3));
     userTenant1.setIsPrimary(false);
     userTenant2.setIsPrimary(false);
     userTenant3.setIsPrimary(false);
@@ -377,8 +378,8 @@ class UserTenantServiceTest {
     when(inactiveUserTenantRepository.getOrphansByUserIdAndIsPrimaryFalse(any())).thenReturn(List.of(userTenant3));
     mockOkapiHeaders();
 
-    assertDoesNotThrow(() -> userTenantService.deleteShadowUsers(userId1));
-    verify(capabilitiesUserService, times(3)).deleteUserCapabilitiesAndRoles(userId1.toString());
+    assertDoesNotThrow(() -> userTenantService.deleteShadowUsers(userId));
+    verify(capabilitiesUserService, times(3)).deleteUserCapabilitiesAndRoles(userId.toString());
     verify(userTenantRepository).deleteOrphansByUserIdAndIsPrimaryFalse(any());
     verify(inactiveUserTenantRepository).deleteOrphansByUserIdAndIsPrimaryFalse(any());
   }

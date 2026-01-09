@@ -2,6 +2,7 @@ package org.folio.consortia.service.impl;
 
 import static org.folio.consortia.utils.TenantContextUtils.prepareContextForTenant;
 
+import org.folio.consortia.domain.entity.BaseUserTenantEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.exception.UserAffiliationException;
 import org.folio.consortia.repository.InactiveUserTenantRepository;
@@ -234,7 +235,7 @@ public class UserTenantServiceImpl implements UserTenantService {
   @Override
   public void updateShadowUsersNameAndEmail(UUID userId, String originalTenantId) {
     List<UserTenantEntity> userTenantEntities = userTenantRepository.getByUserIdAndIsPrimaryFalse(userId);
-    List<UserTenantEntity> inactiveUserTenantEntities = inactiveUserTenantRepository.getByUserIdAndIsPrimaryFalse(userId);
+    List<InactiveUserTenantEntity> inactiveUserTenantEntities = inactiveUserTenantRepository.getByUserIdAndIsPrimaryFalse(userId);
 
     if (CollectionUtils.isEmpty(userTenantEntities) && CollectionUtils.isEmpty(inactiveUserTenantEntities)) {
       log.info("No active or inactive shadow users found for user: {}", userId);
@@ -252,10 +253,7 @@ public class UserTenantServiceImpl implements UserTenantService {
       firstName = primaryUser.getPersonal().getFirstName();
       lastName = primaryUser.getPersonal().getLastName();
       email = primaryUser.getPersonal().getEmail();
-      tenantIds = StreamEx.of(userTenantEntities).append(inactiveUserTenantEntities)
-        .map(UserTenantEntity::getTenant)
-        .map(TenantEntity::getId)
-        .toSet();
+      tenantIds = getUserEntityTenantIds(userTenantEntities, inactiveUserTenantEntities);
     }
 
     log.info("Updating shadow users in all tenants (active and inactive) for the user: {}", userId);
@@ -321,20 +319,15 @@ public class UserTenantServiceImpl implements UserTenantService {
   @Override
   public void deleteShadowUsers(UUID userId) {
     List<UserTenantEntity> userTenantEntities = userTenantRepository.getOrphansByUserIdAndIsPrimaryFalse(userId);
-    List<UserTenantEntity> inactiveUserTenantEntities = inactiveUserTenantRepository.getOrphansByUserIdAndIsPrimaryFalse(userId);
+    List<InactiveUserTenantEntity> inactiveUserTenantEntities = inactiveUserTenantRepository.getOrphansByUserIdAndIsPrimaryFalse(userId);
 
     if (CollectionUtils.isEmpty(userTenantEntities) && CollectionUtils.isEmpty(inactiveUserTenantEntities)) {
       log.info("No orphaned shadow users found for user: {}", userId);
       return;
     }
 
-    List<String> tenantIds = StreamEx.of(userTenantEntities).append(inactiveUserTenantEntities)
-      .map(UserTenantEntity::getTenant)
-      .map(TenantEntity::getId)
-      .toList();
-
     log.info("Removing orphaned shadow users from all tenants exist in consortia for the user: {}", userId);
-    tenantIds.forEach(tenantId -> {
+    getUserEntityTenantIds(userTenantEntities, inactiveUserTenantEntities).forEach(tenantId -> {
       try (var ignored = new FolioExecutionContextSetter(prepareContextForTenant(tenantId, folioModuleMetadata, folioExecutionContext))) {
         userService.deleteById(userId.toString());
         log.info("Trying to delete permission user for userId={}", userId.toString());
@@ -383,6 +376,13 @@ public class UserTenantServiceImpl implements UserTenantService {
       .setIsPrimary(Boolean.FALSE)
       .setUsername(user.getUsername())
       .setTenant(tenantEntity);
+  }
+
+  private Set<String> getUserEntityTenantIds(List<UserTenantEntity> userTenantEntities, List<InactiveUserTenantEntity> inactiveUserTenantEntities) {
+    return StreamEx.<BaseUserTenantEntity>of(userTenantEntities).append(inactiveUserTenantEntities)
+      .map(BaseUserTenantEntity::getTenant)
+      .map(TenantEntity::getId)
+      .toSet();
   }
 
 }
