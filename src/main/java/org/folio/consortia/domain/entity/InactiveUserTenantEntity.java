@@ -1,5 +1,7 @@
 package org.folio.consortia.domain.entity;
 
+import java.util.UUID;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
@@ -11,6 +13,7 @@ public class InactiveUserTenantEntity extends UserTenantEntity {
 
   public static InactiveUserTenantEntity from(UserTenantEntity userTenantEntity) {
     return (InactiveUserTenantEntity) new InactiveUserTenantEntity()
+      .setId(UUID.randomUUID())
       .setUserId(userTenantEntity.getUserId())
       .setUsername(userTenantEntity.getUsername())
       .setTenant(userTenantEntity.getTenant())
