@@ -203,10 +203,12 @@ public class UserTenantServiceImpl implements UserTenantService {
         UserAffiliationException.AFFILIATION_FROM_CENTRAL_TENANT_CAN_NOT_BE_DELETED, userId, centralTenantId));
     }
 
-    inactiveUserTenantRepository.save(InactiveUserTenantEntity.from(userTenantEntity));
-    log.info("Moved user affiliation to inactive table for user id: {} in the tenant: {}", userId.toString(), tenantId);
-
     userTenantRepository.deleteByUserIdAndTenantId(userId, tenantId);
+
+    var inactiveUserTenant = InactiveUserTenantEntity.from(userTenantEntity);
+    deleteInactiveUserTenant(inactiveUserTenant.getUserId(), inactiveUserTenant.getTenant().getId());
+    inactiveUserTenantRepository.save(inactiveUserTenant);
+    log.info("Moved user affiliation to inactive table for user id: {} in the tenant: {}", userId.toString(), tenantId);
 
     try (var ignored = new FolioExecutionContextSetter(prepareContextForTenant(tenantId, folioModuleMetadata, folioExecutionContext))) {
       User user = userService.getById(userId);
