@@ -278,6 +278,8 @@ public class UserTenantServiceImpl implements UserTenantService {
         shadowUser.setActive(active);
 
         userService.updateUser(shadowUser);
+        userTenantRepository.setUsernameByUserIdAndTenantId(shadowUser.getUsername(), userId, tenantId);
+        inactiveUserTenantRepository.setUsernameByUserIdAndTenantId(shadowUser.getUsername(), userId, tenantId);
         log.info("Updated shadow user: {} in tenant : {}", userId, tenantId);
       }
     });

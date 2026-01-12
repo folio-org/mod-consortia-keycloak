@@ -4,6 +4,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.consortia.config.kafka.KafkaService;
@@ -104,6 +106,12 @@ public class UserAffiliationServiceImpl implements UserAffiliationService {
 
       UserTenantEntity userTenant = userTenantService.getByUserIdAndTenantId(userId, userEvent.getTenantId());
       boolean isUsernameChanged = ObjectUtils.notEqual(userTenant.getUsername(), newUsername);
+
+      if (BooleanUtils.isNotTrue(userTenant.getIsPrimary())) {
+        log.info("updatePrimaryUserAffiliation:: UserTenant is not primary for userId: {}, tenant: {}. Skipping update processing.",
+          userEvent.getUserDto().getId(), userEvent.getTenantId());
+        return;
+      }
 
       if (isUsernameChanged || Boolean.TRUE.equals(userEvent.getIsPersonalDataChanged())) {
         userTenantService.updateShadowUsersNameAndEmail(getUserId(userEvent), userEvent.getTenantId());
