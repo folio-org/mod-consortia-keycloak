@@ -168,6 +168,7 @@ public class UserTenantServiceImpl implements UserTenantService {
   @Override
   public void updateUsernameInPrimaryUserTenantAffiliation(UUID userId, String username, String tenantId) {
     userTenantRepository.setUsernameByUserIdAndTenantId(username, userId, tenantId);
+    inactiveUserTenantRepository.setUsernameByUserIdAndTenantId(username, userId, tenantId);
     log.info("updatePrimaryUserAffiliation:: Username in primary affiliation has been updated for the user: {}", userId);
   }
 
