@@ -2,6 +2,7 @@ package org.folio.consortia.service.impl;
 
 import static org.folio.consortia.utils.TenantContextUtils.prepareContextForTenant;
 
+import org.folio.consortia.domain.dto.UserType;
 import org.folio.consortia.domain.entity.BaseUserTenantEntity;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.exception.UserAffiliationException;
@@ -10,7 +11,6 @@ import org.folio.consortia.repository.UserTenantRepository;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
@@ -246,7 +246,7 @@ public class UserTenantServiceImpl implements UserTenantService {
     String firstName;
     String lastName;
     String email;
-    Set<String> tenantIds;
+    List<String> tenantIds;
     try (var ignored = new FolioExecutionContextSetter(prepareContextForTenant(originalTenantId, folioModuleMetadata, folioExecutionContext))) {
       User primaryUser = userService.getById(userId);
       username = primaryUser.getUsername();
@@ -264,6 +264,7 @@ public class UserTenantServiceImpl implements UserTenantService {
         shadowUser.getPersonal().setFirstName(firstName);
         shadowUser.getPersonal().setLastName(lastName);
         shadowUser.getPersonal().setEmail(email);
+        shadowUser.setType(UserType.SHADOW.getName());
         userService.updateUser(shadowUser);
         log.info("Updated shadow user: {} in tenant : {}", userId, tenantId);
       }
@@ -378,11 +379,11 @@ public class UserTenantServiceImpl implements UserTenantService {
       .setTenant(tenantEntity);
   }
 
-  private Set<String> getUserEntityTenantIds(List<UserTenantEntity> userTenantEntities, List<InactiveUserTenantEntity> inactiveUserTenantEntities) {
+  private List<String> getUserEntityTenantIds(List<UserTenantEntity> userTenantEntities, List<InactiveUserTenantEntity> inactiveUserTenantEntities) {
     return StreamEx.<BaseUserTenantEntity>of(userTenantEntities).append(inactiveUserTenantEntities)
       .map(BaseUserTenantEntity::getTenant)
       .map(TenantEntity::getId)
-      .toSet();
+      .toList();
   }
 
 }

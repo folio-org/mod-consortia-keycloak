@@ -25,7 +25,7 @@ public class HelperUtils {
   }
 
   public static String generateShadowUsernameOrDefault(String realUsername, String shadowUsername) {
-    var shadowUsernameOriginal = shadowUsername.substring(0, shadowUsername.length() - RANDOM_STRING_COUNT - 1);
+    var shadowUsernameOriginal = StringUtils.substring(shadowUsername, 0, shadowUsername.length() - RANDOM_STRING_COUNT - 1);
     return shadowUsernameOriginal.equals(realUsername)
       ? shadowUsername
       : generateShadowUsername(realUsername);
