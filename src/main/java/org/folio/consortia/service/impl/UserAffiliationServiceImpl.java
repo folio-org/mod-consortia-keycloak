@@ -105,7 +105,7 @@ public class UserAffiliationServiceImpl implements UserAffiliationService {
       UserTenantEntity userTenant = userTenantService.getByUserIdAndTenantId(userId, userEvent.getTenantId());
       boolean isUsernameChanged = ObjectUtils.notEqual(userTenant.getUsername(), newUsername);
 
-      if (!UserType.SHADOW.getName().equals(userEvent.getUserDto().getType()) && (isUsernameChanged || Boolean.TRUE.equals(userEvent.getIsPersonalDataChanged()))) {
+      if (isUsernameChanged || Boolean.TRUE.equals(userEvent.getIsPersonalDataChanged())) {
         userTenantService.updateShadowUsersNameAndEmail(getUserId(userEvent), userEvent.getTenantId());
       }
 

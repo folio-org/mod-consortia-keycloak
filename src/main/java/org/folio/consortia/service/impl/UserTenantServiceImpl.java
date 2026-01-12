@@ -9,9 +9,12 @@ import org.folio.consortia.exception.UserAffiliationException;
 import org.folio.consortia.repository.InactiveUserTenantRepository;
 import org.folio.consortia.repository.UserTenantRepository;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -126,6 +129,10 @@ public class UserTenantServiceImpl implements UserTenantService {
     }
 
     User shadowUser = userService.prepareShadowUser(userTenantDto.getUserId(), userTenant.get().getTenant().getId());
+    shadowUser.setUsername(inactiveUserTenantRepository.findByUserIdAndTenantId(userTenantDto.getUserId(), userTenantDto.getTenantId())
+      .map(InactiveUserTenantEntity::getUsername)
+      .orElse(shadowUser.getUsername()));
+
     if (isSystemUserContextRequired) {
       createOrUpdateShadowUserWithSystemUserContext(userTenantDto.getUserId(), shadowUser, userTenantDto);
     } else {
@@ -247,18 +254,20 @@ public class UserTenantServiceImpl implements UserTenantService {
     String firstName;
     String lastName;
     String email;
-    List<String> tenantIds;
+    Map<String, Boolean> tenantIds;
     try (var ignored = new FolioExecutionContextSetter(prepareContextForTenant(originalTenantId, folioModuleMetadata, folioExecutionContext))) {
       User primaryUser = userService.getById(userId);
       username = primaryUser.getUsername();
       firstName = primaryUser.getPersonal().getFirstName();
       lastName = primaryUser.getPersonal().getLastName();
       email = primaryUser.getPersonal().getEmail();
-      tenantIds = getUserEntityTenantIds(userTenantEntities, inactiveUserTenantEntities);
+      tenantIds = getUserEntityTenantIds(userTenantEntities, inactiveUserTenantEntities).stream()
+        .collect(Collectors.toMap(Function.identity(), tenantId -> userTenantEntities.stream()
+          .anyMatch(userTenant -> tenantId.equals(userTenant.getTenant().getId()))));
     }
 
     log.info("Updating shadow users in all tenants (active and inactive) for the user: {}", userId);
-    tenantIds.forEach(tenantId -> {
+    tenantIds.forEach((tenantId, active) -> {
       try (var ignored = new FolioExecutionContextSetter(prepareContextForTenant(tenantId, folioModuleMetadata, folioExecutionContext))) {
         User shadowUser = userService.getById(userId);
         shadowUser.setUsername(HelperUtils.generateShadowUsernameOrDefault(username, shadowUser.getUsername()));
@@ -266,6 +275,8 @@ public class UserTenantServiceImpl implements UserTenantService {
         shadowUser.getPersonal().setLastName(lastName);
         shadowUser.getPersonal().setEmail(email);
         shadowUser.setType(UserType.SHADOW.getName());
+        shadowUser.setActive(active);
+
         userService.updateUser(shadowUser);
         log.info("Updated shadow user: {} in tenant : {}", userId, tenantId);
       }
