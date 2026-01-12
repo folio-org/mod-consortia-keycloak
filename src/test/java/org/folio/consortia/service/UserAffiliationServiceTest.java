@@ -131,6 +131,7 @@ class UserAffiliationServiceTest {
     UserTenantEntity userTenant = new UserTenantEntity();
     userTenant.setUserId(UUID.fromString("148f7c24-54fc-4d7f-afff-da2dfcd902e3"));
     userTenant.setUsername("TestUser");
+    userTenant.setIsPrimary(true);
 
     var te = createTenantEntity();
 
