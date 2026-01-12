@@ -515,6 +515,7 @@ class UserTenantServiceTest {
     when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any())).thenReturn(Optional.of(userTenant));
     when(userService.getById(any())).thenThrow(ConsortiumClientException.class);
     when(userTenantRepository.save(userTenant)).thenReturn(userTenant);
+    when(userService.prepareShadowUser(any(), any())).thenReturn(new User());
     mockOkapiHeaders();
 
     assertThrows(
@@ -534,6 +535,7 @@ class UserTenantServiceTest {
     when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any())).thenReturn(Optional.of(userTenant));
     when(userService.getById(any())).thenThrow(ResourceNotFoundException.class);
     when(userTenantRepository.save(userTenant)).thenReturn(userTenant);
+    when(userService.prepareShadowUser(any(), any())).thenReturn(new User());
     mockOkapiHeaders();
 
     assertThrows(
@@ -552,6 +554,7 @@ class UserTenantServiceTest {
 
     when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any())).thenReturn(Optional.of(userTenant));
     when(userService.getById(any())).thenThrow(java.lang.IllegalStateException.class);
+    when(userService.prepareShadowUser(any(), any())).thenReturn(new User());
     mockOkapiHeaders();
 
     assertThrows(java.lang.IllegalStateException.class,

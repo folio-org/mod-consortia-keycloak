@@ -129,11 +129,9 @@ public class UserTenantServiceImpl implements UserTenantService {
     }
 
     User shadowUser = userService.prepareShadowUser(userTenantDto.getUserId(), userTenant.get().getTenant().getId());
-    if (shadowUser != null) {
-      shadowUser.setUsername(inactiveUserTenantRepository.findByUserIdAndTenantId(userTenantDto.getUserId(), userTenantDto.getTenantId())
-        .map(InactiveUserTenantEntity::getUsername)
-        .orElse(shadowUser.getUsername()));
-    }
+    shadowUser.setUsername(inactiveUserTenantRepository.findByUserIdAndTenantId(userTenantDto.getUserId(), userTenantDto.getTenantId())
+      .map(InactiveUserTenantEntity::getUsername)
+      .orElse(shadowUser.getUsername()));
 
     if (isSystemUserContextRequired) {
       createOrUpdateShadowUserWithSystemUserContext(userTenantDto.getUserId(), shadowUser, userTenantDto);
