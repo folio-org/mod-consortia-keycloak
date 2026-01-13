@@ -10,14 +10,13 @@ import org.folio.consortia.domain.dto.TenantCollection;
 import org.folio.consortia.domain.dto.TenantDeleteRequest;
 import org.folio.consortia.domain.dto.TenantDetails;
 import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
-import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.entity.TenantDetailsEntity;
 import org.folio.consortia.domain.entity.TenantEntity;
-import org.folio.consortia.domain.entity.UserTenantEntity;
 import org.folio.consortia.exception.ResourceAlreadyExistException;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.TenantDetailsRepository;
 import org.folio.consortia.repository.TenantRepository;
+import org.folio.consortia.repository.InactiveUserTenantRepository;
 import org.folio.consortia.repository.UserTenantRepository;
 import org.folio.consortia.service.ConsortiumService;
 import org.folio.consortia.service.TenantService;
@@ -38,6 +37,7 @@ public class TenantServiceImpl implements TenantService {
 
   private final TenantRepository tenantRepository;
   private final UserTenantRepository userTenantRepository;
+  private final InactiveUserTenantRepository inactiveUserTenantRepository;
   private final TenantDetailsRepository tenantDetailsRepository;
   private final ConversionService converter;
   private final ConsortiumService consortiumService;
@@ -100,7 +100,7 @@ public class TenantServiceImpl implements TenantService {
 
   @Override
   public Tenant saveTenant(UUID consortiumId, Tenant tenantDto) {
-    return saveTenant(toTenantEntity(consortiumId, tenantDto));
+    return saveTenant(getTenantEntity(consortiumId, tenantDto));
   }
 
   @Override
@@ -111,11 +111,6 @@ public class TenantServiceImpl implements TenantService {
     TenantDetailsEntity savedTenant = tenantDetailsRepository.save(entity);
     log.info("saveTenant: Tenant '{}' successfully saved, setupStatus={}", savedTenant.getId(), savedTenant.getSetupStatus());
     return converter.convert(savedTenant, Tenant.class);
-  }
-
-  @Override
-  public void saveUserTenant(UUID consortiumId, User user, Tenant tenant) {
-    userTenantRepository.save(createUserTenantEntity(consortiumId, user, tenant));
   }
 
   @Override
@@ -167,6 +162,7 @@ public class TenantServiceImpl implements TenantService {
       case HARD -> {
         log.info("deleteTenant:: Hard deleting tenant with id={}", tenant.getId());
         userTenantRepository.deleteUserTenantsByTenantId(tenant.getId());
+        inactiveUserTenantRepository.deleteInactiveUserTenantsByTenantId(tenant.getId());
         tenantRepository.delete(tenant);
       }
       case SOFT -> {
@@ -177,7 +173,8 @@ public class TenantServiceImpl implements TenantService {
     }
   }
 
-  private TenantEntity toTenantEntity(UUID consortiumId, Tenant tenantDto) {
+  @Override
+  public TenantEntity getTenantEntity(UUID consortiumId, Tenant tenantDto) {
     TenantEntity entity = new TenantEntity();
     entity.setId(tenantDto.getId());
     entity.setName(tenantDto.getName());
@@ -198,18 +195,6 @@ public class TenantServiceImpl implements TenantService {
     entity.setSetupStatus(setupStatus);
     entity.setIsDeleted(tenantDto.getIsDeleted());
     return entity;
-  }
-
-  private UserTenantEntity createUserTenantEntity(UUID consortiumId, User user, Tenant tenant) {
-    UserTenantEntity userTenantEntity = new UserTenantEntity();
-    TenantEntity tenantEntity = toTenantEntity(consortiumId, tenant);
-
-    userTenantEntity.setUserId(UUID.fromString(user.getId()));
-    userTenantEntity.setId(UUID.randomUUID());
-    userTenantEntity.setIsPrimary(Boolean.FALSE);
-    userTenantEntity.setUsername(user.getUsername());
-    userTenantEntity.setTenant(tenantEntity);
-    return userTenantEntity;
   }
 
 }

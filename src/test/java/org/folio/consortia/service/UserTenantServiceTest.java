@@ -1,6 +1,5 @@
 package org.folio.consortia.service;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.folio.consortia.support.EntityUtils.createUserEntity;
 import static org.folio.consortia.support.TestConstants.USER_ID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -14,6 +13,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,11 +30,13 @@ import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserEvent;
 import org.folio.consortia.domain.dto.UserTenant;
 import org.folio.consortia.domain.dto.UserTenantCollection;
+import org.folio.consortia.domain.entity.InactiveUserTenantEntity;
 import org.folio.consortia.domain.entity.TenantEntity;
 import org.folio.consortia.domain.entity.UserTenantEntity;
 import org.folio.consortia.exception.ConsortiumClientException;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.exception.UserAffiliationException;
+import org.folio.consortia.repository.InactiveUserTenantRepository;
 import org.folio.consortia.repository.UserTenantRepository;
 import org.folio.consortia.service.impl.UserTenantServiceImpl;
 import org.folio.consortia.utils.HelperUtils;
@@ -70,6 +72,8 @@ class UserTenantServiceTest {
   private UserTenantServiceImpl userTenantService;
   @Mock
   private UserTenantRepository userTenantRepository;
+  @Mock
+  private InactiveUserTenantRepository inactiveUserTenantRepository;
   @Mock
   private FolioExecutionContext folioExecutionContext;
   @Mock
@@ -307,6 +311,22 @@ class UserTenantServiceTest {
   }
 
   @Test
+  void shouldSaveUserTenantForShadowAdmin() {
+    UUID userId = UUID.randomUUID();
+    User user = createUserEntity(userId);
+    TenantEntity tenantEntity = new TenantEntity();
+    tenantEntity.setId("shadowTenantId");
+
+    when(inactiveUserTenantRepository.findByUserIdAndTenantId(any(), any())).thenReturn(Optional.empty());
+    mockOkapiHeaders();
+
+    assertDoesNotThrow(() -> userTenantService.save(UUID.fromString(CONSORTIUM_ID), user, tenantEntity));
+
+    verify(inactiveUserTenantRepository, never()).delete(any());
+    verify(userTenantRepository).save(any());
+  }
+
+  @Test
   void shouldUpdateUserAndSaveUserTenant() {
     UserTenant tenant = createUserTenantDtoEntity();
     UUID associationId = UUID.randomUUID();
@@ -344,20 +364,38 @@ class UserTenantServiceTest {
   @Test
   void shouldRemoveAllOrphanedShadowUsers() {
     UUID associationId = UUID.randomUUID();
-    UUID userId1 = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
     String tenantId1 = String.valueOf(UUID.randomUUID());
     String tenantId2 = String.valueOf(UUID.randomUUID());
-    UserTenantEntity userTenant1 = createUserTenantEntity(associationId, userId1, "testuser1", tenantId1);
-    UserTenantEntity userTenant2 = createUserTenantEntity(associationId, userId1, "testuser2", tenantId1);
-    UserTenantEntity userTenant3 = createUserTenantEntity(associationId, userId1, "testuser3", tenantId2);
+    String tenantId3 = String.valueOf(UUID.randomUUID());
+    UserTenantEntity userTenant1 = createUserTenantEntity(associationId, userId, "testuser1", tenantId1);
+    UserTenantEntity userTenant2 = createUserTenantEntity(associationId, userId, "testuser2", tenantId2);
+    InactiveUserTenantEntity userTenant3 = InactiveUserTenantEntity.from(createUserTenantEntity(associationId, userId, "testuser3", tenantId3));
     userTenant1.setIsPrimary(false);
     userTenant2.setIsPrimary(false);
     userTenant3.setIsPrimary(false);
-    when(userTenantRepository.getOrphansByUserIdAndIsPrimaryFalse(any())).thenReturn(List.of(userTenant1, userTenant2, userTenant3));
+    when(userTenantRepository.getOrphansByUserIdAndIsPrimaryFalse(any())).thenReturn(List.of(userTenant1, userTenant2));
+    when(inactiveUserTenantRepository.getOrphansByUserIdAndIsPrimaryFalse(any())).thenReturn(List.of(userTenant3));
+    mockOkapiHeaders();
+
+    assertDoesNotThrow(() -> userTenantService.deleteShadowUsers(userId));
+    verify(capabilitiesUserService, times(3)).deleteUserCapabilitiesAndRoles(userId.toString());
+    verify(userTenantRepository).deleteOrphansByUserIdAndIsPrimaryFalse(any());
+    verify(inactiveUserTenantRepository).deleteOrphansByUserIdAndIsPrimaryFalse(any());
+  }
+
+  @Test
+  void shouldRemoveOrphanedShadowUsersEmptyList() {
+    UUID userId1 = UUID.randomUUID();
+
+    when(userTenantRepository.getOrphansByUserIdAndIsPrimaryFalse(any())).thenReturn(List.of());
+    when(inactiveUserTenantRepository.getOrphansByUserIdAndIsPrimaryFalse(any())).thenReturn(List.of());
     mockOkapiHeaders();
 
     assertDoesNotThrow(() -> userTenantService.deleteShadowUsers(userId1));
-    verify(capabilitiesUserService, times(3)).deleteUserCapabilitiesAndRoles(userId1.toString());
+    verify(capabilitiesUserService, never()).deleteUserCapabilitiesAndRoles(userId1.toString());
+    verify(userTenantRepository, never()).deleteOrphansByUserIdAndIsPrimaryFalse(any());
+    verify(inactiveUserTenantRepository, never()).deleteOrphansByUserIdAndIsPrimaryFalse(any());
   }
 
   @Test
@@ -367,14 +405,20 @@ class UserTenantServiceTest {
     UUID associationId = UUID.randomUUID();
     UserTenantEntity userTenant = createUserTenantEntity(associationId, userId, "user", tenantId);
     userTenant.setIsPrimary(false);
+    InactiveUserTenantEntity inactiveUserTenantEntity = InactiveUserTenantEntity.from(userTenant);
 
     when(userService.getById(any())).thenReturn(createNullUserEntity());
     when(userService.prepareShadowUser(any(), any())).thenReturn(createNullUserEntity());
     when(userTenantRepository.findByUserIdAndTenantId(userId, tenantId)).thenReturn(Optional.of(userTenant));
+    when(inactiveUserTenantRepository.findByUserIdAndTenantId(userId, tenantId)).thenReturn(Optional.of(inactiveUserTenantEntity));
     doNothing().when(userTenantRepository).deleteByUserIdAndTenantId(userId, tenantId);
     mockOkapiHeaders();
 
     assertDoesNotThrow(() -> userTenantService.deleteByUserIdAndTenantId(UUID.fromString(CONSORTIUM_ID), tenantId, userId));
+
+    verify(inactiveUserTenantRepository).findByUserIdAndTenantId(userId, tenantId);
+    verify(inactiveUserTenantRepository).delete(any());
+    verify(inactiveUserTenantRepository).save(any());
   }
 
   /* Exception Cases */
@@ -471,6 +515,7 @@ class UserTenantServiceTest {
     when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any())).thenReturn(Optional.of(userTenant));
     when(userService.getById(any())).thenThrow(ConsortiumClientException.class);
     when(userTenantRepository.save(userTenant)).thenReturn(userTenant);
+    when(userService.prepareShadowUser(any(), any())).thenReturn(new User());
     mockOkapiHeaders();
 
     assertThrows(
@@ -490,6 +535,7 @@ class UserTenantServiceTest {
     when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any())).thenReturn(Optional.of(userTenant));
     when(userService.getById(any())).thenThrow(ResourceNotFoundException.class);
     when(userTenantRepository.save(userTenant)).thenReturn(userTenant);
+    when(userService.prepareShadowUser(any(), any())).thenReturn(new User());
     mockOkapiHeaders();
 
     assertThrows(
@@ -508,6 +554,7 @@ class UserTenantServiceTest {
 
     when(userTenantRepository.findByUserIdAndIsPrimaryTrue(any())).thenReturn(Optional.of(userTenant));
     when(userService.getById(any())).thenThrow(java.lang.IllegalStateException.class);
+    when(userService.prepareShadowUser(any(), any())).thenReturn(new User());
     mockOkapiHeaders();
 
     assertThrows(java.lang.IllegalStateException.class,
@@ -525,14 +572,6 @@ class UserTenantServiceTest {
     var result = userTenantService.checkUserIfHasPrimaryAffiliationByUserId(UUID.randomUUID(), String.valueOf(UUID.randomUUID()));
 
     assertTrue(result);
-  }
-
-  @Test
-  void userHasPrimaryAffiliationByUsernameAndTenantId_positive() {
-    when(userTenantRepository.existsByUsernameAndTenantIdAndIsPrimaryTrue(anyString(), anyString())).thenReturn(true);
-
-    var result = userTenantService.userHasPrimaryAffiliationByUsernameAndTenantId("username", "tenantId");
-    assertThat(result).isTrue();
   }
 
   private UserTenantEntity createUserTenantEntity(UUID associationId, UUID userId, String username, String tenantId) {
