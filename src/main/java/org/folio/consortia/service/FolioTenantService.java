@@ -50,7 +50,7 @@ public class FolioTenantService extends TenantService {
       log.info("Set ChangeLog parameters: {}", params);
 
       folioSpringLiquibase.setDefaultSchema(getSchemaName());
-      log.info("About to start liquibase update for tenant [{}]", context.getTenantId());
+      log.info("About to start Liquibase update for tenant [{}]", context.getTenantId());
 
       try {
         folioSpringLiquibase.performLiquibaseUpdate();

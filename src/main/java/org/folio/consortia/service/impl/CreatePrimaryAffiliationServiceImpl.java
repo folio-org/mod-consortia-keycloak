@@ -56,7 +56,7 @@ public class CreatePrimaryAffiliationServiceImpl implements CreatePrimaryAffilia
         Optional<UserTenantEntity> userTenant = userTenantRepository.findByUserIdAndIsPrimaryTrue(UUID.fromString(user.getId()));
 
         if (userTenant.isPresent()) {
-          log.info("createPrimaryUserAffiliations:: Primary affiliation already exists for tenant/user: {}/{}", tenantId, user.getUsername());
+          log.info("createPrimaryUserAffiliations:: Primary affiliation already exists for tenant/user: {}/{}", tenantId, user.getId());
         } else {
           PrimaryAffiliationEvent primaryAffiliationEvent = createPrimaryAffiliationEvent(user, tenantId, centralTenantId, consortiumId);
           primaryAffiliationService.createPrimaryAffiliationInNewTransaction(consortiumId, centralTenantId, tenantEntity, primaryAffiliationEvent);
