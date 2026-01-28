@@ -5,7 +5,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.security.KeyStore;
 
-import static org.folio.consortia.config.keycloak.KeycloakFeignClientConfig.BCFKS_KEYSTORE_TYPE;
+import static org.folio.consortia.FolioConsortiaApplication.BCFKS_KEYSTORE_TYPE;
 import static org.junit.jupiter.api.Assertions.*;
 
 // Load all classes to test the provider
