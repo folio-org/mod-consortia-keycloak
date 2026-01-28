@@ -96,8 +96,16 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <dependency>
+        <groupId>org.folio</groupId>
+        <artifactId>applications-poc-tools</artifactId>
+        <version>${applications-poc-tools.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>org.folio</groupId>
