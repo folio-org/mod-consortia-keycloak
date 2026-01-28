@@ -21,6 +21,6 @@ public class FolioConsortiaApplication {
   @PostConstruct
   public void init() throws KeyStoreException {
     var instance = KeyStore.getInstance(BCFKS_KEYSTORE_TYPE);
-    log.info("Loaded BCFKS Provider: {}", instance.getProvider().getName());
+    log.info("Loaded security provider: {}", instance.getProvider().getName());
   }
 }
