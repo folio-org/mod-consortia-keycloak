@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.5.6</version>
+    <version>4.0.2</version>
     <relativePath />
   </parent>
 
@@ -62,19 +62,18 @@
 
     <!--Folio dependencies properties-->
     <folio-module-descriptor-validator.version>1.0.1</folio-module-descriptor-validator.version>
-    <folio-spring-base.version>10.0.0-SNAPSHOT</folio-spring-base.version>
+    <folio-spring-base.version>10.0.0-RC1</folio-spring-base.version>
     <folio-service-tools.version>5.0.0</folio-service-tools.version>
-    <applications-poc-tools.version>3.1.0-SNAPSHOT</applications-poc-tools.version>
+    <applications-poc-tools.version>4.0.0-SNAPSHOT</applications-poc-tools.version>
 
     <!-- runtime dependencies -->
-    <openapi-generator.version>7.16.0</openapi-generator.version>
+    <openapi-generator.version>7.20.0</openapi-generator.version>
     <mapstruct.version>1.6.3</mapstruct.version>
-    <commons-lang3.version>3.17.0</commons-lang3.version>
     <streamex.version>0.8.4</streamex.version>
 
     <!-- test dependencies -->
     <wiremock-standalone.version>3.0.1</wiremock-standalone.version>
-    <testcontainers.version>1.21.3</testcontainers.version>
+    <testcontainers.version>2.0.3</testcontainers.version>
     <awaitility.version>4.3.0</awaitility.version>
 
     <!--Maven plugin dependencies-->
@@ -156,30 +155,18 @@
     </dependency>
 
     <dependency>
-      <groupId>org.springframework.kafka</groupId>
-      <artifactId>spring-kafka</artifactId>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-kafka</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-batch</artifactId>
     </dependency>
     <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>
       <version>${awaitility.version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.module</groupId>
-      <artifactId>jackson-module-jaxb-annotations</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jdk8</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-core</artifactId>
     </dependency>
 
     <dependency>
@@ -228,6 +215,16 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webmvc-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.kafka</groupId>
       <artifactId>spring-kafka-test</artifactId>
       <scope>test</scope>
@@ -240,17 +237,17 @@
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>postgresql</artifactId>
+      <artifactId>testcontainers-postgresql</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>junit-jupiter</artifactId>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>kafka</artifactId>
+      <artifactId>testcontainers-kafka</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -384,7 +381,9 @@
               <configOptions>
                 <dateLibrary>java</dateLibrary>
                 <interfaceOnly>true</interfaceOnly>
-                <useSpringBoot3>true</useSpringBoot3>
+                <useSpringBoot4>true</useSpringBoot4>
+                <useJackson3>true</useJackson3>
+                <openApiNullable>false</openApiNullable>
               </configOptions>
             </configuration>
           </execution>
@@ -410,7 +409,9 @@
               <configOptions>
                 <dateLibrary>java</dateLibrary>
                 <interfaceOnly>true</interfaceOnly>
-                <useSpringBoot3>true</useSpringBoot3>
+                <useSpringBoot4>true</useSpringBoot4>
+                <useJackson3>true</useJackson3>
+                <openApiNullable>false</openApiNullable>
               </configOptions>
             </configuration>
           </execution>
@@ -436,7 +437,9 @@
               <configOptions>
                 <dateLibrary>java</dateLibrary>
                 <interfaceOnly>true</interfaceOnly>
-                <useSpringBoot3>true</useSpringBoot3>
+                <useSpringBoot4>true</useSpringBoot4>
+                <useJackson3>true</useJackson3>
+                <openApiNullable>false</openApiNullable>
               </configOptions>
             </configuration>
           </execution>
@@ -462,7 +465,9 @@
               <configOptions>
                 <dateLibrary>java</dateLibrary>
                 <interfaceOnly>true</interfaceOnly>
-                <useSpringBoot3>true</useSpringBoot3>
+                <useSpringBoot4>true</useSpringBoot4>
+                <useJackson3>true</useJackson3>
+                <openApiNullable>false</openApiNullable>
               </configOptions>
             </configuration>
           </execution>
@@ -488,7 +493,9 @@
               <configOptions>
                 <dateLibrary>java</dateLibrary>
                 <interfaceOnly>true</interfaceOnly>
-                <useSpringBoot3>true</useSpringBoot3>
+                <useSpringBoot4>true</useSpringBoot4>
+                <useJackson3>true</useJackson3>
+                <openApiNullable>false</openApiNullable>
               </configOptions>
             </configuration>
           </execution>
@@ -514,7 +521,9 @@
               <configOptions>
                 <dateLibrary>java</dateLibrary>
                 <interfaceOnly>true</interfaceOnly>
-                <useSpringBoot3>true</useSpringBoot3>
+                <useSpringBoot4>true</useSpringBoot4>
+                <useJackson3>true</useJackson3>
+                <openApiNullable>false</openApiNullable>
               </configOptions>
             </configuration>
           </execution>
@@ -540,7 +549,9 @@
               <configOptions>
                 <dateLibrary>java</dateLibrary>
                 <interfaceOnly>true</interfaceOnly>
-                <useSpringBoot3>true</useSpringBoot3>
+                <useSpringBoot4>true</useSpringBoot4>
+                <useJackson3>true</useJackson3>
+                <openApiNullable>false</openApiNullable>
               </configOptions>
             </configuration>
           </execution>
@@ -566,7 +577,9 @@
               <configOptions>
                 <dateLibrary>java</dateLibrary>
                 <interfaceOnly>true</interfaceOnly>
-                <useSpringBoot3>true</useSpringBoot3>
+                <useSpringBoot4>true</useSpringBoot4>
+                <useJackson3>true</useJackson3>
+                <openApiNullable>false</openApiNullable>
               </configOptions>
             </configuration>
           </execution>
@@ -592,7 +605,9 @@
               <configOptions>
                 <dateLibrary>java</dateLibrary>
                 <interfaceOnly>true</interfaceOnly>
-                <useSpringBoot3>true</useSpringBoot3>
+                <useSpringBoot4>true</useSpringBoot4>
+                <useJackson3>true</useJackson3>
+                <openApiNullable>false</openApiNullable>
               </configOptions>
             </configuration>
           </execution>
@@ -619,7 +634,9 @@
                 <dateLibrary>java</dateLibrary>
                 <interfaceOnly>true</interfaceOnly>
                 <useTags>true</useTags>
-                <useSpringBoot3>true</useSpringBoot3>
+                <useSpringBoot4>true</useSpringBoot4>
+                <useJackson3>true</useJackson3>
+                <openApiNullable>false</openApiNullable>
               </configOptions>
             </configuration>
           </execution>
@@ -645,7 +662,9 @@
               <configOptions>
                 <dateLibrary>java</dateLibrary>
                 <interfaceOnly>true</interfaceOnly>
-                <useSpringBoot3>true</useSpringBoot3>
+                <useSpringBoot4>true</useSpringBoot4>
+                <useJackson3>true</useJackson3>
+                <openApiNullable>false</openApiNullable>
               </configOptions>
             </configuration>
           </execution>

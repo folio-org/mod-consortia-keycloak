@@ -1,8 +1,8 @@
 package org.folio.consortia.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -160,6 +160,6 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
   @Override
   protected ObjectNode updateSourcePayload(Object payload, String sourceValue) {
     var node = objectMapper.convertValue(payload, ObjectNode.class);
-    return node.set(SOURCE, new TextNode(sourceValue));
+    return node.set(SOURCE, new StringNode(sourceValue));
   }
 }

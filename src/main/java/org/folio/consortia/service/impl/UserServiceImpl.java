@@ -3,7 +3,8 @@ package org.folio.consortia.service.impl;
 import static org.folio.consortia.utils.TenantContextUtils.prepareContextForTenant;
 import static org.folio.consortia.utils.TenantContextUtils.runInFolioContext;
 
-import feign.FeignException;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -60,12 +61,12 @@ public class UserServiceImpl implements UserService {
     try {
       log.info("Getting user by userId {}.", userId);
       return usersKeycloakClient.getUsersByUserId(String.valueOf(userId));
-    } catch (FeignException.NotFound e) {
+    } catch (HttpClientErrorException.NotFound e) {
       log.info("User with userId {} does not exist in schema, going to use new one", userId);
       return new User();
-    } catch (FeignException.Forbidden e) {
+    } catch (HttpClientErrorException.Forbidden e) {
       throw new ConsortiumClientException(e);
-    } catch (FeignException e) {
+    } catch (HttpStatusCodeException e) {
       throw new IllegalStateException(e);
     }
   }

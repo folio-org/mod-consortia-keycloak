@@ -1,13 +1,12 @@
 package org.folio.consortia.client;
 
-import org.folio.spring.config.FeignClientConfiguration;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.service.annotation.DeleteExchange;
+import org.springframework.web.service.annotation.HttpExchange;
 
-@FeignClient(name = "user-capabilities-client", url = "users", configuration = FeignClientConfiguration.class)
+@HttpExchange("users")
 public interface UserCapabilitiesClient {
 
-  @DeleteMapping("/{userId}/capabilities")
+  @DeleteExchange("/{userId}/capabilities")
   void deleteUserCapabilities(@PathVariable("userId") String userId);
 }

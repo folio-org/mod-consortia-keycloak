@@ -1,16 +1,15 @@
 package org.folio.consortia.client;
 
-
 import java.util.UUID;
 
 import org.folio.consortia.domain.dto.Capabilities;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
 
-@FeignClient(name = "role-capabilities", url = "roles")
+@HttpExchange("roles")
 public interface RoleCapabilitiesClient {
 
-  @GetMapping(value = "/{roleId}/capabilities")
+  @GetExchange(value = "/{roleId}/capabilities")
   Capabilities getRoleCapabilitiesByRoleId(@PathVariable UUID roleId);
 }

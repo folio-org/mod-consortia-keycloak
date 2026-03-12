@@ -3,13 +3,13 @@ package org.folio.consortia.client;
 import java.util.UUID;
 
 import org.folio.consortia.domain.dto.CapabilitySets;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
 
-@FeignClient(name = "role-capability-sets", url = "roles")
+@HttpExchange("roles")
 public interface RoleCapabilitySetsClient {
 
-  @GetMapping(value = "/{roleId}/capability-sets")
+  @GetExchange(value = "/{roleId}/capability-sets")
   CapabilitySets getRoleCapabilitySetsRoleId(@PathVariable UUID roleId);
 }

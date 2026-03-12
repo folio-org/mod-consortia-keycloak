@@ -9,8 +9,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -26,14 +26,14 @@ import org.folio.consortia.domain.dto.TenantCollection;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.retry.RetryException;
+import org.springframework.core.retry.RetryPolicy;
+import org.springframework.core.retry.RetryTemplate;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.retry.RetryException;
-import org.springframework.retry.backoff.FixedBackOffPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.backoff.FixedBackOff;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -164,26 +164,23 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
    * @param publicationId id of publication
    * @param sharingConfigRequest sharing config request
    */
-  private void updateConfigsForFailedTenantsWithRetry(UUID consortiumId, UUID publicationId,
-                                                      TRequest sharingConfigRequest) {
+  @SneakyThrows
+  private void updateConfigsForFailedTenantsWithRetry(UUID consortiumId, UUID publicationId, TRequest sharingConfigRequest) {
     if (publicationId == null) {
       return;
     }
 
+    FixedBackOff backOffPolicy = new FixedBackOff();
+    backOffPolicy.setInterval(interval); // in milliseconds
+    backOffPolicy.setMaxAttempts(maxTries);
+
     RetryTemplate retryTemplate = new RetryTemplate();
+    retryTemplate.setRetryPolicy(RetryPolicy.builder().backOff(backOffPolicy).build());
 
-    SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(maxTries);
-    retryTemplate.setRetryPolicy(retryPolicy);
-
-    FixedBackOffPolicy backOffPolicy = new FixedBackOffPolicy();
-    backOffPolicy.setBackOffPeriod(interval); // in milliseconds
-    retryTemplate.setBackOffPolicy(backOffPolicy);
-
-    retryTemplate.execute(context -> updateConfigsForFailedTenants(consortiumId, publicationId, sharingConfigRequest));
+    retryTemplate.execute(() -> updateConfigsForFailedTenants(consortiumId, publicationId, sharingConfigRequest));
   }
 
-  private boolean updateConfigsForFailedTenants(UUID consortiumId, UUID publicationId,
-                                                TRequest sharingConfigRequest) {
+  private boolean updateConfigsForFailedTenants(UUID consortiumId, UUID publicationId, TRequest sharingConfigRequest) throws RetryException {
     log.debug("updateConfigsForFailedTenants:: Trying to update {}s for failed tenants for consortiumId={}" +
         " publicationId={} and sharingConfigRequestId={}", getClassName(sharingConfigRequest), consortiumId,
       publicationId, getConfigId(sharingConfigRequest));
@@ -201,7 +198,7 @@ public abstract class BaseSharingService<TRequest, TResponse, TDeleteResponse, T
       String errMsg = String.format("updateConfigsForFailedTenants:: Publication status is not ready or doesn't exist for " +
         "consortiumId=%s, publicationId=%s and sharingConfigRequestId=%s", consortiumId, publicationId, getConfigId(sharingConfigRequest));
       log.error(errMsg);
-      throw new RetryException(errMsg);
+      throw new RetryException(errMsg, new IllegalStateException("Publication status is not ready or doesn't exist"));
     }
   }
 

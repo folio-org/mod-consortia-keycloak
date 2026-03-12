@@ -1,19 +1,18 @@
 package org.folio.consortia.client;
 
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
-import org.folio.spring.config.FeignClientConfiguration;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.service.annotation.DeleteExchange;
+import org.springframework.web.service.annotation.HttpExchange;
+import org.springframework.web.service.annotation.PostExchange;
 
-@FeignClient(name = "consortia-configuration" , configuration = FeignClientConfiguration.class)
+@HttpExchange("consortia-configuration")
 public interface ConsortiaConfigurationClient {
 
-  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PostExchange(contentType = MediaType.APPLICATION_JSON_VALUE)
   void saveConfiguration(@RequestBody ConsortiaConfiguration configuration);
 
-  @DeleteMapping
-	void deleteConfiguration();
+  @DeleteExchange
+  void deleteConfiguration();
 }

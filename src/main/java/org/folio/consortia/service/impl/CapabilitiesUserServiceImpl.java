@@ -5,9 +5,10 @@ import static org.folio.common.utils.PaginationUtils.loadInBatches;
 
 import org.folio.common.domain.model.error.ErrorResponse;
 import org.folio.common.utils.CqlQuery;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
-import feign.FeignException;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -73,7 +74,7 @@ public class CapabilitiesUserServiceImpl implements CapabilitiesUserService {
     try {
       deleteEntitiesAction.accept(userId);
       return entityName;
-    } catch (FeignException.NotFound e) {
+    } catch (HttpClientErrorException.NotFound e) {
       log.info("deleteUserRelatedEntities:: User {} for user '{}' do not exist", entityName, userId);
       return null;
     }
@@ -117,7 +118,7 @@ public class CapabilitiesUserServiceImpl implements CapabilitiesUserService {
     try {
       var request = new UserCapabilitySetsRequest().userId(userId).capabilitySetIds(capabilitySetIds);
       userCapabilitySetsClient.assignUserCapabilitySets(userId, request);
-    } catch (FeignException e) {
+    } catch (HttpStatusCodeException e) {
       if (isNothingToUpdateError(e)) {
         log.info("User capabilities are up to date");
         return;
@@ -126,8 +127,8 @@ public class CapabilitiesUserServiceImpl implements CapabilitiesUserService {
     }
   }
 
-  private boolean isNothingToUpdateError(FeignException feignException) {
-    var content = feignException.contentUTF8();
+  private boolean isNothingToUpdateError(HttpStatusCodeException httpException) {
+    var content = httpException.getResponseBodyAsString();
     try {
       var response = objectMapper.readValue(content, ErrorResponse.class);
       if (response.getTotalRecords() == 1) {

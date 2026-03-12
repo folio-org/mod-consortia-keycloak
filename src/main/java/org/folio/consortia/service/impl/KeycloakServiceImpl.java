@@ -4,19 +4,18 @@ import static org.folio.consortia.utils.KeycloakUtils.buildIdpClientConfig;
 
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ObjectNode;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.consortia.client.KeycloakClient;
 import org.folio.consortia.config.keycloak.KeycloakIdentityProviderProperties;
 import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
-import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.service.KeycloakCredentialsService;
 import org.folio.consortia.service.KeycloakService;
 import org.springframework.stereotype.Service;
 
-import feign.FeignException;
+import org.springframework.web.client.HttpClientErrorException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -131,7 +130,7 @@ public class KeycloakServiceImpl implements KeycloakService {
     try {
       keycloakClient.getIdentityProvider(realm, providerAlias, authToken);
       return true;
-    } catch (FeignException.NotFound ignored) {
+    } catch (HttpClientErrorException.NotFound ignored) {
       return false;
     }
   }

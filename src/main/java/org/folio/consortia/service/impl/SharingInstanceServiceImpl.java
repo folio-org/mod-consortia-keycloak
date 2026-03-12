@@ -1,9 +1,9 @@
 package org.folio.consortia.service.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 import jakarta.transaction.Transactional;
 import java.util.Objects;
 import java.util.UUID;
@@ -92,7 +92,7 @@ public class SharingInstanceServiceImpl implements SharingInstanceService {
           case "linked_data" -> InstanceSourceValues.CONSORTIUM_LINKED_DATA_INSTANCE.getValue();
           default -> throw new IllegalStateException("source is not recognized");
         };
-        var updatedInventoryInstance = ((ObjectNode) inventoryInstance).set("source", new TextNode(source));
+        var updatedInventoryInstance = ((ObjectNode) inventoryInstance).set("source", new StringNode(source));
         inventoryService.saveInstance(updatedInventoryInstance);
       } catch (Exception ex) {
         log.error("start:: error when posting instance with id: {}", sharingInstance.getInstanceIdentifier(), ex);

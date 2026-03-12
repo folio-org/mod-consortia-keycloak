@@ -5,7 +5,7 @@ import java.util.List;
 import org.folio.consortia.domain.dto.Error;
 import org.folio.consortia.domain.dto.Errors;
 
-import feign.FeignException;
+import org.springframework.web.client.HttpStatusCodeException;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
@@ -38,7 +38,7 @@ public class ErrorHelper {
     return createErrors(createError(message, ErrorType.EXTERNAL, errorCode));
   }
 
-  public static Errors createPermissionError(FeignException e, ErrorCode errorCode){
+  public static Errors createPermissionError(HttpStatusCodeException e, ErrorCode errorCode){
     String message = e.getMessage();
     String extractedMessage = extractPermissionFromErrorMessage(message);
     return createErrors(createError(extractedMessage, ErrorType.INTERNAL, errorCode));

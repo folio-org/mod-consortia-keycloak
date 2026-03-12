@@ -5,9 +5,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
@@ -264,6 +264,6 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   @Override
   protected ObjectNode updateSourcePayload(Object payload, String sourceValue) {
     var payloadNode = objectMapper.convertValue(payload, ObjectNode.class);
-    return payloadNode.set(TYPE, new TextNode(sourceValue));
+    return payloadNode.set(TYPE, new StringNode(sourceValue));
   }
 }

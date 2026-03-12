@@ -2,7 +2,7 @@ package org.folio.consortia.service;
 
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 public interface InventoryService {
 

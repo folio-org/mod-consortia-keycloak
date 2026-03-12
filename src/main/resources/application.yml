@@ -36,15 +36,13 @@ spring:
     default-property-inclusion: non_null
     deserialization:
       fail-on-unknown-properties: false
-    serialization:
+    date-time-feature:
       write-dates-as-timestamps: false
-  cloud:
-    openfeign:
-      okhttp:
-        enabled: true
 folio:
   environment: ${ENV:folio}
   okapi-url: ${OKAPI_URL:http://sidecar:8081}
+  exchange:
+    enabled: true
   kafka:
     numberOfPartitions: ${NUMBER_OF_PARTITIONS:1}
     replicationFactor: ${REPLICATION_FACTOR:1}
@@ -109,11 +107,6 @@ application:
       base-url: ${KC_IDENTITY_PROVIDER_BASE_URL:${application.keycloak.url}}
       alias: ${KC_IDENTITY_PROVIDER_SUFFIX:-keycloak-oidc}
       display-name: ${KC_IDENTITY_PROVIDER_DISPLAY_SUFFIX:Keycloak OIDC}
-feign:
-  client:
-    config:
-      default:
-        loggerLevel: basic
 management:
   endpoints:
     web:
