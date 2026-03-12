@@ -1,5 +1,6 @@
 package org.folio.consortia.base;
 
+import static org.folio.consortia.support.EntityUtils.getFolioExecutionContext;
 import static org.folio.spring.integration.XOkapiHeaders.TENANT;
 import static org.folio.spring.integration.XOkapiHeaders.TOKEN;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -15,29 +16,30 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.folio.spring.FolioExecutionContext;
-import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.function.Executable;
-import org.mockito.Mock;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
+import org.springframework.boot.batch.autoconfigure.BatchAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 public abstract class BaseUnitTest {
+
   protected static final String USER_ID = UUID.randomUUID().toString();
   protected static final String CENTRAL_TENANT_NAME = "central";
-  @Mock
+
+  @MockitoBean
   protected FolioExecutionContext folioExecutionContext;
-  @Mock
-  protected FolioModuleMetadata folioModuleMetadata;
+
   @BeforeEach
   void before (){
     when(folioExecutionContext.getTenantId()).thenReturn(CENTRAL_TENANT_NAME);
     when(folioExecutionContext.getOkapiHeaders()).thenReturn(defaultHeaders());
     when(folioExecutionContext.getAllHeaders()).thenReturn(defaultHeaders());
+    when(folioExecutionContext.getFolioModuleMetadata()).thenReturn(getFolioExecutionContext().getFolioModuleMetadata());
   }
 
   protected Map<String, Collection<String>> defaultHeaders() {

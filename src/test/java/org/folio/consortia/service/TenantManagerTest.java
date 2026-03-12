@@ -12,7 +12,7 @@ import static org.folio.consortia.support.EntityUtils.createTenantDetailsEntity;
 import static org.folio.consortia.support.EntityUtils.createTenantEntity;
 import static org.folio.consortia.support.EntityUtils.createUser;
 import static org.folio.consortia.support.EntityUtils.createUserTenantCollection;
-import static org.folio.consortia.support.EntityUtils.getFolioExecutionContext;
+import static org.folio.consortia.support.EntityUtils.mockFolioExecutionContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -67,14 +67,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.Mock;
-import org.mockito.Spy;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.batch.autoconfigure.BatchAutoConfiguration;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.format.support.FormattingConversionService;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
@@ -83,45 +82,45 @@ class TenantManagerTest {
 
   private static final UUID CONSORTIUM_ID = UUID.fromString("7698e46-c3e3-11ed-afa1-0242ac120002");
 
-  @Mock
+  @MockitoBean
   private TenantRepository tenantRepository;
-  @Mock
+  @MockitoBean
   private TenantDetailsRepository tenantDetailsRepository;
-  @Mock
+  @MockitoBean
   private UserTenantRepository userTenantRepository;
-  @Mock
+  @MockitoBean
   private InactiveUserTenantRepository inactiveUserTenantRepository;
-  @Mock
-  private ConversionService conversionService;
-  @Mock
+  @MockitoBean
+  private FormattingConversionService conversionService;
+  @MockitoBean
   private ConsortiumService consortiumService;
-  @Spy
-  private FolioExecutionContext folioExecutionContext = getFolioExecutionContext();
-  @Mock
+  @MockitoBean
+  private FolioExecutionContext folioExecutionContext;
+  @MockitoBean
   private ConsortiaConfigurationClient consortiaConfigurationClient;
-  @Mock
+  @MockitoBean
   private CapabilitiesUserService capabilitiesUserService;
-  @Mock
+  @MockitoBean
   private UserService userService;
-  @Mock
+  @MockitoBean
   private UserTenantService userTenantService;
-  @Mock
+  @MockitoBean
   private ExecutionContextBuilder executionContextBuilder;
-  @Mock
+  @MockitoBean
   private UserTenantsClient userTenantsClient;
-  @Mock
+  @MockitoBean
   private SyncPrimaryAffiliationService syncPrimaryAffiliationService;
-  @Mock
+  @MockitoBean
   private CleanupService cleanupService;
-  @Mock
+  @MockitoBean
   private LockService lockService;
-  @Mock
+  @MockitoBean
   private SystemUserScopedExecutionService systemUserScopedExecutionService;
-  @Mock
+  @MockitoBean
   private CustomFieldService customFieldService;
-  @Mock
+  @MockitoBean
   private KeycloakService keycloakService;
-  @Mock
+  @MockitoBean
   private KeycloakUsersService keycloakUsersService;
 
   private TenantManager tenantManager;
@@ -194,6 +193,7 @@ class TenantManagerTest {
         Callable<?> action = invocation.getArgument(1);
         return action.call();
       });
+    mockFolioExecutionContext(folioExecutionContext);
 
     var tenant1 = tenantManager.save(CONSORTIUM_ID, UUID.fromString(adminUser.getId()), tenant);
 
@@ -566,6 +566,7 @@ class TenantManagerTest {
     doNothing().when(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
     doNothing().when(consortiaConfigurationClient).saveConfiguration(any());
     when(userTenantsClient.getUserTenants()).thenReturn(new UserTenantCollection(List.of(), 1));
+    mockFolioExecutionContext(folioExecutionContext);
 
     var tenant1 = tenantManager.save(CONSORTIUM_ID, UUID.fromString(adminUser.getId()), tenant);
 

@@ -1,9 +1,8 @@
 package org.folio.consortia.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
-import feign.Request;
 import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.PublicationResponse;
 import org.folio.consortia.repository.ConsortiumRepository;
@@ -17,13 +16,13 @@ import org.folio.spring.service.SystemUserScopedExecutionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -41,6 +40,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@MockitoSettings(strictness = Strictness.LENIENT)
 @SpringBootTest
 public abstract class BaseSharingConfigServiceTest {
 
@@ -101,16 +101,6 @@ public abstract class BaseSharingConfigServiceTest {
     try (var ignored = new FolioExecutionContextSetter(context)) {
       return invocation.<Callable<T>>getArgument(1).call();
     }
-  }
-
-  protected Request buildFeignRequest() {
-    return Request
-      .create(Request.HttpMethod.GET,
-        "/roles",
-        Collections.emptyMap(),
-        null,
-        StandardCharsets.UTF_8,
-        null);
   }
 
   protected abstract Object getServiceUnderTest();

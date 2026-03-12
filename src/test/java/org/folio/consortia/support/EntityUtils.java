@@ -1,8 +1,9 @@
 package org.folio.consortia.support;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.domain.dto.Consortium;
 import org.folio.consortia.domain.dto.Personal;
@@ -36,7 +37,6 @@ import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.springframework.http.HttpMethod;
-import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -47,6 +47,7 @@ import java.util.UUID;
 
 import static org.folio.spring.integration.XOkapiHeaders.TENANT;
 import static org.folio.spring.integration.XOkapiHeaders.TOKEN;
+import static org.mockito.Mockito.when;
 
 @UtilityClass
 public class EntityUtils {
@@ -486,5 +487,11 @@ public class EntityUtils {
         return "mod_consortia_keycloak";
       }
     }, createOkapiHeaders());
+  }
+
+  public static void mockFolioExecutionContext(FolioExecutionContext folioExecutionContext) {
+    when(folioExecutionContext.getTenantId()).thenReturn(TENANT_ID);
+    when(folioExecutionContext.getOkapiHeaders()).thenReturn(createOkapiHeaders());
+    when(folioExecutionContext.getAllHeaders()).thenReturn(createOkapiHeaders());
   }
 }

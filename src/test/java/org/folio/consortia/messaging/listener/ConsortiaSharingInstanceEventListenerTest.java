@@ -15,12 +15,15 @@ import java.util.Map;
 import org.folio.consortia.base.BaseIT;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.messaging.MessageHeaders;
 
+@ExtendWith(MockitoExtension.class)
 @SpringBootTest
 class ConsortiaSharingInstanceEventListenerTest {
 

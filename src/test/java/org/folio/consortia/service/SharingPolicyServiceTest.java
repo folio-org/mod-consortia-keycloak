@@ -1,8 +1,7 @@
 package org.folio.consortia.service;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ObjectNode;
 
-import feign.FeignException;
 import org.folio.consortia.client.PoliciesClient;
 import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.dto.SharingPolicyRequest;
@@ -14,7 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -72,7 +74,7 @@ class SharingPolicyServiceTest extends BaseSharingConfigServiceTest{
     var expectedSharingPolicyEntity = createSharingPolicyEntity(request.getPolicyId(), TENANT_ID_2);
 
     setupCommonMocksForStart(createPcId, updatePcId, expectedPubRequestPost, expectedPubRequestPut, payload);
-    doThrow(new FeignException.NotFound("Policy not found", buildFeignRequest(), null, null))
+    doThrow(HttpClientErrorException.create(HttpStatus.NOT_FOUND, "Policy not found", new HttpHeaders(), new byte[0], null))
       .when(policiesClient).getPolicyById(any());
     when(sharingPolicyRepository.findTenantsByPolicyId(request.getPolicyId())).thenReturn(tenantSharedPolicy);
     when(sharingPolicyRepository.save(expectedSharingPolicyEntity)).thenReturn(new SharingPolicyEntity());

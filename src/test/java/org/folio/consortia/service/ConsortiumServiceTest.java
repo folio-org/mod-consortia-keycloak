@@ -9,14 +9,14 @@ import org.folio.consortia.domain.dto.Consortium;
 import org.folio.spring.data.OffsetRequest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
+import org.springframework.boot.batch.autoconfigure.BatchAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.format.support.FormattingConversionService;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,12 +33,12 @@ import static org.mockito.Mockito.when;
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 class ConsortiumServiceTest {
 
-  @InjectMocks
+  @Autowired
   private ConsortiumServiceImpl consortiumService;
-  @Mock
+  @MockitoBean
   private ConsortiumRepository consortiumRepository;
-  @Mock
-  private ConversionService conversionService;
+  @MockitoBean
+  private FormattingConversionService conversionService;
 
   @Test
   void shouldGetConsortiumList() {

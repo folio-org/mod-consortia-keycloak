@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;

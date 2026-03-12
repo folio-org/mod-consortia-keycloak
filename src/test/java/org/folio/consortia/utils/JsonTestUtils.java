@@ -1,12 +1,12 @@
 package org.folio.consortia.utils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
@@ -14,11 +14,10 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class JsonTestUtils {
 
-  private static final JsonMapper MAPPER = JsonMapper.builder()
-    .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+  private static final ObjectMapper MAPPER = JsonMapper.builder()
+    .configure(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS, false)
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    .serializationInclusion(JsonInclude.Include.NON_NULL)
-    .addModule(new JavaTimeModule())
+    .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
     .build();
 
   @SneakyThrows

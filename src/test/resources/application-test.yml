@@ -15,6 +15,8 @@ spring:
     bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
 folio:
   okapi-url: ${OKAPI_URL:http://okapi:9130}
+  exchange:
+    enabled: true
   system:
     username: consortia-system-user
     password: ${SYSTEM_USER_PASSWORD:consortia-system-user}

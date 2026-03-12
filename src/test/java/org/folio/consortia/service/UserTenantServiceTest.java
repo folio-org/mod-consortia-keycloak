@@ -1,6 +1,7 @@
 package org.folio.consortia.service;
 
 import static org.folio.consortia.support.EntityUtils.createUserEntity;
+import static org.folio.consortia.support.EntityUtils.getFolioExecutionContext;
 import static org.folio.consortia.support.TestConstants.USER_ID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,7 +42,6 @@ import org.folio.consortia.repository.UserTenantRepository;
 import org.folio.consortia.service.impl.UserTenantServiceImpl;
 import org.folio.consortia.utils.HelperUtils;
 import org.folio.spring.FolioExecutionContext;
-import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.data.OffsetRequest;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.folio.spring.service.SystemUserScopedExecutionService;
@@ -50,16 +50,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.batch.autoconfigure.BatchAutoConfiguration;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.format.support.FormattingConversionService;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
@@ -68,27 +68,25 @@ class UserTenantServiceTest {
 
   private static final String CONSORTIUM_ID = "7698e46-c3e3-11ed-afa1-0242ac120002";
 
-  @InjectMocks
+  @Autowired
   private UserTenantServiceImpl userTenantService;
-  @Mock
+  @MockitoBean
   private UserTenantRepository userTenantRepository;
-  @Mock
+  @MockitoBean
   private InactiveUserTenantRepository inactiveUserTenantRepository;
-  @Mock
+  @MockitoBean
   private FolioExecutionContext folioExecutionContext;
-  @Mock
-  private ConversionService conversionService;
-  @Mock
+  @MockitoBean
+  private FormattingConversionService conversionService;
+  @MockitoBean
   private ConsortiumService consortiumService;
-  @Mock
+  @MockitoBean
   private UserService userService;
-  @Mock
-  private FolioModuleMetadata folioModuleMetadata;
-  @Mock
+  @MockitoBean
   private CapabilitiesUserService capabilitiesUserService;
-  @Mock
+  @MockitoBean
   private TenantService tenantService;
-  @Mock
+  @MockitoBean
   private SystemUserScopedExecutionService systemUserScopedExecutionService;
 
   /* Success cases */
@@ -623,6 +621,7 @@ class UserTenantServiceTest {
     Map<String, Collection<String>> okapiHeaders = new HashMap<>();
     okapiHeaders.put(XOkapiHeaders.TENANT, List.of("diku"));
     when(folioExecutionContext.getOkapiHeaders()).thenReturn(okapiHeaders);
+    when(folioExecutionContext.getFolioModuleMetadata()).thenReturn(getFolioExecutionContext().getFolioModuleMetadata());
   }
 
   private static Object runSecondArgument(InvocationOnMock invocation) {

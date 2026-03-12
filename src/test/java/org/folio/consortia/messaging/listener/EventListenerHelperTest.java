@@ -1,6 +1,5 @@
 package org.folio.consortia.messaging.listener;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
@@ -12,12 +11,15 @@ import org.folio.consortia.base.BaseIT;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.messaging.MessageHeaders;
 
+@ExtendWith(MockitoExtension.class)
 @SpringBootTest
 class EventListenerHelperTest {
   @InjectMocks
