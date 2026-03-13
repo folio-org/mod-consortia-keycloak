@@ -19,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.util.MultiValueMap;
 
 import java.util.List;
 
@@ -88,7 +89,7 @@ class KeycloakCredentialsServiceTest {
 
     when(keycloakProperties.getClientId()).thenReturn(clientId);
     when(secureStore.get(anyString())).thenReturn(clientSecret);
-    when(keycloakClient.login(anyMap())).thenReturn(tokenResponse);
+    when(keycloakClient.login(any(MultiValueMap.class))).thenReturn(tokenResponse);
     when(secureStoreProperties.getEnvironment()).thenReturn(secureStoreEnv);
 
     String token = keycloakCredentialsService.getMasterAuthToken();

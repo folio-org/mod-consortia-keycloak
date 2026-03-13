@@ -1,6 +1,7 @@
 package org.folio.consortia.service.impl;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -13,6 +14,7 @@ import org.folio.tools.store.SecureStore;
 import org.folio.tools.store.exception.SecretNotFoundException;
 import org.folio.tools.store.properties.SecureStoreProperties;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -44,13 +46,13 @@ public class KeycloakCredentialsServiceImpl implements KeycloakCredentialsServic
     var clientId = keycloakProperties.getClientId();
     var clientSecret = getBackendAdminClientSecret(clientId);
 
-    HashMap<String, String> loginRequest = new HashMap<>();
+    Map<String, String> loginRequest = new HashMap<>();
     loginRequest.put("client_id", clientId);
     loginRequest.put("client_secret", clientSecret);
     loginRequest.put("grant_type", keycloakProperties.getGrantType());
 
     log.info("requestToken:: Issuing access token for Keycloak communication [clientId: {}]", clientId);
-    var token = keycloakClient.login(loginRequest);
+    var token = keycloakClient.login(MultiValueMap.fromSingleValue(loginRequest));
     return token.getTokenType() + " " + token.getAccessToken();
   }
 

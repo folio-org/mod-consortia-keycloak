@@ -44,11 +44,11 @@ class ModuleTenantServiceTest {
     module3.setId("mod-users");
 
     when(folioExecutionContext.getTenantId()).thenReturn(tenantId);
-    when(eurekaProxyTenantsClient.getModules(isA(URI.class), eq(tenantId))).thenReturn(List.of(module1, module2, module3));
+    when(eurekaProxyTenantsClient.getModules(eq(tenantId))).thenReturn(List.of(module1, module2, module3));
 
     var actual = moduleTenantService.getModUsersModuleId();
 
-    verify(eurekaProxyTenantsClient).getModules(isA(URI.class), eq(tenantId));
+    verify(eurekaProxyTenantsClient).getModules(eq(tenantId));
     assertEquals(moduleId, actual);
   }
 }

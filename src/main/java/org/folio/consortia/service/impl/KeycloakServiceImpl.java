@@ -15,6 +15,7 @@ import org.folio.consortia.service.KeycloakCredentialsService;
 import org.folio.consortia.service.KeycloakService;
 import org.springframework.stereotype.Service;
 
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -46,11 +47,11 @@ public class KeycloakServiceImpl implements KeycloakService {
     var token = keycloakCredentialsService.getMasterAuthToken();
 
     // 1. Duplicate built-in browser authentication flow
-    var browserFlowCopyConfig = Map.of("newName", CUSTOM_BROWSER_FLOW);
+    var browserFlowCopyConfig = MultiValueMap.fromSingleValue(Map.of("newName", CUSTOM_BROWSER_FLOW));
     keycloakClient.copyBrowserFlow(centralTenantId, browserFlowCopyConfig, token);
 
     // 2. Add custom ecs folio authentication form provider to the duplicated flow
-    var browserFlowProviderConfig = Map.of("provider", ECS_FOLIO_AUTH_USRNM_PWD_FORM);
+    var browserFlowProviderConfig = MultiValueMap.fromSingleValue(Map.of("provider", ECS_FOLIO_AUTH_USRNM_PWD_FORM));
     keycloakClient.executeBrowserFlow(centralTenantId, CUSTOM_BROWSER_FLOW_FORMS, browserFlowProviderConfig, token);
 
     // 3. Fetch executions from current flow

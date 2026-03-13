@@ -8,12 +8,12 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 
 import java.util.List;
-import java.util.Map;
 
 import org.folio.consortia.domain.dto.KeycloakClientCredentials;
 import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
 import org.folio.consortia.domain.dto.KeycloakTokenResponse;
 import org.folio.consortia.domain.dto.RealmExecutions;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -24,7 +24,7 @@ import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PostExchange;
 import org.springframework.web.service.annotation.PutExchange;
 
-@HttpExchange("#{keycloakProperties.url}")
+@HttpExchange
 public interface KeycloakClient {
 
   /**
@@ -34,7 +34,7 @@ public interface KeycloakClient {
    * @return KeycloakTokenResponse
    */
   @PostExchange(value = "/realms/master/protocol/openid-connect/token", contentType = APPLICATION_FORM_URLENCODED_VALUE)
-  KeycloakTokenResponse login(@RequestBody Map<String, ?> loginRequest);
+  KeycloakTokenResponse login(@RequestBody MultiValueMap<String, ?> loginRequest);
 
   /**
    * Get client credentials for a given client id in a realm
@@ -118,7 +118,7 @@ public interface KeycloakClient {
    */
   @PostExchange(value = "/admin/realms/{tenant}/authentication/flows/browser/copy")
   void copyBrowserFlow(@PathVariable("tenant") String tenant,
-                       @RequestBody Map<String, ?> copyRequest,
+                       @RequestBody MultiValueMap<String, ?> copyRequest,
                        @RequestHeader(AUTHORIZATION) String token);
 
   /**
@@ -145,7 +145,7 @@ public interface KeycloakClient {
   @PostExchange(value = "/admin/realms/{tenant}/authentication/flows/{flowName}/executions/execution")
   void executeBrowserFlow(@PathVariable("tenant") String tenant,
                           @PathVariable("flowName") String flowName,
-                          @RequestBody Map<String, ?> executionRequest,
+                          @RequestBody MultiValueMap<String, ?> executionRequest,
                           @RequestHeader(AUTHORIZATION) String token);
 
   /**
