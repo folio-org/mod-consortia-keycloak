@@ -93,7 +93,7 @@ public interface KeycloakClient {
    * @param token  the authorization token
    * @return the realm configuration as an ObjectNode
    */
-  @GetExchange(value = "admin/realms/{tenant}")
+  @GetExchange(value = "/admin/realms/{tenant}")
   ObjectNode getRealm(@PathVariable("tenant") String tenant,
                       @RequestHeader(AUTHORIZATION) String token);
 
