@@ -6,6 +6,7 @@ import org.folio.consortia.repository.ConsortiaConfigurationRepository;
 import org.folio.consortia.service.impl.ConsortiaConfigurationServiceImpl;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.support.CopilotGenerated;
+import org.folio.consortia.support.extension.EnablePostgresExtension;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.junit.jupiter.api.Assertions;
@@ -35,6 +36,7 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 @CopilotGenerated(partiallyGenerated = true)
+@EnablePostgresExtension
 class ConsortiaConfigurationServiceTest {
   private static final String CENTRAL_TENANT_ID = "diku";
   private static final String TENANT_ID = "testtenant1";

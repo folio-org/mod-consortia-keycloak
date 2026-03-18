@@ -60,10 +60,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.folio.consortia.support.extension.EnablePostgresExtension;
 
 @SpringBootTest
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 @EntityScan(basePackageClasses = UserTenantEntity.class)
+@EnablePostgresExtension
 class UserTenantServiceTest {
 
   private static final String CONSORTIUM_ID = "7698e46-c3e3-11ed-afa1-0242ac120002";

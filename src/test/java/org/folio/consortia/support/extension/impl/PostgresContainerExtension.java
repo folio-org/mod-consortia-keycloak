@@ -11,10 +11,7 @@ public class PostgresContainerExtension implements BeforeAllCallback, AfterAllCa
   private static final String SPRING_DATASOURCE_PASSWORD = "spring.datasource.password";
 
   @SuppressWarnings("resource")
-  private static final PostgreSQLContainer<?> CONTAINER = new PostgreSQLContainer<>("postgres:12-alpine")
-    .withDatabaseName("okapi_modules")
-    .withUsername("folio_admin")
-    .withPassword("folio_admin");
+  private static final PostgreSQLContainer<?> CONTAINER = new PostgreSQLContainer<>("postgres:16-alpine");
 
   @Override
   public void beforeAll(ExtensionContext context) {

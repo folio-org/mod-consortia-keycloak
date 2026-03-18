@@ -49,9 +49,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import org.folio.consortia.support.extension.EnablePostgresExtension;
 
 @SpringBootTest
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
+@EnablePostgresExtension
 class SharingInstanceServiceTest {
 
   private static final UUID instanceIdentifier = UUID.fromString("5b157ec2-8134-4363-a7b1-c9531a7c6a54");

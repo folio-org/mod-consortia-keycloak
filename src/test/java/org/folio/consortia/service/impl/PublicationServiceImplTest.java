@@ -32,6 +32,7 @@ import org.folio.consortia.service.HttpRequestService;
 import org.folio.consortia.service.PublicationStorageService;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserTenantService;
+import org.folio.consortia.support.extension.EnablePostgresExtension;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.junit.jupiter.api.Assertions;
@@ -48,6 +49,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpClientErrorException;
 
+@EnablePostgresExtension
 class PublicationServiceImplTest extends BaseUnitTest {
   private static final String PUBLICATION_REQUEST_SAMPLE = "mockdata/publications/publication_request.json";
   private static final String PUBLICATION_STATUS_ENTITY_SAMPLE = "mockdata/publications/publication_status_entity.json";
