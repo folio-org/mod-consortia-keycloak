@@ -23,7 +23,7 @@ public class KeycloakHttpClientConfig {
     // Build a separate RestClient.Builder clone for Keycloak by replacing the existing EnrichUrlAndHeadersInterceptor with the custom one
     var keycloakRestClientBuilder = restClientBuilder.build()
       .mutate().clone()
-      .requestInterceptors(interceptors -> interceptors.removeIf(interceptor -> interceptor instanceof EnrichUrlAndHeadersInterceptor))
+      .requestInterceptors(interceptors -> interceptors.removeIf(EnrichUrlAndHeadersInterceptor.class::isInstance))
       .requestInterceptor(keycloakHttpRequestInterceptor);
     // Configure TLS and build the Keycloak client
     return HttpClientTlsUtils.buildHttpServiceClient(keycloakRestClientBuilder, properties.getTls(), properties.getUrl(), KeycloakClient.class);

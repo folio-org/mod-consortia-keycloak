@@ -3,6 +3,7 @@ package org.folio.consortia.utils;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.text.RandomStringGenerator;
 import org.folio.consortia.domain.dto.UserTenant;
 
@@ -14,7 +15,7 @@ public class HelperUtils {
   private static final Integer RANDOM_STRING_COUNT = 5;
 
   public static void checkIdenticalOrThrow(String firstString, String secondString, String errorMsg) {
-    if (!StringUtils.equals(firstString, secondString)) {
+    if (!Strings.CS.equals(firstString, secondString)) {
       throw new IllegalArgumentException(errorMsg);
     }
   }

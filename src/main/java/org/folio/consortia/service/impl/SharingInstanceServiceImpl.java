@@ -86,7 +86,7 @@ public class SharingInstanceServiceImpl implements SharingInstanceService {
 
       try (var ignored = new FolioExecutionContextSetter(
         TenantContextUtils.prepareContextForTenant(targetTenantId, folioModuleMetadata, folioExecutionContext))) {
-        String source = switch (inventoryInstance.get("source").asText().toLowerCase()) {
+        String source = switch (inventoryInstance.get("source").asString().toLowerCase()) {
           case "folio" -> InstanceSourceValues.CONSORTIUM_FOLIO_INSTANCE.getValue();
           case "marc" -> InstanceSourceValues.CONSORTIUM_MARC_INSTANCE.getValue();
           case "linked_data" -> InstanceSourceValues.CONSORTIUM_LINKED_DATA_INSTANCE.getValue();

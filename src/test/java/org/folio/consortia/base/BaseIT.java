@@ -37,7 +37,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.springframework.test.util.TestSocketUtils;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -57,7 +57,7 @@ public abstract class BaseIT {
   public static final String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6IjFkM2I1OGNiLTA3YjUtNWZjZC04YTJhLTNjZTA2YTBlYjkwZiIsImlhdCI6MTYxNjQyMDM5MywidGVuYW50IjoiZGlrdSJ9.2nvEYQBbJP1PewEgxixBWLHSX_eELiBEBpjufWiJZRs";
   public static final String TENANT = "consortium";
   protected static WireMockServer wireMockServer;
-  protected static PostgreSQLContainer<?> postgreDBContainer = new PostgreSQLContainer<>("postgres:16-alpine");
+  protected static PostgreSQLContainer postgreDBContainer = new PostgreSQLContainer("postgres:16-alpine");
   protected static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
     .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
     .changeDefaultPropertyInclusion(incl -> incl.withContentInclusion(JsonInclude.Include.NON_NULL))

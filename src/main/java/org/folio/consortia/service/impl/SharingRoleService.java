@@ -71,7 +71,7 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
 
   @Override
   protected String getPayloadId(ObjectNode payload) {
-    return payload.get(ID).asText();
+    return payload.get(ID).asString();
   }
 
   @Override
@@ -189,7 +189,7 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   private void checkEqualsOfRoleNameWithPayload(SharingRoleRequest request) {
     String roleName = request.getRoleName();
     var payloadNode = objectMapper.convertValue(request.getPayload(), ObjectNode.class);
-    String payloadRoleName = payloadNode.get(NAME).asText();
+    String payloadRoleName = payloadNode.get(NAME).asString();
     if (ObjectUtils.notEqual(roleName, payloadRoleName)) {
       throw new IllegalArgumentException("Mismatch name in payload with roleName");
     }

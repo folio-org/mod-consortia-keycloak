@@ -330,8 +330,8 @@ public class EntityUtils {
     entity.setTenantId(tenant);
     entity.setStatus(status);
     entity.setPcState(publicationStatusEntity);
-    entity.setResponse(RandomStringUtils.random(10));
-    entity.setRequestPayload(RandomStringUtils.random(10));
+    entity.setResponse(RandomStringUtils.insecure().next(10));
+    entity.setRequestPayload(RandomStringUtils.insecure().next(10));
     entity.setResponseStatusCode(statusCode);
     entity.setCreatedDate(LocalDateTime.now());
     return entity;

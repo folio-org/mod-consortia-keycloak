@@ -335,7 +335,7 @@ class SharingInstanceServiceTest {
     doNothing().when(inventoryService).saveInstance(anyString());
 
     sharingInstanceService.start(UUID.randomUUID(), createSharingInstance(instanceIdentifier, centralTenant, targetTenant));
-    assertThat(inventoryInstance.get("source").textValue()).isEqualTo(expected);
+    assertThat(inventoryInstance.get("source").asString()).isEqualTo(expected);
   }
 
   @Test

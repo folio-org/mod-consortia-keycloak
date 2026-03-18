@@ -190,7 +190,7 @@ class PublicationServiceImplTest extends BaseUnitTest {
     when(publicationTenantRequestRepository.save(any(PublicationTenantRequestEntity.class))).thenReturn(new PublicationTenantRequestEntity());
     when(publicationStatusRepository.save(any(PublicationStatusEntity.class))).thenReturn(new PublicationStatusEntity());
 
-    var payload = RandomStringUtils.random(10);
+    var payload = RandomStringUtils.insecure().next(10);
     var restTemplateResponse = new PublicationHttpResponse(payload, HttpStatusCode.valueOf(201));
 
     publicationService.updateSucceedPublicationTenantRequest(restTemplateResponse, ptrEntity);

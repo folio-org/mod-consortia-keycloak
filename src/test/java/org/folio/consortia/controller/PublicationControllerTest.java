@@ -58,7 +58,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestTemplate;
-import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 
 import one.util.streamex.StreamEx;
 import tools.jackson.databind.ObjectMapper;
@@ -223,7 +222,7 @@ public class PublicationControllerTest extends BaseIT {
 
   @ParameterizedTest
   @CsvSource(value = {"100, 12"})
-  void parallelTenantRequestsTest(int tenantsAmount, int chunkSize) throws JsonProcessingException {
+  void parallelTenantRequestsTest(int tenantsAmount, int chunkSize) {
     var headers = defaultHeaders();
     var consortiumId = UUID.randomUUID();
     var publicationStatusEntity = getMockDataObject("mockdata/publications/publication_status_entity.json",

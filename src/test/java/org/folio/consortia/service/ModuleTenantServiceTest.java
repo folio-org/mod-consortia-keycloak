@@ -1,12 +1,9 @@
 package org.folio.consortia.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.net.URI;
 import java.util.List;
 
 import org.folio.consortia.client.EurekaProxyTenantsClient;
@@ -44,11 +41,11 @@ class ModuleTenantServiceTest {
     module3.setId("mod-users");
 
     when(folioExecutionContext.getTenantId()).thenReturn(tenantId);
-    when(eurekaProxyTenantsClient.getModules(eq(tenantId))).thenReturn(List.of(module1, module2, module3));
+    when(eurekaProxyTenantsClient.getModules(tenantId)).thenReturn(List.of(module1, module2, module3));
 
     var actual = moduleTenantService.getModUsersModuleId();
 
-    verify(eurekaProxyTenantsClient).getModules(eq(tenantId));
+    verify(eurekaProxyTenantsClient).getModules(tenantId);
     assertEquals(moduleId, actual);
   }
 }

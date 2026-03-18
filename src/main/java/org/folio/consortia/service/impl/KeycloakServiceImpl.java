@@ -8,6 +8,7 @@ import tools.jackson.databind.node.ObjectNode;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.folio.consortia.client.KeycloakClient;
 import org.folio.consortia.config.keycloak.KeycloakIdentityProviderProperties;
 import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
@@ -54,11 +55,11 @@ public class KeycloakServiceImpl implements KeycloakService {
     // 3. Fetch executions from current flow
     var executions = keycloakClient.getExecutions(centralTenantId, CUSTOM_BROWSER_FLOW, token);
     var authUsernamePasswordFormExecution = executions.stream()
-      .filter(execution -> StringUtils.equals(execution.getProviderId(), AUTH_USERNAME_PASSWORD_FORM))
+      .filter(execution -> Strings.CS.equals(execution.getProviderId(), AUTH_USERNAME_PASSWORD_FORM))
       .findFirst()
       .orElseThrow(() -> new IllegalStateException("auth-username-password-form execution not found"));
     var ecsFolioAuthUsernamePasswordFormExecution = executions.stream()
-      .filter(execution -> StringUtils.equals(execution.getProviderId(), ECS_FOLIO_AUTH_USRNM_PWD_FORM))
+      .filter(execution -> Strings.CS.equals(execution.getProviderId(), ECS_FOLIO_AUTH_USRNM_PWD_FORM))
       .findFirst()
       .orElseThrow(() -> new IllegalStateException("ecs-folio-auth-usrnm-pwd-form execution not found"));
 

@@ -56,7 +56,7 @@ public class SharingSettingService extends BaseSharingService<SharingSettingRequ
 
   @Override
   protected String getPayloadId(ObjectNode payload) {
-    return payload.get("id").asText();
+    return payload.get("id").asString();
   }
 
   @Override

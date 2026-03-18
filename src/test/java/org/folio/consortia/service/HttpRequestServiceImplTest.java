@@ -32,7 +32,7 @@ class HttpRequestServiceImplTest extends BaseUnitTest {
 
   @Test
   void performRequestSuccess() {
-    String payload = RandomStringUtils.random(10);
+    String payload = RandomStringUtils.insecure().next(10);
 
     ResponseEntity<Object> restTemplateResponse = new ResponseEntity<>(payload, HttpStatusCode.valueOf(201));
     when(folioExecutionContext.getTenantId()).thenReturn(CENTRAL_TENANT_NAME);
@@ -41,7 +41,7 @@ class HttpRequestServiceImplTest extends BaseUnitTest {
     when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(Object.class))).thenReturn(restTemplateResponse);
     when(objectMapper.writeValueAsString(any())).thenReturn(payload);
 
-    var response = httpRequestService.performRequest(RandomStringUtils.random(10), HttpMethod.POST, new Object());
+    var response = httpRequestService.performRequest(RandomStringUtils.insecure().next(10), HttpMethod.POST, new Object());
     Assertions.assertEquals(payload, response.getBody());
   }
 }

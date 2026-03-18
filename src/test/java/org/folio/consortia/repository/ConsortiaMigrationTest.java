@@ -42,7 +42,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.springframework.test.util.TestSocketUtils;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -62,7 +62,7 @@ class ConsortiaMigrationTest {
 
   protected static final int WIRE_MOCK_PORT = TestSocketUtils.findAvailableTcpPort();
   protected static WireMockServer wireMockServer;
-  protected static PostgreSQLContainer<?> postgreDBContainer = new PostgreSQLContainer<>("postgres:12-alpine");
+  protected static PostgreSQLContainer postgreDBContainer = new PostgreSQLContainer("postgres:12-alpine");
 
   static {
     postgreDBContainer.start();
