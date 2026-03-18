@@ -8,6 +8,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 
 import java.util.List;
+import java.util.Map;
 
 import org.folio.consortia.domain.dto.KeycloakClientCredentials;
 import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
@@ -118,7 +119,7 @@ public interface KeycloakClient {
    */
   @PostExchange(value = "/admin/realms/{tenant}/authentication/flows/browser/copy")
   void copyBrowserFlow(@PathVariable("tenant") String tenant,
-                       @RequestBody MultiValueMap<String, ?> copyRequest,
+                       @RequestBody Map<String, String> copyRequest,
                        @RequestHeader(AUTHORIZATION) String token);
 
   /**
@@ -145,7 +146,7 @@ public interface KeycloakClient {
   @PostExchange(value = "/admin/realms/{tenant}/authentication/flows/{flowName}/executions/execution")
   void executeBrowserFlow(@PathVariable("tenant") String tenant,
                           @PathVariable("flowName") String flowName,
-                          @RequestBody MultiValueMap<String, ?> executionRequest,
+                          @RequestBody Map<String, String> executionRequest,
                           @RequestHeader(AUTHORIZATION) String token);
 
   /**

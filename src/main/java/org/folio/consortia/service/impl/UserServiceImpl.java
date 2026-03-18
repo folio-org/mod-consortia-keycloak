@@ -60,7 +60,12 @@ public class UserServiceImpl implements UserService {
   public User getById(UUID userId) {
     try {
       log.info("Getting user by userId {}.", userId);
-      return usersKeycloakClient.getUsersByUserId(String.valueOf(userId));
+      var user = usersKeycloakClient.getUsersByUserId(String.valueOf(userId));
+      if (user == null) {
+        log.info("User with userId {} returned null response, going to use new one", userId);
+        return new User();
+      }
+      return user;
     } catch (HttpClientErrorException.NotFound e) {
       log.info("User with userId {} does not exist in schema, going to use new one", userId);
       return new User();

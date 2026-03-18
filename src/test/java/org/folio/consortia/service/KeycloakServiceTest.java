@@ -14,13 +14,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Map;
 
 import tools.jackson.databind.node.JsonNodeFactory;
 import tools.jackson.databind.node.ObjectNode;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.folio.consortia.client.KeycloakClient;
 import org.folio.consortia.config.keycloak.KeycloakIdentityProviderProperties;
@@ -60,12 +60,12 @@ class KeycloakServiceTest {
   @Value("${folio.environment}")
   private String folioEnvironment;
 
-  private ArgumentCaptor<MultiValueMap<String, String>> mapCaptor;
+  private ArgumentCaptor<Map<String, String>> mapCaptor;
   private ArgumentCaptor<KeycloakIdentityProvider> idpCaptor;
 
   @BeforeEach
   void setUp() {
-    mapCaptor = ArgumentCaptor.forClass(MultiValueMap.class);
+    mapCaptor = ArgumentCaptor.forClass(Map.class);
     idpCaptor = ArgumentCaptor.forClass(KeycloakIdentityProvider.class);
     when(keycloakIdpProperties.getEnabled()).thenReturn(true);
     when(keycloakCredentialsService.getMasterAuthToken()).thenReturn(AUTH_TOKEN);
@@ -157,7 +157,7 @@ class KeycloakServiceTest {
     keycloakService.addCustomAuthFlowForCentralTenant(TENANT_ID);
 
     verify(keycloakClient).copyBrowserFlow(eq(TENANT_ID), mapCaptor.capture(), eq(AUTH_TOKEN));
-    verify(keycloakClient).executeBrowserFlow(eq(TENANT_ID), eq("custom-browser%20forms"), mapCaptor.capture(), eq(AUTH_TOKEN));
+    verify(keycloakClient).executeBrowserFlow(eq(TENANT_ID), eq("custom-browser forms"), mapCaptor.capture(), eq(AUTH_TOKEN));
     verify(keycloakClient).deleteExecution(TENANT_ID, "id1", AUTH_TOKEN);
     verify(keycloakClient).raisePriority(TENANT_ID, "id2", AUTH_TOKEN);
     verify(keycloakClient).updateRealm(eq(TENANT_ID), any(), eq(AUTH_TOKEN));
