@@ -1,7 +1,8 @@
 package org.folio.consortia.utils;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import java.util.Base64;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -12,8 +13,9 @@ import org.folio.consortia.exception.InvalidTokenException;
 public class TokenUtils {
 
   private static final String UNDEFINED_USER_NAME = "UNDEFINED_USER__";
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
+    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    .build();
 
   private TokenUtils() {}
 

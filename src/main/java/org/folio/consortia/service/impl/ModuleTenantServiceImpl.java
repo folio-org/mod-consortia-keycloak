@@ -10,7 +10,6 @@ import org.folio.spring.exception.NotFoundException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,7 +19,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ModuleTenantServiceImpl implements ModuleTenantService {
 
-  private static final String URL_PREFIX = "http://_";
   private static final String MOD_USERS = "mod-users";
   private static final String MOD_USERS_NOT_FOUND_ERROR = "Module id not found for name: " + MOD_USERS;
   private static final String MOD_USERS_REGEXP = "^mod-users-\\d.*$";
@@ -31,7 +29,7 @@ public class ModuleTenantServiceImpl implements ModuleTenantService {
   @Override
   @Cacheable(cacheNames = "modUsersModuleIds")
   public String getModUsersModuleId() {
-    var modules = eurekaProxyTenantsClient.getModules(URI.create(URL_PREFIX), folioExecutionContext.getTenantId());
+    var modules = eurekaProxyTenantsClient.getModules(folioExecutionContext.getTenantId());
     var moduleId = filterModUsersModuleId(modules);
     return moduleId.orElseThrow(() -> new NotFoundException(MOD_USERS_NOT_FOUND_ERROR));
   }

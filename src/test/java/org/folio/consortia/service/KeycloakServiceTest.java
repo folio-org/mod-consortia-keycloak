@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,11 +16,12 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
-import feign.FeignException;
-import feign.Request;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
 import org.folio.consortia.client.KeycloakClient;
 import org.folio.consortia.config.keycloak.KeycloakIdentityProviderProperties;
 import org.folio.consortia.config.keycloak.KeycloakLoginClientProperties;
@@ -32,7 +32,6 @@ import org.folio.consortia.support.CopilotGenerated;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -61,13 +60,13 @@ class KeycloakServiceTest {
   @Value("${folio.environment}")
   private String folioEnvironment;
 
-  @Captor
   private ArgumentCaptor<Map<String, String>> mapCaptor;
-  @Captor
   private ArgumentCaptor<KeycloakIdentityProvider> idpCaptor;
 
   @BeforeEach
   void setUp() {
+    mapCaptor = ArgumentCaptor.forClass(Map.class);
+    idpCaptor = ArgumentCaptor.forClass(KeycloakIdentityProvider.class);
     when(keycloakIdpProperties.getEnabled()).thenReturn(true);
     when(keycloakCredentialsService.getMasterAuthToken()).thenReturn(AUTH_TOKEN);
   }
@@ -77,7 +76,7 @@ class KeycloakServiceTest {
     var alias = getTenantClientAlias(TENANT_ID);
     var clientId = TENANT_ID + keycloakLoginClientProperties.getClientNameSuffix();
     when(keycloakClient.getIdentityProvider(CENTRAL_TENANT_ID, alias, AUTH_TOKEN))
-      .thenThrow(new FeignException.NotFound("not found", mock(Request.class), new byte[0], null));
+      .thenThrow(HttpClientErrorException.create(HttpStatus.NOT_FOUND, "not found", new HttpHeaders(), new byte[0], null));
     when(keycloakCredentialsService.getClientCredentials(TENANT_ID, AUTH_TOKEN))
       .thenReturn(createClientCredentials(clientId, CLIENT_SECRET, true));
 
@@ -126,7 +125,7 @@ class KeycloakServiceTest {
   void deleteIdentityProvider_skipsIfDisabled() {
     var alias = getTenantClientAlias(TENANT_ID);
     when(keycloakClient.getIdentityProvider(CENTRAL_TENANT_ID, alias, AUTH_TOKEN))
-      .thenThrow(new FeignException.NotFound("not found", mock(Request.class), new byte[0], null));
+      .thenThrow(HttpClientErrorException.create(HttpStatus.NOT_FOUND, "not found", new HttpHeaders(), new byte[0], null));
 
     keycloakService.deleteIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
 
@@ -158,7 +157,7 @@ class KeycloakServiceTest {
     keycloakService.addCustomAuthFlowForCentralTenant(TENANT_ID);
 
     verify(keycloakClient).copyBrowserFlow(eq(TENANT_ID), mapCaptor.capture(), eq(AUTH_TOKEN));
-    verify(keycloakClient).executeBrowserFlow(eq(TENANT_ID), eq("custom-browser%20forms"), mapCaptor.capture(), eq(AUTH_TOKEN));
+    verify(keycloakClient).executeBrowserFlow(eq(TENANT_ID), eq("custom-browser forms"), mapCaptor.capture(), eq(AUTH_TOKEN));
     verify(keycloakClient).deleteExecution(TENANT_ID, "id1", AUTH_TOKEN);
     verify(keycloakClient).raisePriority(TENANT_ID, "id2", AUTH_TOKEN);
     verify(keycloakClient).updateRealm(eq(TENANT_ID), any(), eq(AUTH_TOKEN));

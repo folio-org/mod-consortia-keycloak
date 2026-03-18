@@ -2,27 +2,26 @@ package org.folio.consortia.client;
 
 import org.folio.consortia.domain.dto.UserTenant;
 import org.folio.consortia.domain.dto.UserTenantCollection;
-import org.folio.spring.config.FeignClientConfiguration;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.service.annotation.DeleteExchange;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
+import org.springframework.web.service.annotation.PostExchange;
 
-@FeignClient(name = "user-tenants" , configuration = FeignClientConfiguration.class)
+@HttpExchange("user-tenants")
 public interface UserTenantsClient {
 
-  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetExchange(accept = MediaType.APPLICATION_JSON_VALUE)
   UserTenantCollection getUserTenants();
 
-  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PostExchange(contentType = MediaType.APPLICATION_JSON_VALUE)
   void postUserTenant(@RequestBody UserTenant userTenant);
 
-  @DeleteMapping
+  @DeleteExchange
   void deleteUserTenants();
 
-  @DeleteMapping
+  @DeleteExchange
   void deleteUserTenantsByTenantId(@RequestParam("tenantId") String tenantId);
 }

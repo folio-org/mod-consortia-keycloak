@@ -11,9 +11,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import feign.FeignException;
+import tools.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.batch.autoconfigure.BatchAutoConfiguration;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import java.util.List;
 import java.util.UUID;
 import org.folio.common.domain.model.error.Error;
@@ -32,9 +35,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 
+@ExtendWith(MockitoExtension.class)
 @SpringBootTest
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 class CapabilitiesUserServiceImplTest {
@@ -54,7 +57,7 @@ class CapabilitiesUserServiceImplTest {
   @Mock
   ObjectMapper objectMapper;
   @Mock
-  FeignException feignException;
+  HttpStatusCodeException httpStatusCodeException;
 
   @Test
   void shouldThrowErrorForEmptyPermissionFileWhileCreating() {
@@ -75,9 +78,9 @@ class CapabilitiesUserServiceImplTest {
   @Test
   void shouldNotDeleteUserCapabilitiesAndRolesWhenNotFound() {
     String userId = UUID.randomUUID().toString();
-    doThrow(mock(FeignException.NotFound.class)).when(userCapabilitiesClient).deleteUserCapabilities(userId);
-    doThrow(mock(FeignException.NotFound.class)).when(userCapabilitySetsClient).deleteUserCapabilitySets(userId);
-    doThrow(mock(FeignException.NotFound.class)).when(userRolesClient).deleteUserRoles(userId);
+    doThrow(mock(HttpClientErrorException.NotFound.class)).when(userCapabilitiesClient).deleteUserCapabilities(userId);
+    doThrow(mock(HttpClientErrorException.NotFound.class)).when(userCapabilitySetsClient).deleteUserCapabilitySets(userId);
+    doThrow(mock(HttpClientErrorException.NotFound.class)).when(userRolesClient).deleteUserRoles(userId);
     capabilitiesUserService.deleteUserCapabilitiesAndRoles(userId);
     verify(userCapabilitiesClient).deleteUserCapabilities(userId);
     verify(userCapabilitySetsClient).deleteUserCapabilitySets(userId);
@@ -85,7 +88,7 @@ class CapabilitiesUserServiceImplTest {
   }
 
   @Test
-  void createWithPermissionsFromFile_positive_alreadyAssigned() throws JsonProcessingException {
+  void createWithPermissionsFromFile_positive_alreadyAssigned() {
     var errorResponse = nothingToUpdateError();
     var user = user();
     var capabilitySetId = UUID.randomUUID();
@@ -96,8 +99,8 @@ class CapabilitiesUserServiceImplTest {
 
     when(capabilitySetsClient.queryCapabilitySets(any(), anyInt(), anyInt())).thenReturn(capabilities);
     when(objectMapper.readValue(anyString(), eq(ErrorResponse.class))).thenReturn(errorResponse);
-    when(feignException.contentUTF8()).thenReturn(asJsonString(errorResponse));
-    doThrow(feignException).when(userCapabilitySetsClient).assignUserCapabilitySets(userId, expectedRequest);
+    when(httpStatusCodeException.getResponseBodyAsString()).thenReturn(asJsonString(errorResponse));
+    doThrow(httpStatusCodeException).when(userCapabilitySetsClient).assignUserCapabilitySets(userId, expectedRequest);
 
     capabilitiesUserService.createWithPermissionSetsFromFile(userId, PERMISSIONS_FILE_PATH);
 
@@ -106,7 +109,7 @@ class CapabilitiesUserServiceImplTest {
   }
 
   @Test
-  void createWithPermissionsFromFile_negative_unknownError() throws JsonProcessingException {
+  void createWithPermissionsFromFile_negative_unknownError() {
     var errorResponse = new ErrorResponse()
       .addErrorsItem(new Error().message("failure1"))
       .totalRecords(1);
@@ -119,11 +122,11 @@ class CapabilitiesUserServiceImplTest {
 
     when(capabilitySetsClient.queryCapabilitySets(any(), anyInt(), anyInt())).thenReturn(capabilitySets);
     when(objectMapper.readValue(anyString(), eq(ErrorResponse.class))).thenReturn(errorResponse);
-    when(feignException.contentUTF8()).thenReturn(asJsonString(new ErrorResponse()));
-    doThrow(feignException).when(userCapabilitySetsClient).assignUserCapabilitySets(userId, expectedRequest);
+    when(httpStatusCodeException.getResponseBodyAsString()).thenReturn(asJsonString(new ErrorResponse()));
+    doThrow(httpStatusCodeException).when(userCapabilitySetsClient).assignUserCapabilitySets(userId, expectedRequest);
 
     assertThatThrownBy(() -> capabilitiesUserService.createWithPermissionSetsFromFile(userId, PERMISSIONS_FILE_PATH))
-      .isInstanceOf(FeignException.class);
+      .isInstanceOf(HttpStatusCodeException.class);
 
     verify(objectMapper).readValue(anyString(), eq(ErrorResponse.class));
     verify(userCapabilitySetsClient).assignUserCapabilitySets(userId, expectedRequest);

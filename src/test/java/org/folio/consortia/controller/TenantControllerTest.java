@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.util.ArrayList;
@@ -73,7 +73,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -301,7 +301,7 @@ class TenantControllerTest extends BaseIT {
         .headers(headers)
         .contentType(MediaType.APPLICATION_JSON)
         .content(contentString))
-      .andExpect(status().isUnprocessableEntity())
+      .andExpect(status().isUnprocessableContent())
       .andExpect(jsonPath("$.errors.size()", is(2)))
       .andExpect(jsonPath("$.errors[0].code", is("tenantValidationError")));
   }
@@ -333,7 +333,7 @@ class TenantControllerTest extends BaseIT {
         .headers(headers)
         .contentType(MediaType.APPLICATION_JSON)
         .content(contentString))
-      .andExpect(status().isUnprocessableEntity())
+      .andExpect(status().isUnprocessableContent())
       .andExpect(jsonPath("$.errors.size()", is(2)))
       .andExpect(jsonPath("$.errors[0].code", is("tenantValidationError")))
       .andExpect(jsonPath("$.errors[0].type", is("-1")))

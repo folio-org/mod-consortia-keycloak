@@ -6,15 +6,18 @@ import static org.mockito.Mockito.when;
 
 import org.folio.consortia.service.impl.LockServiceImpl;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
+import org.springframework.boot.batch.autoconfigure.BatchAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
+@ExtendWith(MockitoExtension.class)
 @SpringBootTest
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 class LockServiceTest {

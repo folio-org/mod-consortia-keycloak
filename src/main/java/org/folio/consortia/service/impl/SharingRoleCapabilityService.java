@@ -6,9 +6,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
@@ -65,7 +65,7 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
 
   @Override
   protected String getPayloadId(ObjectNode payload) {
-    return payload.get(ROLE_ID).asText();
+    return payload.get(ROLE_ID).asString();
   }
 
   @Override
@@ -168,6 +168,6 @@ public class SharingRoleCapabilityService extends BaseSharingService<SharingRole
   @Override
   protected ObjectNode updateSourcePayload(Object payload, String sourceValue) {
     var node = objectMapper.convertValue(payload, ObjectNode.class);
-    return node.set(TYPE, new TextNode(sourceValue));
+    return node.set(TYPE, new StringNode(sourceValue));
   }
 }

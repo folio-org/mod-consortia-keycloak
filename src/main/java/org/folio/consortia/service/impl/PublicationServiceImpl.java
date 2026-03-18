@@ -2,8 +2,7 @@ package org.folio.consortia.service.impl;
 
 import static org.folio.spring.scope.FolioExecutionScopeExecutionContextManager.getRunnableWithCurrentFolioContext;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -238,7 +237,7 @@ public class PublicationServiceImpl implements PublicationService {
   }
 
   private PublicationTenantRequestEntity buildPublicationRequestEntity(PublicationRequest publicationRequest,
-      PublicationStatusEntity savedPublicationEntity, String tenantId) throws JsonProcessingException {
+      PublicationStatusEntity savedPublicationEntity, String tenantId) {
     PublicationTenantRequestEntity ptrEntity = new PublicationTenantRequestEntity();
     String payload = objectMapper.writeValueAsString(publicationRequest.getPayload());
 

@@ -6,16 +6,17 @@ import org.folio.consortia.repository.ConsortiaConfigurationRepository;
 import org.folio.consortia.service.impl.ConsortiaConfigurationServiceImpl;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.support.CopilotGenerated;
+import org.folio.consortia.support.extension.EnablePostgresExtension;
 import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
+import org.springframework.boot.batch.autoconfigure.BatchAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.convert.ConversionService;
+import org.springframework.format.support.FormattingConversionService;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,18 +36,19 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 @CopilotGenerated(partiallyGenerated = true)
+@EnablePostgresExtension
 class ConsortiaConfigurationServiceTest {
   private static final String CENTRAL_TENANT_ID = "diku";
   private static final String TENANT_ID = "testtenant1";
 
-  @InjectMocks
+  @Autowired
   ConsortiaConfigurationServiceImpl configurationService;
-  @Mock
+  @MockitoBean
   ConsortiaConfigurationRepository configurationRepository;
-  @Mock
+  @MockitoBean
   FolioExecutionContext folioExecutionContext;
-  @Mock
-  ConversionService conversionService;
+  @MockitoBean
+  FormattingConversionService conversionService;
 
   @Test
   void shouldGetConfigValueByGetCentralTenantId() {

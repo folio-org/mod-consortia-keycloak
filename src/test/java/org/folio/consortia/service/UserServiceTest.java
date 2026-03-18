@@ -2,10 +2,10 @@ package org.folio.consortia.service;
 
 import static org.folio.consortia.support.EntityUtils.createOkapiHeaders;
 import static org.folio.consortia.support.EntityUtils.createUserEntity;
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -18,29 +18,26 @@ import org.folio.consortia.domain.dto.User;
 import org.folio.consortia.domain.dto.UserType;
 import org.folio.consortia.service.impl.UserServiceImpl;
 import org.folio.spring.FolioExecutionContext;
-import org.folio.spring.FolioModuleMetadata;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
+import org.springframework.boot.batch.autoconfigure.BatchAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 class UserServiceTest {
 
-  @InjectMocks
+  @Autowired
   UserServiceImpl userService;
-  @Mock
+  @MockitoBean
   UsersKeycloakClient usersKeycloakClient;
-  @Mock
-  FolioModuleMetadata folioModuleMetadata;
-  @Mock
+  @MockitoBean
   FolioExecutionContext folioExecutionContext;
 
   @Test

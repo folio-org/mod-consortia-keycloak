@@ -34,42 +34,42 @@ import org.folio.consortia.domain.dto.UserCollection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
-import org.mockito.Mock;
-import org.mockito.Spy;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.batch.autoconfigure.BatchAutoConfiguration;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.dao.DataAccessResourceFailureException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
-import feign.FeignException;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.web.client.HttpClientErrorException;
 
 @SpringBootTest
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 @EntityScan(basePackageClasses = UserTenantEntity.class)
 class SyncPrimaryAffiliationServiceImplTest {
 
-  @Mock
+  @MockitoBean
   private TenantRepository tenantRepository;
-  @Mock
+  @MockitoBean
   private UserTenantRepository userTenantRepository;
-  @Mock
+  @MockitoBean
   private TenantService tenantService;
-  @Mock
+  @MockitoBean
   private UserService userService;
-  @Mock
+  @MockitoBean
   private PrimaryAffiliationService primaryAffiliationService;
-  @Mock
+  @MockitoBean
   private ConsortiaConfigurationService consortiaConfigurationService;
-  @Mock
+  @MockitoBean
   private LockService lockService;
-  @Spy
-  private AsyncTaskExecutor asyncTaskExecutor = new SimpleAsyncTaskExecutor();
+  @MockitoSpyBean
+  private TaskExecutor asyncTaskExecutor = new SimpleAsyncTaskExecutor();
 
   private SyncPrimaryAffiliationServiceImpl syncPrimaryAffiliationService;
   private CreatePrimaryAffiliationServiceImpl createPrimaryAffiliationService;
@@ -79,11 +79,11 @@ class SyncPrimaryAffiliationServiceImplTest {
     createPrimaryAffiliationService = spy(new CreatePrimaryAffiliationServiceImpl(tenantService, userTenantRepository,
       lockService, primaryAffiliationService));
     syncPrimaryAffiliationService = spy(new SyncPrimaryAffiliationServiceImpl(userService, tenantService,
-      createPrimaryAffiliationService, getFolioExecutionContext(), asyncTaskExecutor));
+      createPrimaryAffiliationService, getFolioExecutionContext(), (AsyncTaskExecutor) asyncTaskExecutor));
   }
 
   @Test
-  void createPrimaryUserAffiliationsWhenCentralTenantSaving() throws JsonProcessingException {
+  void createPrimaryUserAffiliationsWhenCentralTenantSaving() {
     var consortiumId = UUID.randomUUID();
     var tenantId = "ABC1";
     var centralTenantId = "diku";
@@ -111,7 +111,7 @@ class SyncPrimaryAffiliationServiceImplTest {
     verify(lockService).lockTenantSetupWithinTransaction();
   }
   @Test
-  void createPrimaryUserAffiliationsWhenLocalTenantSaving() throws JsonProcessingException {
+  void createPrimaryUserAffiliationsWhenLocalTenantSaving() {
     var consortiumId = UUID.randomUUID();
     var tenantId = "ABC1";
     var centralTenantId = "diku";
@@ -140,7 +140,7 @@ class SyncPrimaryAffiliationServiceImplTest {
   }
 
   @Test
-  void syncPrimaryUserAffiliationsWhenTenantSaving() throws JsonProcessingException {
+  void syncPrimaryUserAffiliationsWhenTenantSaving() {
     var consortiumId = UUID.randomUUID();
     var tenantId = "ABC1";
     var centralTenantId = "diku";
@@ -180,7 +180,7 @@ class SyncPrimaryAffiliationServiceImplTest {
     var centralTenantId = "diku";
 
     when(userService.getPrimaryUsersToLink())
-      .thenThrow(FeignException.FeignClientException.class);
+      .thenThrow(HttpClientErrorException.class);
 
     syncPrimaryAffiliationService.syncPrimaryAffiliationsInternal(consortiumId, tenantId, centralTenantId);
 

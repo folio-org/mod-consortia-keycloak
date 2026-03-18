@@ -1,6 +1,5 @@
 package org.folio.consortia.service;
 
-import static org.folio.consortia.support.TestConstants.CENTRAL_TENANT_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -16,13 +15,16 @@ import java.util.List;
 import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
+import org.springframework.boot.batch.autoconfigure.BatchAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 
+@ExtendWith(MockitoExtension.class)
 @SpringBootTest
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 class CustomFieldServiceTest {
@@ -47,7 +49,6 @@ class CustomFieldServiceTest {
   @Test
   void shouldCreateCustomField() {
     CustomField customField = CustomField.builder().build();
-    when(folioExecutionContext.getTenantId()).thenReturn(CENTRAL_TENANT_ID);
     when(moduleTenantService.getModUsersModuleId()).thenReturn("USERS");
     Mockito.doNothing().when(customFieldsClient).postCustomFields(any(), eq(customField));
     customFieldService.createCustomField(customField);
@@ -61,7 +62,6 @@ class CustomFieldServiceTest {
     CustomFieldCollection customFieldCollection = new CustomFieldCollection();
     customFieldCollection.setCustomFields(List.of(ORIGINAL_TENANT_ID_CUSTOM_FIELD));
     customFieldCollection.setTotalRecords(1);
-    when(folioExecutionContext.getTenantId()).thenReturn(CENTRAL_TENANT_ID);
     when(moduleTenantService.getModUsersModuleId()).thenReturn("USERS");
     when(customFieldsClient.getByQuery(any(), eq("name==originalTenantId"))).thenReturn(customFieldCollection);
     var customFields = customFieldService.getCustomFieldByName("originalTenantId");

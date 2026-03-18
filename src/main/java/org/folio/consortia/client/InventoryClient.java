@@ -1,29 +1,28 @@
 package org.folio.consortia.client;
 
-import org.folio.spring.config.FeignClientConfiguration;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
+import org.springframework.web.service.annotation.PostExchange;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
-import feign.FeignException;
+import org.springframework.web.client.HttpStatusCodeException;
 
-@FeignClient(name = "inventory" , configuration = FeignClientConfiguration.class)
+@HttpExchange("inventory")
 public interface InventoryClient {
 
-  @GetMapping(value = "instances/{instanceId}")
+  @GetExchange(value = "instances/{instanceId}")
   JsonNode getInstanceById(@PathVariable String instanceId);
 
-  @PostMapping(value = "instances", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PostExchange(value = "instances", contentType = MediaType.APPLICATION_JSON_VALUE)
   void saveInstance(@RequestBody Object instance);
 
-  public static String getReason(Exception ex) {
-    if (ex instanceof FeignException that) {
-      return that.contentUTF8();
+  static String getReason(Exception ex) {
+    if (ex instanceof HttpStatusCodeException that) {
+      return that.getResponseBodyAsString();
     }
     return ex.getMessage();
   }

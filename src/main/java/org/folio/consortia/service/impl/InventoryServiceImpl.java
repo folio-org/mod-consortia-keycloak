@@ -6,7 +6,7 @@ import org.folio.consortia.client.InventoryClient;
 import org.folio.consortia.service.InventoryService;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

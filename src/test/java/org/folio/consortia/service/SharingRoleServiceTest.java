@@ -1,6 +1,6 @@
 package org.folio.consortia.service;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ObjectNode;
 
 import org.folio.consortia.client.RoleCapabilitiesClient;
 import org.folio.consortia.client.RoleCapabilitySetsClient;

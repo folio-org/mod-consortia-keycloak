@@ -15,13 +15,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import feign.FeignException;
-import feign.Request;
-import feign.RequestTemplate;
-import feign.Response;
-import java.nio.charset.Charset;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.folio.consortia.base.BaseIT;
@@ -39,9 +41,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
@@ -50,6 +49,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
+@ExtendWith(MockitoExtension.class)
 @EntityScan(basePackageClasses = UserTenantEntity.class)
 class UserTenantControllerTest extends BaseIT {
 
@@ -163,7 +163,7 @@ class UserTenantControllerTest extends BaseIT {
     when(consortiumRepository.existsById(consortiumId)).thenReturn(true);
     when(userTenantRepository.findByUserIdAndTenantId(any(), any())).thenReturn(Optional.of(userTenantEntity));
     doNothing().when(userTenantRepository).deleteByUserIdAndTenantId(any(), any());
-    doThrow(FeignException.Forbidden.errorStatus("getByUserId", createForbiddenResponse(PERMISSION_EXCEPTION_MSG)))
+    doThrow(HttpClientErrorException.create(HttpStatus.FORBIDDEN, PERMISSION_EXCEPTION_MSG, new HttpHeaders(), PERMISSION_EXCEPTION_MSG.getBytes(), null))
       .when(usersKeycloakClient).getUsersByUserId(any());
 
     this.mockMvc.perform(
@@ -184,7 +184,7 @@ class UserTenantControllerTest extends BaseIT {
     when(userTenantRepository.findByUserIdAndTenantId(any(), any())).thenReturn(Optional.of(userTenantEntity));
     when(tenantService.getCentralTenantId()).thenReturn(CENTRAL_TENANT_ID);
     doNothing().when(userTenantRepository).deleteByUserIdAndTenantId(any(), any());
-    doThrow(FeignException.errorStatus("getByUserId", createUnknownResponse("network error")))
+    doThrow(HttpServerErrorException.create(HttpStatus.BAD_GATEWAY, "network error", new HttpHeaders(), "network error".getBytes(), null))
       .when(usersKeycloakClient).getUsersByUserId(any());
 
     this.mockMvc.perform(
@@ -213,23 +213,4 @@ class UserTenantControllerTest extends BaseIT {
         jsonPath("$.errors[0].code", is(errorCode)));
   }
 
-  private Response createForbiddenResponse(String message) {
-    Request request = Request.create(Request.HttpMethod.GET, "", Map.of(), null, Charset.defaultCharset(),
-      new RequestTemplate());
-    return Response.builder()
-      .status(HttpStatus.FORBIDDEN.value())
-      .body(message, Charset.defaultCharset())
-      .request(request)
-      .build();
-  }
-
-  private Response createUnknownResponse(String message) {
-    Request request = Request.create(Request.HttpMethod.GET, "", Map.of(), null, Charset.defaultCharset(),
-      new RequestTemplate());
-    return Response.builder()
-      .status(HttpStatus.BAD_GATEWAY.value())
-      .body(message, Charset.defaultCharset())
-      .request(request)
-      .build();
-  }
 }

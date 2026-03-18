@@ -2,21 +2,20 @@ package org.folio.consortia.client;
 
 import org.folio.consortia.domain.dto.CustomField;
 import org.folio.consortia.domain.dto.CustomFieldCollection;
-import org.folio.spring.config.FeignClientConfiguration;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
+import org.springframework.web.service.annotation.PostExchange;
 
-@FeignClient(name = "custom-fields", configuration = FeignClientConfiguration.class)
+@HttpExchange("custom-fields")
 public interface CustomFieldsClient {
 
-  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetExchange(accept = MediaType.APPLICATION_JSON_VALUE)
   CustomFieldCollection getByQuery(@RequestHeader(value = "x-okapi-module-id") String moduleId, @RequestParam("query") String query);
 
-  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PostExchange(contentType = MediaType.APPLICATION_JSON_VALUE)
   void postCustomFields(@RequestHeader(value = "x-okapi-module-id") String moduleId, @RequestBody CustomField entity);
 }

@@ -1,6 +1,6 @@
 package org.folio.consortia.service;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ObjectNode;
 import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.dto.SharingSettingRequest;
 import org.folio.consortia.domain.entity.SharingSettingEntity;

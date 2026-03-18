@@ -22,9 +22,9 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import feign.FeignException;
 import lombok.extern.log4j.Log4j2;
 
 @RestControllerAdvice
@@ -91,7 +91,7 @@ public class ErrorHandlingController {
 
   @ResponseStatus(HttpStatus.FORBIDDEN)
   @ExceptionHandler(ConsortiumClientException.class)
-  public Errors handleConsortiumClientException(FeignException e) {
+  public Errors handleConsortiumClientException(HttpStatusCodeException e) {
     log.error("Handle consortium client exception", e);
     return ErrorHelper.createPermissionError(e, ErrorCode.PERMISSION_REQUIRED);
   }
@@ -104,7 +104,7 @@ public class ErrorHandlingController {
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+  @ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
   public Errors handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
     log.error("Handle method argument not valid", ex);
 

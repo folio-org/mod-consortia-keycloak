@@ -1,9 +1,9 @@
 package org.folio.consortia.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
-import feign.FeignException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
+import org.springframework.web.client.HttpClientErrorException;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -62,7 +62,7 @@ public class SharingPolicyService extends
 
   @Override
   protected String getPayloadId(ObjectNode payload) {
-    return payload.get("id").asText();
+    return payload.get("id").asString();
   }
 
   @Override
@@ -114,7 +114,7 @@ public class SharingPolicyService extends
 
         var sharingPolicyEntity = createSharingConfigEntity(request.getPolicyId(), tenantId);
         sharingPolicyRepository.save(sharingPolicyEntity);
-      } catch (FeignException.NotFound e) {
+      } catch (HttpClientErrorException.NotFound e) {
         log.info("syncConfig:: Policy '{}' not found in tenant '{}' and sharing policy table, No need to sync",
           policyId, tenantId);
       } catch (Exception e) {
@@ -195,6 +195,6 @@ public class SharingPolicyService extends
   @Override
   protected ObjectNode updateSourcePayload(Object payload, String sourceValue) {
     var payloadNode = objectMapper.convertValue(payload, ObjectNode.class);
-    return payloadNode.set(SOURCE, new TextNode(sourceValue));
+    return payloadNode.set(SOURCE, new StringNode(sourceValue));
   }
 }

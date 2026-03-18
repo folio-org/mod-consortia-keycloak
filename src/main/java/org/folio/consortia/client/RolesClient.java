@@ -1,14 +1,14 @@
 package org.folio.consortia.client;
 
 import org.folio.consortia.domain.dto.Roles;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
 
-@FeignClient(name = "roles")
+@HttpExchange("roles")
 public interface RolesClient {
 
-  @GetMapping
+  @GetExchange
   Roles getRolesByQuery(@RequestParam("query") String query);
 
 }

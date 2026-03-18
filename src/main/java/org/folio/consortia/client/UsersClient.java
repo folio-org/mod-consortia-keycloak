@@ -1,18 +1,17 @@
 package org.folio.consortia.client;
 
 import org.folio.consortia.domain.dto.UserCollection;
-import org.folio.spring.config.FeignClientConfiguration;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
 
-@FeignClient(name = "consortia-users-client", url = "users" , configuration = FeignClientConfiguration.class)
+@HttpExchange("users")
 public interface UsersClient {
 
-  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetExchange(accept = MediaType.APPLICATION_JSON_VALUE)
   UserCollection getUserCollection(@RequestParam String query, @RequestParam int offset, @RequestParam int limit);
 
-  @GetMapping
+  @GetExchange
   UserCollection getUsersByQuery(@RequestParam("query") String query);
 }

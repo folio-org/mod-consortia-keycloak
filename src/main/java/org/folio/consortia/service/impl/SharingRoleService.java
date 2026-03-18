@@ -5,9 +5,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
@@ -71,7 +71,7 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
 
   @Override
   protected String getPayloadId(ObjectNode payload) {
-    return payload.get(ID).asText();
+    return payload.get(ID).asString();
   }
 
   @Override
@@ -189,7 +189,7 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   private void checkEqualsOfRoleNameWithPayload(SharingRoleRequest request) {
     String roleName = request.getRoleName();
     var payloadNode = objectMapper.convertValue(request.getPayload(), ObjectNode.class);
-    String payloadRoleName = payloadNode.get(NAME).asText();
+    String payloadRoleName = payloadNode.get(NAME).asString();
     if (ObjectUtils.notEqual(roleName, payloadRoleName)) {
       throw new IllegalArgumentException("Mismatch name in payload with roleName");
     }
@@ -264,6 +264,6 @@ public class SharingRoleService extends BaseSharingService<SharingRoleRequest, S
   @Override
   protected ObjectNode updateSourcePayload(Object payload, String sourceValue) {
     var payloadNode = objectMapper.convertValue(payload, ObjectNode.class);
-    return payloadNode.set(TYPE, new TextNode(sourceValue));
+    return payloadNode.set(TYPE, new StringNode(sourceValue));
   }
 }

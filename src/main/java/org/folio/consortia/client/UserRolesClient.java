@@ -1,13 +1,12 @@
 package org.folio.consortia.client;
 
-import org.folio.spring.config.FeignClientConfiguration;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.service.annotation.DeleteExchange;
+import org.springframework.web.service.annotation.HttpExchange;
 
-@FeignClient(name = "roles-user", url = "roles/users", configuration = FeignClientConfiguration.class)
+@HttpExchange("roles/users")
 public interface UserRolesClient {
 
-  @DeleteMapping("/{userId}")
+  @DeleteExchange("/{userId}")
   void deleteUserRoles(@PathVariable("userId") String userId);
 }

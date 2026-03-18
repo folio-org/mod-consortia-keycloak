@@ -16,7 +16,6 @@ import org.folio.consortia.rest.resource.TenantsApi;
 import org.folio.consortia.service.SyncPrimaryAffiliationService;
 import org.folio.consortia.service.TenantManager;
 import org.folio.consortia.service.TenantService;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -62,7 +61,7 @@ public class TenantController implements TenantsApi {
   }
 
   @Override
-  public ResponseEntity<Void> syncPrimaryAffiliations(UUID consortiumId, String tenantId, @NotNull String centralTenantId) {
+  public ResponseEntity<Void> syncPrimaryAffiliations(UUID consortiumId, String tenantId, String centralTenantId) {
     try {
       syncPrimaryAffiliationService.syncPrimaryAffiliations(consortiumId, tenantId, centralTenantId);
       return ResponseEntity.status(NO_CONTENT).build();
@@ -74,7 +73,7 @@ public class TenantController implements TenantsApi {
   }
 
   @Override
-  public ResponseEntity<Void> createPrimaryAffiliations(UUID consortiumId, String tenantId, @NotNull String centralTenantId,
+  public ResponseEntity<Void> createPrimaryAffiliations(UUID consortiumId, String tenantId, String centralTenantId,
       SyncPrimaryAffiliationBody syncPrimaryAffiliationBody) {
     try {
       syncPrimaryAffiliationService.syncPrimaryUserAffiliations(consortiumId, centralTenantId, syncPrimaryAffiliationBody);

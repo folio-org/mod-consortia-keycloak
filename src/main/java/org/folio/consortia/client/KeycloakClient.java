@@ -4,30 +4,28 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.util.List;
 import java.util.Map;
 
-import org.folio.consortia.config.keycloak.KeycloakFeignClientConfig;
 import org.folio.consortia.domain.dto.KeycloakClientCredentials;
 import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
 import org.folio.consortia.domain.dto.KeycloakTokenResponse;
 import org.folio.consortia.domain.dto.RealmExecutions;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.service.annotation.DeleteExchange;
+import org.springframework.web.service.annotation.GetExchange;
+import org.springframework.web.service.annotation.HttpExchange;
+import org.springframework.web.service.annotation.PostExchange;
+import org.springframework.web.service.annotation.PutExchange;
 
-@FeignClient(name = "keycloak",
-  url = "#{keycloakProperties.url}",
-  configuration = KeycloakFeignClientConfig.class)
+@HttpExchange
 public interface KeycloakClient {
 
   /**
@@ -36,8 +34,8 @@ public interface KeycloakClient {
    * @param loginRequest containing following properties: client_id, client_secret, grant_type
    * @return KeycloakTokenResponse
    */
-  @PostMapping(value = "/realms/master/protocol/openid-connect/token", consumes = APPLICATION_FORM_URLENCODED_VALUE)
-  KeycloakTokenResponse login(@RequestBody Map<String, ?> loginRequest);
+  @PostExchange(value = "/realms/master/protocol/openid-connect/token", contentType = APPLICATION_FORM_URLENCODED_VALUE)
+  KeycloakTokenResponse login(@RequestBody MultiValueMap<String, ?> loginRequest);
 
   /**
    * Get client credentials for a given client id in a realm
@@ -47,7 +45,7 @@ public interface KeycloakClient {
    * @param token    authorization token
    * @return list of KeycloakClientCredentials (should contain only one element)
    */
-  @GetMapping(value = "/admin/realms/{realm}/clients", produces = APPLICATION_JSON_VALUE)
+  @GetExchange(value = "/admin/realms/{realm}/clients", accept = APPLICATION_JSON_VALUE)
   List<KeycloakClientCredentials> getClientCredentials(@PathVariable("realm") String realm,
                                                        @RequestParam("clientId") String clientId,
                                                        @RequestHeader(AUTHORIZATION) String token);
@@ -60,7 +58,7 @@ public interface KeycloakClient {
    * @param token authorization token
    * @return KeycloakIdentityProvider
    */
-  @GetMapping("/admin/realms/{realm}/identity-provider/instances/{alias}")
+  @GetExchange("/admin/realms/{realm}/identity-provider/instances/{alias}")
   KeycloakIdentityProvider getIdentityProvider(@PathVariable("realm") String realm,
                                                @PathVariable("alias") String alias,
                                                @RequestHeader(AUTHORIZATION) String token);
@@ -72,7 +70,7 @@ public interface KeycloakClient {
    * @param identityProvider identity provider to create
    * @param token            authorization token
    */
-  @PostMapping("/admin/realms/{realm}/identity-provider/instances")
+  @PostExchange("/admin/realms/{realm}/identity-provider/instances")
   void createIdentityProvider(@PathVariable("realm") String realm,
                               @RequestBody KeycloakIdentityProvider identityProvider,
                               @RequestHeader(AUTHORIZATION) String token);
@@ -84,7 +82,7 @@ public interface KeycloakClient {
    * @param alias alias of the identity provider
    * @param token authorization token
    */
-  @DeleteMapping("/admin/realms/{realm}/identity-provider/instances/{alias}")
+  @DeleteExchange("/admin/realms/{realm}/identity-provider/instances/{alias}")
   void deleteIdentityProvider(@PathVariable("realm") String realm,
                               @PathVariable("alias") String alias,
                               @RequestHeader(AUTHORIZATION) String token);
@@ -96,7 +94,7 @@ public interface KeycloakClient {
    * @param token  the authorization token
    * @return the realm configuration as an ObjectNode
    */
-  @GetMapping(value = "admin/realms/{tenant}")
+  @GetExchange(value = "/admin/realms/{tenant}")
   ObjectNode getRealm(@PathVariable("tenant") String tenant,
                       @RequestHeader(AUTHORIZATION) String token);
 
@@ -107,7 +105,7 @@ public interface KeycloakClient {
    * @param realm  the updated realm configuration as a JsonNode
    * @param token  the authorization token
    */
-  @PutMapping(value = "/admin/realms/{tenant}")
+  @PutExchange(value = "/admin/realms/{tenant}")
   void updateRealm(@PathVariable("tenant") String tenant,
                    @RequestBody JsonNode realm,
                    @RequestHeader(AUTHORIZATION) String token);
@@ -119,9 +117,9 @@ public interface KeycloakClient {
    * @param copyRequest the request containing the new flow name
    * @param token       the authorization token
    */
-  @PostMapping(value = "/admin/realms/{tenant}/authentication/flows/browser/copy")
+  @PostExchange(value = "/admin/realms/{tenant}/authentication/flows/browser/copy")
   void copyBrowserFlow(@PathVariable("tenant") String tenant,
-                       @RequestBody Map<String, ?> copyRequest,
+                       @RequestBody Map<String, String> copyRequest,
                        @RequestHeader(AUTHORIZATION) String token);
 
   /**
@@ -132,7 +130,7 @@ public interface KeycloakClient {
    * @param token    the authorization token
    * @return the list of executions for the specified flow
    */
-  @GetMapping(value = "/admin/realms/{tenant}/authentication/flows/{flowName}/executions")
+  @GetExchange(value = "/admin/realms/{tenant}/authentication/flows/{flowName}/executions")
   List<RealmExecutions> getExecutions(@PathVariable("tenant") String tenant,
                                       @PathVariable("flowName") String flowName,
                                       @RequestHeader(AUTHORIZATION) String token);
@@ -145,10 +143,10 @@ public interface KeycloakClient {
    * @param executionRequest the request containing the execution details
    * @param token            the authorization token
    */
-  @PostMapping(value = "/admin/realms/{tenant}/authentication/flows/{flowName}/executions/execution")
+  @PostExchange(value = "/admin/realms/{tenant}/authentication/flows/{flowName}/executions/execution")
   void executeBrowserFlow(@PathVariable("tenant") String tenant,
                           @PathVariable("flowName") String flowName,
-                          @RequestBody Map<String, ?> executionRequest,
+                          @RequestBody Map<String, String> executionRequest,
                           @RequestHeader(AUTHORIZATION) String token);
 
   /**
@@ -158,7 +156,7 @@ public interface KeycloakClient {
    * @param executionId the identifier of the execution to raise priority
    * @param token       the authorization token
    */
-  @PostMapping(value = "/admin/realms/{tenant}/authentication/executions/{executionId}/raise-priority")
+  @PostExchange(value = "/admin/realms/{tenant}/authentication/executions/{executionId}/raise-priority")
   void raisePriority(@PathVariable("tenant") String tenant,
                      @PathVariable("executionId") String executionId,
                      @RequestHeader(AUTHORIZATION) String token);
@@ -170,7 +168,7 @@ public interface KeycloakClient {
    * @param executionId the identifier of the execution to delete
    * @param token       the authorization token
    */
-  @DeleteMapping(value = "/admin/realms/{tenant}/authentication/executions/{executionId}")
+  @DeleteExchange(value = "/admin/realms/{tenant}/authentication/executions/{executionId}")
   void deleteExecution(@PathVariable("tenant") String tenant,
                        @PathVariable("executionId") String executionId,
                        @RequestHeader(AUTHORIZATION) String token);

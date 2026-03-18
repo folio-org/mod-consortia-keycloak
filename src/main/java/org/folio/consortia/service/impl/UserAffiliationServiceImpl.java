@@ -3,8 +3,6 @@ package org.folio.consortia.service.impl;
 import java.util.Objects;
 import java.util.UUID;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -23,7 +21,7 @@ import org.folio.spring.FolioExecutionContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -169,7 +167,7 @@ public class UserAffiliationServiceImpl implements UserAffiliationService {
     return UUID.fromString(userEvent.getUserDto().getId());
   }
 
-  private void deletePrimaryAffiliationAndShadowUsers(UserEvent userEvent, String centralTenantId) throws JsonProcessingException {
+  private void deletePrimaryAffiliationAndShadowUsers(UserEvent userEvent, String centralTenantId) {
     log.info("deletePrimaryAffiliationAndShadowUsers:: Going to delete primary affiliation and all shadow users for userId: {}, tenant: {}",
       userEvent.getUserDto().getId(), userEvent.getTenantId());
     boolean isPrimaryAffiliationExists = userTenantService.deletePrimaryUserTenantAffiliation(getUserId(userEvent));

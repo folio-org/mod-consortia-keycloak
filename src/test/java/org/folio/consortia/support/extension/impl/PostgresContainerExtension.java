@@ -3,7 +3,7 @@ package org.folio.consortia.support.extension.impl;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 public class PostgresContainerExtension implements BeforeAllCallback, AfterAllCallback {
   private static final String SPRING_DATASOURCE_URL = "spring.datasource.url";
@@ -11,10 +11,7 @@ public class PostgresContainerExtension implements BeforeAllCallback, AfterAllCa
   private static final String SPRING_DATASOURCE_PASSWORD = "spring.datasource.password";
 
   @SuppressWarnings("resource")
-  private static final PostgreSQLContainer<?> CONTAINER = new PostgreSQLContainer<>("postgres:12-alpine")
-    .withDatabaseName("okapi_modules")
-    .withUsername("folio_admin")
-    .withPassword("folio_admin");
+  private static final PostgreSQLContainer CONTAINER = new PostgreSQLContainer("postgres:16-alpine");
 
   @Override
   public void beforeAll(ExtensionContext context) {
