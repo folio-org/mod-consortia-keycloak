@@ -62,7 +62,7 @@ class ConsortiaMigrationTest {
 
   protected static final int WIRE_MOCK_PORT = TestSocketUtils.findAvailableTcpPort();
   protected static WireMockServer wireMockServer;
-  protected static PostgreSQLContainer postgreDBContainer = new PostgreSQLContainer("postgres:12-alpine");
+  protected static PostgreSQLContainer postgreDBContainer = new PostgreSQLContainer("postgres:16-alpine");
 
   static {
     postgreDBContainer.start();
