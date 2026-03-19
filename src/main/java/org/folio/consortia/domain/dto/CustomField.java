@@ -16,9 +16,9 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CustomField {
   @JsonProperty("type")
-  CustomFieldType customFieldType;
-  String name;
-  String entityType;
-  String helpText;
-  Boolean visible;
+  private CustomFieldType customFieldType;
+  private String name;
+  private String entityType;
+  private String helpText;
+  private Boolean visible;
 }
