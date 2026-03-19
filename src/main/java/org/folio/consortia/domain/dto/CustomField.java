@@ -3,21 +3,22 @@ package org.folio.consortia.domain.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
-import lombok.extern.jackson.Jacksonized;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Value
+@Data
 @Builder
-@Jacksonized
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CustomField {
   @JsonProperty("type")
-  CustomFieldType customFieldType;
-  String name;
-  String entityType;
-  String helpText;
-  Boolean visible;
+  private CustomFieldType customFieldType;
+  private String name;
+  private String entityType;
+  private String helpText;
+  private Boolean visible;
 }
-

@@ -12,6 +12,8 @@ import org.folio.consortia.domain.dto.CustomFieldType;
 import org.folio.consortia.service.impl.CustomFieldServiceImpl;
 import java.util.List;
 
+import tools.jackson.databind.ObjectMapper;
+
 import org.folio.spring.FolioExecutionContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -69,5 +71,44 @@ class CustomFieldServiceTest {
     Assertions.assertEquals("originalTenantId", customFields.getName());
     Mockito.verify(customFieldsClient, times(1)).getByQuery(any(), any());
     Mockito.verify(moduleTenantService, times(1)).getModUsersModuleId();
+  }
+
+  @Test
+  void shouldDeserializeCustomFieldFromJson() {
+    var json = """
+      {
+        "type": "TEXTBOX_LONG",
+        "name": "originalTenantId",
+        "entityType": "user",
+        "helpText": "id of tenant where user created originally",
+        "visible": false
+      }
+      """;
+
+    var objectMapper = new ObjectMapper();
+    var customField = objectMapper.readValue(json, CustomField.class);
+
+    Assertions.assertEquals("originalTenantId", customField.getName());
+    Assertions.assertEquals("user", customField.getEntityType());
+    Assertions.assertEquals(CustomFieldType.TEXTBOX_LONG, customField.getCustomFieldType());
+    Assertions.assertEquals("id of tenant where user created originally", customField.getHelpText());
+    Assertions.assertFalse(customField.getVisible());
+  }
+
+  @Test
+  void shouldDeserializeCustomFieldWithUnknownProperties() {
+    var json = """
+      {
+        "type": "TEXTBOX_LONG",
+        "name": "originalTenantId",
+        "unknownField": "someValue"
+      }
+      """;
+
+    var objectMapper = new ObjectMapper();
+    var customField = objectMapper.readValue(json, CustomField.class);
+
+    Assertions.assertEquals("originalTenantId", customField.getName());
+    Assertions.assertEquals(CustomFieldType.TEXTBOX_LONG, customField.getCustomFieldType());
   }
 }
