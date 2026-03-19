@@ -42,6 +42,7 @@ import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.domain.dto.IdentityProviderCreateRequest;
 import org.folio.consortia.domain.dto.Tenant;
+import org.folio.consortia.domain.dto.TenantDeleteRequest;
 import org.folio.consortia.domain.dto.TenantDeleteRequest.DeleteTypeEnum;
 import org.folio.consortia.domain.dto.TenantDetails;
 import org.folio.consortia.domain.dto.User;
@@ -298,6 +299,29 @@ class TenantManagerTest {
     var tenant1 = tenantManager.update(CONSORTIUM_ID, tenant.getId(), tenant);
     Assertions.assertEquals(tenant.getId(), tenant1.getId());
     Assertions.assertEquals("TestName2", tenant1.getName());
+  }
+
+  @Test
+  void testDeleteTenantWithNullRequest() {
+    UUID consortiumId = UUID.randomUUID();
+
+    assertThrows(IllegalArgumentException.class, () ->
+      tenantManager.delete(consortiumId, TENANT_ID, null));
+
+    verifyNoInteractions(tenantRepository);
+    verifyNoInteractions(cleanupService);
+  }
+
+  @Test
+  void testDeleteTenantWithNullDeleteType() {
+    UUID consortiumId = UUID.randomUUID();
+    var deleteRequest = new TenantDeleteRequest();
+
+    assertThrows(IllegalArgumentException.class, () ->
+      tenantManager.delete(consortiumId, TENANT_ID, deleteRequest));
+
+    verifyNoInteractions(tenantRepository);
+    verifyNoInteractions(cleanupService);
   }
 
   @Test

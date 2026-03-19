@@ -3,13 +3,15 @@ package org.folio.consortia.domain.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
-import lombok.extern.jackson.Jacksonized;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Value
+@Data
 @Builder
-@Jacksonized
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CustomField {
@@ -20,4 +22,3 @@ public class CustomField {
   String helpText;
   Boolean visible;
 }
-

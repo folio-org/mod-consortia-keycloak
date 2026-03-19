@@ -116,6 +116,9 @@ public class TenantManagerImpl implements TenantManager {
   @Transactional
   public void delete(UUID consortiumId, String tenantId, TenantDeleteRequest tenantDeleteRequest) {
     log.info("delete:: Trying to delete tenant '{}' in consortium '{}'", tenantId, consortiumId);
+    if (tenantDeleteRequest == null || tenantDeleteRequest.getDeleteType() == null) {
+      throw new IllegalArgumentException("Request body with 'deleteType' is required for delete operation");
+    }
     var tenant = getTenantById(tenantId);
     var deleteType = tenantDeleteRequest.getDeleteType();
     var deleteOptions = tenantDeleteRequest.getDeleteOptions();
