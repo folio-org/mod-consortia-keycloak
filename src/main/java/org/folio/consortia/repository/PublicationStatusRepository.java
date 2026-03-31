@@ -10,6 +10,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PublicationStatusRepository extends JpaRepository<PublicationStatusEntity, UUID> {
 
-  int deleteAllByCreatedDateBefore(LocalDateTime yesterday);
+  Integer deleteAllByCreatedDateBefore(LocalDateTime yesterday);
 
 }
