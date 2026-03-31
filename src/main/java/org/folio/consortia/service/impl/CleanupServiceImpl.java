@@ -10,6 +10,7 @@ import org.folio.consortia.repository.SharingSettingRepository;
 import org.folio.consortia.service.CleanupService;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.spring.FolioExecutionContext;
@@ -48,13 +49,13 @@ public class CleanupServiceImpl implements CleanupService {
     var beforeDate = LocalDateTime.now().minus(recordMaxAge , ChronoUnit.SECONDS);
     log.info("clearPublicationRecords:: Cleaning up publication records created before {} for tenant: {} ", beforeDate, folioExecutionContext.getTenantId());
 
-    int tenantRequestQuantity = publicationTenantRequestRepository.deleteAllByCreatedDateBefore(beforeDate);
-    if (tenantRequestQuantity > 0) {
+    var tenantRequestQuantity = publicationTenantRequestRepository.deleteAllByCreatedDateBefore(beforeDate);
+    if (Objects.nonNull(tenantRequestQuantity) && tenantRequestQuantity > 0) {
       log.info("clearPublicationTables:: Successfully removed {} pc_tenant_request records from tenant '{}'", tenantRequestQuantity, folioExecutionContext.getTenantId());
     }
 
-    int statusRecordsQuantity = publicationStatusRepository.deleteAllByCreatedDateBefore(beforeDate);
-    if (statusRecordsQuantity > 0 ) {
+    var statusRecordsQuantity = publicationStatusRepository.deleteAllByCreatedDateBefore(beforeDate);
+    if (Objects.nonNull(statusRecordsQuantity) && statusRecordsQuantity > 0) {
       log.info("clearPublicationTables:: Successfully removed {} pc_state records from tenant '{}'", statusRecordsQuantity, folioExecutionContext.getTenantId());
     }
   }
