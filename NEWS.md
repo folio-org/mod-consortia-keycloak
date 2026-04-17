@@ -1,8 +1,21 @@
-## 1.8.0 - Unreleased
+## 1.8.0 - Released (Trillium R1 2025)
+The purpose of this release is to upgrade to SpringBoot 4.0 / Spring 7.0, add general exception handling, and fix various issues.
+[Full Changelog](https://github.com/folio-org/mod-consortia-keycloak/compare/v1.7.0...v1.8.0)
 
 ### Stories
 * [MODCONSKC-79](https://folio-org.atlassian.net/browse/MODCONSKC-79) - Add permission to restrict update of instance and its MARC on central tenant
-* [MODCONSKC-86](https://folio-org.atlassian.net/browse/MODCONSKC-86) - Use SECURE_STORE_ENV, not ENV, for secure store key
+* [MODCONSKC-94](https://folio-org.atlassian.net/browse/MODCONSKC-94) - Hide identity providers from the ECS Login screen
+* [MODCONSKC-107](https://folio-org.atlassian.net/browse/MODCONSKC-107) - Add general exception handler
+
+### Bug Fixes
+* [MODCONSKC-81](https://folio-org.atlassian.net/browse/MODCONSKC-81) - /_/proxy/tenants/{tenantId}/modules lacks okapi 1.9 interface
+* [MODCONSKC-82](https://folio-org.atlassian.net/browse/MODCONSKC-82) - The local instance is not shared
+
+### Tech Debt
+* [MODCONSKC-77](https://folio-org.atlassian.net/browse/MODCONSKC-77) - Setup dependabot for your module
+* [MODCONSKC-78](https://folio-org.atlassian.net/browse/MODCONSKC-78) - Enhance consortia application dependencies
+* [MODCONSKC-105](https://folio-org.atlassian.net/browse/MODCONSKC-105) - mod-consortia-keycloak: Use GitHub Workflows for Maven
+* [MODUSERSKC-90](https://folio-org.atlassian.net/browse/MODUSERSKC-90) - Upgrade module to SpringBoot 4.0 and Spring 7.0
 
 ## 1.7.0 - Released (Sunflower R1 2025)
 The purpose of this release is to implement sharing features and fixing module permissions
