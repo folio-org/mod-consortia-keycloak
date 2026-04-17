@@ -1,7 +1,6 @@
 package org.folio.consortia.controller;
 
 import static org.folio.consortia.support.TestConstants.ACTION_ID;
-import static org.folio.consortia.support.TestConstants.CONSORTIUM_ID;
 import static org.folio.consortia.support.TestConstants.INSTANCE_ID;
 import static org.folio.consortia.support.EntityUtils.createSharingInstance;
 import static org.mockito.ArgumentMatchers.any;
