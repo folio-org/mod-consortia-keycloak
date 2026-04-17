@@ -1,7 +1,6 @@
 package org.folio.consortia.controller;
 
 import static org.folio.consortia.support.TestConstants.ACTION_ID;
-import static org.folio.consortia.support.TestConstants.CONSORTIUM_ID;
 import static org.folio.consortia.support.TestConstants.INSTANCE_ID;
 import static org.folio.consortia.support.EntityUtils.createSharingInstance;
 import static org.mockito.ArgumentMatchers.any;
@@ -12,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.ConsortiumRepository;
 import org.folio.consortia.repository.SharingInstanceRepository;
 import org.folio.consortia.repository.TenantRepository;
@@ -92,12 +92,12 @@ class SharingInstanceControllerTest extends BaseIT {
     headers.setContentType(MediaType.APPLICATION_JSON);
     UUID actionId = UUID.fromString("3be3f9da-9d80-402c-905e-e5fa104da3e1");
 
-    when(consortiumRepository.existsById(CONSORTIUM_ID)).thenReturn(true);
-    when(tenantRepository.existsById(any())).thenReturn(true);
-    when(sharingInstanceRepository.findById(actionId)).thenReturn(null);
+    when(configurationService.getCentralTenantId(any())).thenReturn(TENANT);
+    when(sharingInstanceService.getById(any(), any()))
+      .thenThrow(new ResourceNotFoundException("actionId", "3be3f9da-9d80-402c-905e-e5fa104da3e1"));
 
     this.mockMvc.perform(
-        get("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/sharing/instance/3be3f9da-9d80-402c-905e-e5fa104da3e1")
+        get("/consortia/7698e46-c3e3-11ed-afa1-0242ac120002/sharing/instances/" + actionId)
           .headers(headers)
           .contentType(MediaType.APPLICATION_JSON)
           .accept(MediaType.APPLICATION_JSON))

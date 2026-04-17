@@ -124,10 +124,10 @@ public class ErrorHandlingController {
     return new Errors().errors(errorList);
   }
 
-  @ExceptionHandler(CustomFieldCreationException.class)
+  @ExceptionHandler(Exception.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  public Errors handleCustomFieldCreationException(Exception e) {
-    log.error("Handle custom field creation exception", e);
+  public Errors handleGeneralException(Exception e) {
+    log.error("Handle general exception", e);
     return ErrorHelper.createInternalError(e.getMessage(), ErrorCode.INTERNAL_ERROR);
   }
 }
