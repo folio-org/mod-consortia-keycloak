@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.0.3</version>
+    <version>4.0.6</version>
     <relativePath />
   </parent>
 
@@ -70,6 +70,9 @@
     <openapi-generator.version>7.20.0</openapi-generator.version>
     <mapstruct.version>1.6.3</mapstruct.version>
     <streamex.version>0.8.4</streamex.version>
+
+    <!-- overrides Spring Boot BOM default; can be removed once Spring Boot ships this version -->
+    <kafka.version>4.2.0</kafka.version>
 
     <!-- test dependencies -->
     <wiremock-standalone.version>3.0.1</wiremock-standalone.version>
