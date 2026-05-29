@@ -45,10 +45,10 @@ folio:
     enabled: true
   logging:
     request:
-      enabled: ${FOLIO_LOGGING_REQUEST_ENABLED:true}
+      enabled: ${FOLIO_LOGGING_REQUEST_ENABLED:false}
       level: ${FOLIO_LOGGING_REQUEST_LEVEL:BASIC}
     exchange:
-      enabled: ${FOLIO_LOGGING_EXCHANGE_ENABLED:true}
+      enabled: ${FOLIO_LOGGING_EXCHANGE_ENABLED:false}
       level: ${FOLIO_LOGGING_EXCHANGE_LEVEL:BASIC}
   kafka:
     numberOfPartitions: ${NUMBER_OF_PARTITIONS:1}
