@@ -68,7 +68,7 @@ class SyncPrimaryAffiliationServiceImplTest {
   private ConsortiaConfigurationService consortiaConfigurationService;
   @MockitoBean
   private LockService lockService;
-  @MockitoSpyBean
+  @MockitoSpyBean(name = "asyncTaskExecutor")
   private TaskExecutor asyncTaskExecutor = new SimpleAsyncTaskExecutor();
 
   private SyncPrimaryAffiliationServiceImpl syncPrimaryAffiliationService;
