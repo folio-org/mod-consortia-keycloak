@@ -8,11 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletionException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -43,7 +39,6 @@ import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.data.OffsetRequest;
 import org.folio.spring.scope.FolioExecutionContextSetter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpMethod;
@@ -63,16 +58,13 @@ public class PublicationServiceImpl implements PublicationService {
   private final FolioExecutionContext folioExecutionContext;
   private final FolioModuleMetadata folioModuleMetadata;
   private final HttpRequestService httpRequestService;
-  private final TaskExecutor asyncTaskExecutor;
+  private final TaskExecutor publicationTaskExecutor;
 
   private final PublicationStatusRepository publicationStatusRepository;
   private final PublicationTenantRequestRepository publicationTenantRequestRepository;
   private final PublicationStorageService publicationStorageService;
   private final ObjectMapper objectMapper;
   private final ConsortiumService consortiumService;
-
-  @Value("${folio.max-active-threads:5}")
-  private int maxActiveThreads;
 
   @Override
   @SneakyThrows
@@ -83,7 +75,7 @@ public class PublicationServiceImpl implements PublicationService {
     var savedEntity = publicationStorageService.savePublicationStatusEntity(createdPublicationEntity);
     log.info("publishRequest:: Publication with id {} and status {} was created", savedEntity.getId(), savedEntity.getStatus());
 
-    asyncTaskExecutor.execute(getRunnableWithCurrentFolioContext(
+    publicationTaskExecutor.execute(getRunnableWithCurrentFolioContext(
       () -> processTenantRequests(publicationRequest, savedEntity.getId())));
 
     return buildPublicationResponse(savedEntity.getId());
@@ -132,41 +124,36 @@ public class PublicationServiceImpl implements PublicationService {
       .toList();
   }
 
-  void processTenantRequests(PublicationRequest publicationRequest, UUID publicationId) {
+  CompletableFuture<Void> processTenantRequests(PublicationRequest publicationRequest, UUID publicationId) {
     var createdPublicationEntity = publicationStatusRepository.findById(publicationId)
       .orElseThrow(() -> new ResourceNotFoundException(PUBLICATION_ID_FIELD, publicationId.toString()));
-    List<Future<PublicationTenantRequestEntity>> futures = new ArrayList<>();
-    ExecutorService executor = Executors.newFixedThreadPool(maxActiveThreads);
+    List<CompletableFuture<PublicationTenantRequestEntity>> futures = new ArrayList<>();
 
-    try {
-      for (String tenantId : publicationRequest.getTenants()) {
-        try {
-          PublicationTenantRequestEntity ptrEntity = buildPublicationRequestEntity(publicationRequest, createdPublicationEntity, tenantId);
-          var savedPublicationTenantRequest = savePublicationTenantRequest(ptrEntity);
-          var future = executor.submit(() -> executeAndUpdatePublicationTenantRequest(publicationRequest, tenantId, savedPublicationTenantRequest));
-          futures.add(future);
-        } catch (Exception e) {
-          log.error("processTenantRequests:: failed to create and submit task for tenant {} and publication id {} ",
-            tenantId, createdPublicationEntity.getId(), e);
-          futures.add(CompletableFuture.failedFuture(e));
-        }
+    for (String tenantId : publicationRequest.getTenants()) {
+      CompletableFuture<PublicationTenantRequestEntity> future = new CompletableFuture<>();
+      futures.add(future);
+      try {
+        PublicationTenantRequestEntity ptrEntity = buildPublicationRequestEntity(publicationRequest, createdPublicationEntity, tenantId);
+        var savedPublicationTenantRequest = savePublicationTenantRequest(ptrEntity);
+        publicationTaskExecutor.execute(getRunnableWithCurrentFolioContext(() -> {
+          try {
+            future.complete(executeAndUpdatePublicationTenantRequest(publicationRequest, tenantId, savedPublicationTenantRequest));
+          } catch (Exception t) {
+            future.completeExceptionally(t);
+          }
+        }));
+      } catch (Exception e) {
+        log.error("processTenantRequests:: failed to create and submit task for tenant {} and publication id {} ",
+          tenantId, createdPublicationEntity.getId(), e);
+        future.completeExceptionally(e);
       }
-    } finally {
-      executor.shutdown();
     }
 
-    try {
-      if (!executor.awaitTermination(300, TimeUnit.SECONDS)) {
-        log.warn("processTenantRequests:: Publication tasks timed out. Forcing shutdown. Publication id: {}", createdPublicationEntity.getId());
-        executor.shutdownNow();
-      }
-    } catch (InterruptedException e) {
-      log.error("Publication task executor was interrupted. Forcing shutdown. Publication id: {}", createdPublicationEntity.getId(), e);
-      executor.shutdownNow();
-      Thread.currentThread().interrupt();
-    } finally {
-      updatePublicationsStatus(futures, createdPublicationEntity);
-    }
+    Runnable statusUpdate = getRunnableWithCurrentFolioContext(
+      () -> updatePublicationsStatus(futures, createdPublicationEntity));
+
+    return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+      .whenComplete((v, t) -> statusUpdate.run());
   }
 
   PublicationTenantRequestEntity executeAndUpdatePublicationTenantRequest(PublicationRequest publicationRequest, String tenantId,
@@ -259,17 +246,14 @@ public class PublicationServiceImpl implements PublicationService {
     return publicationStatusEntity;
   }
 
-  private void updatePublicationsStatus(List<Future<PublicationTenantRequestEntity>> futures, PublicationStatusEntity publicationStatusEntity) {
+  private void updatePublicationsStatus(List<CompletableFuture<PublicationTenantRequestEntity>> futures, PublicationStatusEntity publicationStatusEntity) {
     List<PublicationTenantRequestEntity> ptreList = new ArrayList<>();
     futures.forEach(future -> {
       try {
-        var ptre = future.get();
-        ptreList.add(ptre);
-      } catch (InterruptedException e) {
-        // Will never occur. All executor threads are safely completed at this point
-        Thread.currentThread().interrupt();
-      } catch (ExecutionException e) {
-        log.error("updatePublicationsStatus:: publication tenant request failed", e);
+        ptreList.add(future.join());
+      } catch (CompletionException e) {
+        log.error("updatePublicationsStatus:: publication tenant request failed for publication {}",
+          publicationStatusEntity.getId(), e);
       }
     });
     var isCompletedWithExceptions = futures.size() != ptreList.size();
