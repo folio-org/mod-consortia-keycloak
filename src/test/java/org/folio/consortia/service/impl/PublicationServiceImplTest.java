@@ -24,6 +24,7 @@ import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.entity.PublicationStatusEntity;
 import org.folio.consortia.domain.entity.PublicationTenantRequestEntity;
+import org.folio.consortia.exception.PublicationException;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.PublicationStatusRepository;
 import org.folio.consortia.repository.PublicationTenantRequestRepository;
@@ -152,6 +153,38 @@ class PublicationServiceImplTest extends BaseUnitTest {
     verify(publicationStatusRepository).save(pseCaptor.capture());
     PublicationStatusEntity capturedStatusEntity = pseCaptor.getValue();
     assertEquals(PublicationStatus.ERROR, capturedStatusEntity.getStatus());
+  }
+
+  @Test
+  void processTenantRequests_shouldThrowWhenPublicationNotFound() {
+    var publicationRequest = getMockDataObject(PUBLICATION_REQUEST_SAMPLE, PublicationRequest.class);
+    var missingPublicationId = UUID.randomUUID();
+
+    when(publicationStatusRepository.findById(missingPublicationId)).thenReturn(Optional.empty());
+
+    assertThrows(ResourceNotFoundException.class,
+      () -> publicationService.processTenantRequests(publicationRequest, missingPublicationId));
+  }
+
+  @Test
+  void processTenantRequests_shouldMarkPublicationErrorOnSubmissionFailure() {
+    var publicationRequest = getMockDataObject(PUBLICATION_REQUEST_SAMPLE, PublicationRequest.class);
+    var publicationStatusEntity = getMockDataObject(PUBLICATION_STATUS_ENTITY_SAMPLE, PublicationStatusEntity.class);
+    var payload = "{\"id\":\"123\"}";
+
+    when(folioExecutionContext.getInstance()).thenReturn(folioExecutionContext);
+    when(objectMapper.writeValueAsString(any())).thenReturn(payload);
+    when(publicationStatusRepository.findById(any())).thenReturn(Optional.of(publicationStatusEntity));
+    when(publicationTenantRequestRepository.save(any(PublicationTenantRequestEntity.class)))
+      .thenThrow(new PublicationException(new RuntimeException("db down")));
+
+    try (var ignored = new FolioExecutionContextSetter(folioExecutionContext)) {
+      publicationService.processTenantRequests(publicationRequest, publicationStatusEntity.getId())
+        .exceptionally(t -> null).join();
+    }
+
+    verify(publicationStatusRepository).save(pseCaptor.capture());
+    assertEquals(PublicationStatus.ERROR, pseCaptor.getValue().getStatus());
   }
 
   @Test
