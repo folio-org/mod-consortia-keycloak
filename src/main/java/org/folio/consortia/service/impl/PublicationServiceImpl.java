@@ -39,6 +39,7 @@ import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.data.OffsetRequest;
 import org.folio.spring.scope.FolioExecutionContextSetter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpMethod;
@@ -58,7 +59,10 @@ public class PublicationServiceImpl implements PublicationService {
   private final FolioExecutionContext folioExecutionContext;
   private final FolioModuleMetadata folioModuleMetadata;
   private final HttpRequestService httpRequestService;
+  @Qualifier("publicationTaskExecutor")
   private final TaskExecutor publicationTaskExecutor;
+  @Qualifier("getPublicationTaskExecutor")
+  private final TaskExecutor getPublicationTaskExecutor;
 
   private final PublicationStatusRepository publicationStatusRepository;
   private final PublicationTenantRequestRepository publicationTenantRequestRepository;
@@ -75,10 +79,16 @@ public class PublicationServiceImpl implements PublicationService {
     var savedEntity = publicationStorageService.savePublicationStatusEntity(createdPublicationEntity);
     log.info("publishRequest:: Publication with id {} and status {} was created", savedEntity.getId(), savedEntity.getStatus());
 
-    publicationTaskExecutor.execute(getRunnableWithCurrentFolioContext(
+    executorFor(publicationRequest).execute(getRunnableWithCurrentFolioContext(
       () -> processTenantRequests(publicationRequest, savedEntity.getId())));
 
     return buildPublicationResponse(savedEntity.getId());
+  }
+
+  private TaskExecutor executorFor(PublicationRequest publicationRequest) {
+    return HttpMethod.GET.matches(publicationRequest.getMethod())
+      ? getPublicationTaskExecutor
+      : publicationTaskExecutor;
   }
 
   @Override
@@ -135,7 +145,7 @@ public class PublicationServiceImpl implements PublicationService {
       try {
         PublicationTenantRequestEntity ptrEntity = buildPublicationRequestEntity(publicationRequest, createdPublicationEntity, tenantId);
         var savedPublicationTenantRequest = savePublicationTenantRequest(ptrEntity);
-        publicationTaskExecutor.execute(getRunnableWithCurrentFolioContext(() -> {
+        executorFor(publicationRequest).execute(getRunnableWithCurrentFolioContext(() -> {
           try {
             future.complete(executeAndUpdatePublicationTenantRequest(publicationRequest, tenantId, savedPublicationTenantRequest));
           } catch (Exception t) {
