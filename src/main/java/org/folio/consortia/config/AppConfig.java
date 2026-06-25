@@ -40,6 +40,15 @@ public class AppConfig implements WebMvcConfigurer {
   @Value("${folio.publication-executor.queue-capacity:500}")
   private int publicationExecutorQueueCapacity;
 
+  @Value("${folio.get-publication-executor.core-pool-size:5}")
+  private int getPublicationExecutorCorePoolSize;
+
+  @Value("${folio.get-publication-executor.max-pool-size:10}")
+  private int getPublicationExecutorMaxPoolSize;
+
+  @Value("${folio.get-publication-executor.queue-capacity:500}")
+  private int getPublicationExecutorQueueCapacity;
+
   @Override
   public void addFormatters(FormatterRegistry registry) {
     registry.addConverter(new TenantEntityToTenantConverter());
@@ -65,9 +74,9 @@ public class AppConfig implements WebMvcConfigurer {
   }
 
   /**
-   * Dedicated pool for publication fan-out (one task per tenant). Separated from
-   * {@link #asyncTaskExecutor()} so HTTP-bound publication work cannot starve {@code @Async}
-   * consumers.
+   * Dedicated pool for write publication fan-out (POST/PUT/DELETE, one task per tenant).
+   * Separated from {@link #asyncTaskExecutor()} so HTTP-bound publication work cannot starve
+   * {@code @Async} consumers.
    */
   @Bean("publicationTaskExecutor")
   public TaskExecutor publicationTaskExecutor() {
@@ -76,6 +85,22 @@ public class AppConfig implements WebMvcConfigurer {
     executor.setMaxPoolSize(publicationExecutorMaxPoolSize);
     executor.setQueueCapacity(publicationExecutorQueueCapacity);
     executor.setThreadNamePrefix("ConsortiaPublication-");
+    executor.initialize();
+    return executor;
+  }
+
+  /**
+   * Dedicated pool for read publication fan-out (GET, one task per tenant). Separated from
+   * {@link #publicationTaskExecutor()} so interactive UI reads (e.g. listing settings across
+   * member tenants) are not queued behind long-running write shares.
+   */
+  @Bean("getPublicationTaskExecutor")
+  public TaskExecutor getPublicationTaskExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(getPublicationExecutorCorePoolSize);
+    executor.setMaxPoolSize(getPublicationExecutorMaxPoolSize);
+    executor.setQueueCapacity(getPublicationExecutorQueueCapacity);
+    executor.setThreadNamePrefix("ConsortiaGetPublication-");
     executor.initialize();
     return executor;
   }
