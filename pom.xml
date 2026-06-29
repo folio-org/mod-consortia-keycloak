@@ -67,7 +67,7 @@
     <applications-poc-tools.version>4.0.0</applications-poc-tools.version>
 
     <!-- runtime dependencies -->
-    <openapi-generator.version>7.20.0</openapi-generator.version>
+    <openapi-generator.version>7.23.0</openapi-generator.version>
     <mapstruct.version>1.6.3</mapstruct.version>
     <streamex.version>0.8.4</streamex.version>
 
@@ -80,13 +80,13 @@
     <awaitility.version>4.3.0</awaitility.version>
 
     <!--Maven plugin dependencies-->
-    <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
-    <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
-    <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
-    <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
+    <maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
+    <maven-release-plugin.version>3.3.1</maven-release-plugin.version>
+    <maven-surefire-plugin.version>3.5.6</maven-surefire-plugin.version>
+    <maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
     <copy-rename-maven-plugin.version>1.0.1</copy-rename-maven-plugin.version>
     <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
-    <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
   </properties>
 
   <dependencyManagement>
