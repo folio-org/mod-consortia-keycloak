@@ -24,7 +24,6 @@ import org.folio.consortia.domain.dto.PublicationRequest;
 import org.folio.consortia.domain.dto.PublicationStatus;
 import org.folio.consortia.domain.entity.PublicationStatusEntity;
 import org.folio.consortia.domain.entity.PublicationTenantRequestEntity;
-import org.folio.consortia.exception.PublicationException;
 import org.folio.consortia.exception.ResourceNotFoundException;
 import org.folio.consortia.repository.PublicationStatusRepository;
 import org.folio.consortia.repository.PublicationTenantRequestRepository;
@@ -42,8 +41,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -74,8 +72,9 @@ class PublicationServiceImplTest extends BaseUnitTest {
   private UserTenantService userTenantService;
   @MockitoBean
   private TenantService tenantService;
+  @MockitoBean
+  private AsyncTaskExecutor asyncTaskExecutor;
 
-  private TaskExecutor publicationTaskExecutor;
   private ArgumentCaptor<PublicationStatusEntity> pseCaptor;
   private ArgumentCaptor<PublicationTenantRequestEntity> ptreCaptor;
 
@@ -83,8 +82,7 @@ class PublicationServiceImplTest extends BaseUnitTest {
   void setup() {
     pseCaptor = ArgumentCaptor.forClass(PublicationStatusEntity.class);
     ptreCaptor = ArgumentCaptor.forClass(PublicationTenantRequestEntity.class);
-    publicationTaskExecutor = Mockito.spy(new SyncTaskExecutor());
-    ReflectionTestUtils.setField(publicationService, "publicationTaskExecutor", publicationTaskExecutor);
+    ReflectionTestUtils.setField(publicationService, "asyncTaskExecutor", asyncTaskExecutor);
   }
 
   @Test
@@ -98,13 +96,13 @@ class PublicationServiceImplTest extends BaseUnitTest {
     when(userTenantService.checkUserIfHasPrimaryAffiliationByUserId(any(), anyString())).thenReturn(true);
     when(folioExecutionContext.getInstance()).thenReturn(folioExecutionContext);
     when(publicationStorageService.savePublicationStatusEntity(any(PublicationStatusEntity.class))).thenReturn(publicationStatusEntity);
-    doNothing().when(publicationTaskExecutor).execute(any(Runnable.class));
+    doNothing().when(asyncTaskExecutor).execute(any(Runnable.class));
 
     try (var ignored = new FolioExecutionContextSetter(folioExecutionContext)) {
       var response = publicationService.publishRequest(consortiumId, publicationRequest);
 
       verify(publicationStorageService).savePublicationStatusEntity(any(PublicationStatusEntity.class));
-      verify(publicationTaskExecutor).execute(any(Runnable.class));
+      verify(asyncTaskExecutor).execute(any(Runnable.class));
 
       Assertions.assertEquals(publicationStatusEntity.getId(), response.getId());
       Assertions.assertEquals(PublicationStatus.IN_PROGRESS, response.getStatus());
@@ -117,16 +115,14 @@ class PublicationServiceImplTest extends BaseUnitTest {
     var publicationStatusEntity = getMockDataObject(PUBLICATION_STATUS_ENTITY_SAMPLE, PublicationStatusEntity.class);
     var payload = "{\"id\":\"123\"}";
 
-    when(folioExecutionContext.getInstance()).thenReturn(folioExecutionContext);
+    ReflectionTestUtils.setField(publicationService, "maxActiveThreads", 1);
     when(objectMapper.writeValueAsString(any())).thenReturn(payload);
     when(publicationTenantRequestRepository.save(any(PublicationTenantRequestEntity.class))).thenAnswer(inv -> inv.getArgument(0));
     when(publicationStatusRepository.findById(any())).thenReturn(Optional.of(publicationStatusEntity));
     when(httpRequestService.performRequest(anyString(), eq(HttpMethod.POST), any()))
       .thenReturn(new PublicationHttpResponse(payload, HttpStatusCode.valueOf(201)));
 
-    try (var ignored = new FolioExecutionContextSetter(folioExecutionContext)) {
-      publicationService.processTenantRequests(publicationRequest, publicationStatusEntity.getId()).join();
-    }
+    publicationService.processTenantRequests(publicationRequest, publicationStatusEntity.getId());
 
     verify(publicationStatusRepository).save(pseCaptor.capture());
     PublicationStatusEntity capturedStatusEntity = pseCaptor.getValue();
@@ -139,52 +135,18 @@ class PublicationServiceImplTest extends BaseUnitTest {
     var publicationStatusEntity = getMockDataObject(PUBLICATION_STATUS_ENTITY_SAMPLE, PublicationStatusEntity.class);
     var payload = "{\"id\":\"123\"}";
 
-    when(folioExecutionContext.getInstance()).thenReturn(folioExecutionContext);
+    ReflectionTestUtils.setField(publicationService, "maxActiveThreads", 1);
     when(objectMapper.writeValueAsString(any())).thenReturn(payload);
     when(publicationTenantRequestRepository.save(any(PublicationTenantRequestEntity.class))).thenAnswer(inv -> inv.getArgument(0));
     when(publicationStatusRepository.findById(any())).thenReturn(Optional.of(publicationStatusEntity));
     when(httpRequestService.performRequest(anyString(), eq(HttpMethod.POST), any()))
       .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
 
-    try (var ignored = new FolioExecutionContextSetter(folioExecutionContext)) {
-      publicationService.processTenantRequests(publicationRequest, publicationStatusEntity.getId()).join();
-    }
+    publicationService.processTenantRequests(publicationRequest, publicationStatusEntity.getId());
 
     verify(publicationStatusRepository).save(pseCaptor.capture());
     PublicationStatusEntity capturedStatusEntity = pseCaptor.getValue();
     assertEquals(PublicationStatus.ERROR, capturedStatusEntity.getStatus());
-  }
-
-  @Test
-  void processTenantRequests_shouldThrowWhenPublicationNotFound() {
-    var publicationRequest = getMockDataObject(PUBLICATION_REQUEST_SAMPLE, PublicationRequest.class);
-    var missingPublicationId = UUID.randomUUID();
-
-    when(publicationStatusRepository.findById(missingPublicationId)).thenReturn(Optional.empty());
-
-    assertThrows(ResourceNotFoundException.class,
-      () -> publicationService.processTenantRequests(publicationRequest, missingPublicationId));
-  }
-
-  @Test
-  void processTenantRequests_shouldMarkPublicationErrorOnSubmissionFailure() {
-    var publicationRequest = getMockDataObject(PUBLICATION_REQUEST_SAMPLE, PublicationRequest.class);
-    var publicationStatusEntity = getMockDataObject(PUBLICATION_STATUS_ENTITY_SAMPLE, PublicationStatusEntity.class);
-    var payload = "{\"id\":\"123\"}";
-
-    when(folioExecutionContext.getInstance()).thenReturn(folioExecutionContext);
-    when(objectMapper.writeValueAsString(any())).thenReturn(payload);
-    when(publicationStatusRepository.findById(any())).thenReturn(Optional.of(publicationStatusEntity));
-    when(publicationTenantRequestRepository.save(any(PublicationTenantRequestEntity.class)))
-      .thenThrow(new PublicationException(new RuntimeException("db down")));
-
-    try (var ignored = new FolioExecutionContextSetter(folioExecutionContext)) {
-      publicationService.processTenantRequests(publicationRequest, publicationStatusEntity.getId())
-        .exceptionally(t -> null).join();
-    }
-
-    verify(publicationStatusRepository).save(pseCaptor.capture());
-    assertEquals(PublicationStatus.ERROR, pseCaptor.getValue().getStatus());
   }
 
   @Test

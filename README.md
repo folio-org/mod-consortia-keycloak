@@ -92,29 +92,23 @@ requires and provides, the permissions, and the additional module metadata.
 
 ### Environment variables
 
-| Name                                | Default value       | Description                                                                                                                                                |
-|:------------------------------------|:--------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| DB_HOST                             | postgres            | Postgres hostname                                                                                                                                          |
-| DB_PORT                             | 5432                | Postgres port                                                                                                                                              |
-| DB_USERNAME                         | folio_admin         | Postgres username                                                                                                                                          |
-| DB_PASSWORD                         | -                   | Postgres username password                                                                                                                                 |
-| DB_DATABASE                         | okapi_modules       | Postgres database name                                                                                                                                     |
-| KAFKA_HOST                          | kafka               | Kafka broker hostname                                                                                                                                      |
-| KAFKA_PORT                          | 9092                | Kafka broker port                                                                                                                                          |
-| KAFKA_SECURITY_PROTOCOL             | PLAINTEXT           | Kafka security protocol used to communicate with brokers (SSL or PLAINTEXT)                                                                                |
-| KAFKA_SSL_KEYSTORE_LOCATION         | -                   | The location of the Kafka key store file. This is optional for client and can be used for two-way authentication for client.                               |
-| KAFKA_SSL_KEYSTORE_PASSWORD         | -                   | The store password for the Kafka key store file. This is optional for client and only needed if 'ssl.keystore.location' is configured.                     |
-| KAFKA_SSL_TRUSTSTORE_LOCATION       | -                   | The location of the Kafka trust store file.                                                                                                                |
-| KAFKA_SSL_TRUSTSTORE_PASSWORD       | -                   | The password for the Kafka trust store file. If a password is not set, trust store file configured will still be used, but integrity checking is disabled. |
-| ENV                                 | folio               | Logical name of the deployment, must be set if Kafka/Elasticsearch are shared for environments, `a-z (any case)`, `0-9`, `-`, `_` symbols only allowed     |
-| OKAPI_URL                           | http://sidecar:8081 | Okapi url                                                                                                                                                  |
-| SECRET_STORE_TYPE                   | EPHEMERAL           | Defines the type of secret store to use.                                                                                                                   |
-| ASYNC_EXECUTOR_CORE_POOL_SIZE       | 5                   | Core threads kept alive in the general async executor. Used by `@Async` methods such as Kafka `USER_CREATED/UPDATED/DELETED` listeners and `executeAsyncSystemUserScoped`. |
-| ASYNC_EXECUTOR_MAX_POOL_SIZE        | 10                  | Maximum threads the general async executor may spawn once the queue is full.                                                                               |
-| ASYNC_EXECUTOR_QUEUE_CAPACITY       | 500                 | Bounded queue depth for the general async executor before additional threads are created up to `ASYNC_EXECUTOR_MAX_POOL_SIZE`.                             |
-| PUBLICATION_EXECUTOR_CORE_POOL_SIZE | 5                   | Core threads kept alive in the publication executor that processes per-tenant share/publication fan-out. Isolated from the async pool so long-running HTTP fan-out cannot starve `@Async` handlers. |
-| PUBLICATION_EXECUTOR_MAX_POOL_SIZE  | 10                  | Maximum threads the publication executor may spawn. Aligned with the HikariCP default pool size (10) so threads do not stall waiting on DB connections.    |
-| PUBLICATION_EXECUTOR_QUEUE_CAPACITY | 500                 | Bounded queue depth for the publication executor before additional threads are created up to `PUBLICATION_EXECUTOR_MAX_POOL_SIZE`.                         |
+| Name                          | Default value       | Description                                                                                                                                                |
+|:------------------------------|:--------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| DB_HOST                       | postgres            | Postgres hostname                                                                                                                                          |
+| DB_PORT                       | 5432                | Postgres port                                                                                                                                              |
+| DB_USERNAME                   | folio_admin         | Postgres username                                                                                                                                          |
+| DB_PASSWORD                   | -                   | Postgres username password                                                                                                                                 |
+| DB_DATABASE                   | okapi_modules       | Postgres database name                                                                                                                                     |
+| KAFKA_HOST                    | kafka               | Kafka broker hostname                                                                                                                                      |
+| KAFKA_PORT                    | 9092                | Kafka broker port                                                                                                                                          |
+| KAFKA_SECURITY_PROTOCOL       | PLAINTEXT           | Kafka security protocol used to communicate with brokers (SSL or PLAINTEXT)                                                                                |
+| KAFKA_SSL_KEYSTORE_LOCATION   | -                   | The location of the Kafka key store file. This is optional for client and can be used for two-way authentication for client.                               |
+| KAFKA_SSL_KEYSTORE_PASSWORD   | -                   | The store password for the Kafka key store file. This is optional for client and only needed if 'ssl.keystore.location' is configured.                     |
+| KAFKA_SSL_TRUSTSTORE_LOCATION | -                   | The location of the Kafka trust store file.                                                                                                                |
+| KAFKA_SSL_TRUSTSTORE_PASSWORD | -                   | The password for the Kafka trust store file. If a password is not set, trust store file configured will still be used, but integrity checking is disabled. |
+| ENV                           | folio               | Logical name of the deployment, must be set if Kafka/Elasticsearch are shared for environments, `a-z (any case)`, `0-9`, `-`, `_` symbols only allowed     |
+| OKAPI_URL                     | http://sidecar:8081 | Okapi url                                                                                                                                                  |
+| SECRET_STORE_TYPE             | EPHEMERAL           | Defines the type of secret store to use.                                                                                                                   |
 
 ### Keycloak environment variables
 
