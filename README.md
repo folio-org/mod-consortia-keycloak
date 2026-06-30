@@ -112,12 +112,9 @@ requires and provides, the permissions, and the additional module metadata.
 | ASYNC_EXECUTOR_CORE_POOL_SIZE       | 5                   | Core threads kept alive in the general async executor. Used by `@Async` methods such as Kafka `USER_CREATED/UPDATED/DELETED` listeners and `executeAsyncSystemUserScoped`. |
 | ASYNC_EXECUTOR_MAX_POOL_SIZE        | 10                  | Maximum threads the general async executor may spawn once the queue is full.                                                                               |
 | ASYNC_EXECUTOR_QUEUE_CAPACITY       | 500                 | Bounded queue depth for the general async executor before additional threads are created up to `ASYNC_EXECUTOR_MAX_POOL_SIZE`.                             |
-| PUBLICATION_EXECUTOR_CORE_POOL_SIZE | 5                   | Core threads kept alive in the publication executor that processes per-tenant write share/publication fan-out (POST/PUT/DELETE). Isolated from the async pool so long-running HTTP fan-out cannot starve `@Async` handlers. |
+| PUBLICATION_EXECUTOR_CORE_POOL_SIZE | 5                   | Core threads kept alive in the publication executor that processes per-tenant share/publication fan-out. Isolated from the async pool so long-running HTTP fan-out cannot starve `@Async` handlers. |
 | PUBLICATION_EXECUTOR_MAX_POOL_SIZE  | 10                  | Maximum threads the publication executor may spawn. Aligned with the HikariCP default pool size (10) so threads do not stall waiting on DB connections.    |
 | PUBLICATION_EXECUTOR_QUEUE_CAPACITY | 500                 | Bounded queue depth for the publication executor before additional threads are created up to `PUBLICATION_EXECUTOR_MAX_POOL_SIZE`.                         |
-| GET_PUBLICATION_EXECUTOR_CORE_POOL_SIZE | 5               | Core threads kept alive in the GET publication executor (read fan-out across member tenants, e.g. listing settings). Isolated from the write publication pool so UI reads are not queued behind long-running write shares. |
-| GET_PUBLICATION_EXECUTOR_MAX_POOL_SIZE  | 10              | Maximum threads the GET publication executor may spawn.                                                                                                    |
-| GET_PUBLICATION_EXECUTOR_QUEUE_CAPACITY | 500             | Bounded queue depth for the GET publication executor before additional threads are created up to `GET_PUBLICATION_EXECUTOR_MAX_POOL_SIZE`.                 |
 
 ### Keycloak environment variables
 

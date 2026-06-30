@@ -1138,42 +1138,6 @@
       {
         "name": "ENV",
         "value": "folio"
-      },
-      {
-        "name": "ASYNC_EXECUTOR_CORE_POOL_SIZE",
-        "value": "5"
-      },
-      {
-        "name": "ASYNC_EXECUTOR_MAX_POOL_SIZE",
-        "value": "10"
-      },
-      {
-        "name": "ASYNC_EXECUTOR_QUEUE_CAPACITY",
-        "value": "500"
-      },
-      {
-        "name": "PUBLICATION_EXECUTOR_CORE_POOL_SIZE",
-        "value": "5"
-      },
-      {
-        "name": "PUBLICATION_EXECUTOR_MAX_POOL_SIZE",
-        "value": "10"
-      },
-      {
-        "name": "PUBLICATION_EXECUTOR_QUEUE_CAPACITY",
-        "value": "500"
-      },
-      {
-        "name": "GET_PUBLICATION_EXECUTOR_CORE_POOL_SIZE",
-        "value": "5"
-      },
-      {
-        "name": "GET_PUBLICATION_EXECUTOR_MAX_POOL_SIZE",
-        "value": "10"
-      },
-      {
-        "name": "GET_PUBLICATION_EXECUTOR_QUEUE_CAPACITY",
-        "value": "500"
       }
     ]
   }
