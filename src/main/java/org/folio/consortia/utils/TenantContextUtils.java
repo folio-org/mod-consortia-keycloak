@@ -8,6 +8,7 @@ import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.folio.spring.scope.FolioExecutionContextSetter;
+import org.folio.spring.utils.FolioExecutionContextUtils;
 import org.springframework.messaging.MessageHeaders;
 
 import java.nio.charset.StandardCharsets;
@@ -17,14 +18,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import org.springframework.util.LinkedCaseInsensitiveMap;
 
 @UtilityClass
 @Log4j2
 public class TenantContextUtils {
   public static FolioExecutionContext getFolioExecutionContextCopyForTenant(FolioExecutionContext context, String tenant) {
-    var headers = context.getAllHeaders() != null
-      ? new HashMap<>(context.getAllHeaders())
-      : new HashMap<String, Collection<String>>();
+    var headers = FolioExecutionContextUtils.caseInsensitiveCopyOf(context.getAllHeaders());
     headers.put(XOkapiHeaders.TENANT, Collections.singletonList(tenant));
 
     return new DefaultFolioExecutionContext(context.getFolioModuleMetadata(), headers);
@@ -45,10 +45,7 @@ public class TenantContextUtils {
    */
   public static FolioExecutionContext prepareContextForTenant(String tenantId, FolioModuleMetadata folioModuleMetadata, FolioExecutionContext context) {
     if (MapUtils.isNotEmpty(context.getOkapiHeaders())) {
-      Map<String, Collection<String>> headersCopy = new HashMap<>();
-      context.getAllHeaders().forEach((key, value) ->
-        headersCopy.put(key, List.copyOf(value))
-      );
+      var headersCopy = FolioExecutionContextUtils.caseInsensitiveCopyOf(context.getAllHeaders());
       headersCopy.put(XOkapiHeaders.TENANT, List.of(tenantId));
       log.info("FOLIO context initialized with tenant {}", tenantId);
       return new DefaultFolioExecutionContext(folioModuleMetadata, headersCopy);
@@ -77,20 +74,22 @@ public class TenantContextUtils {
 
   private static FolioExecutionContext getContextFromKafkaHeaders(MessageHeaders headers,
                                                                   FolioModuleMetadata moduleMetadata, String centralTenantId) {
+    var insensitiveMap = FolioExecutionContextUtils.caseInsensitiveCopyOf(headers);
     Map<String, Collection<String>> map = new HashMap<>();
     map.put(XOkapiHeaders.TENANT, List.of(centralTenantId));
-    map.put(XOkapiHeaders.URL, getHeaderValue(headers, XOkapiHeaders.URL, null));
-    map.put(XOkapiHeaders.TOKEN, getHeaderValue(headers, XOkapiHeaders.TOKEN, null));
-    map.put(XOkapiHeaders.USER_ID, getHeaderValue(headers, XOkapiHeaders.USER_ID, null));
+    map.put(XOkapiHeaders.URL, getHeaderValue(insensitiveMap, XOkapiHeaders.URL, null));
+    map.put(XOkapiHeaders.TOKEN, getHeaderValue(insensitiveMap, XOkapiHeaders.TOKEN, null));
+    map.put(XOkapiHeaders.USER_ID, getHeaderValue(insensitiveMap, XOkapiHeaders.USER_ID, null));
 
     return new DefaultFolioExecutionContext(moduleMetadata, map);
   }
 
-  public static List<String> getHeaderValue(MessageHeaders headers, String headerName, String defaultValue) {
+  public static List<String> getHeaderValue(LinkedCaseInsensitiveMap<Object> headers, String headerName,
+                                            String defaultValue) {
     var headerValue = headers.get(headerName);
     var value = headerValue == null
-      ? defaultValue
-      : new String((byte[]) headerValue, StandardCharsets.UTF_8);
+                ? defaultValue
+                : new String((byte[]) headerValue, StandardCharsets.UTF_8);
     return value == null ? Collections.emptyList() : Collections.singletonList(value);
   }
 

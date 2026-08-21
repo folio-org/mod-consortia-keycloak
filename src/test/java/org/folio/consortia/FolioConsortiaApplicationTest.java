@@ -2,8 +2,6 @@ package org.folio.consortia;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import jakarta.validation.Valid;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,6 +30,11 @@ class FolioConsortiaApplicationTest {
     @Override
     public ResponseEntity<Void> postTenant(TenantAttributes tenantAttributes) {
       return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @Override
+    public ResponseEntity<String> getTenant(String operationId) {
+      return null;
     }
   }
 
