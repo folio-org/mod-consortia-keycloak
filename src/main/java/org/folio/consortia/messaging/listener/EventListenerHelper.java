@@ -5,6 +5,7 @@ import org.folio.consortia.utils.TenantContextUtils;
 import org.folio.spring.FolioModuleMetadata;
 import org.folio.spring.integration.XOkapiHeaders;
 import org.folio.spring.scope.FolioExecutionContextSetter;
+import org.folio.spring.utils.FolioExecutionContextUtils;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Component;
@@ -20,7 +21,8 @@ public class EventListenerHelper {
   private final FolioModuleMetadata folioMetadata;
 
   protected String getCentralTenantByIdByHeader(MessageHeaders messageHeaders) {
-    String requestedTenantId = TenantContextUtils.getHeaderValue(messageHeaders, XOkapiHeaders.TENANT, null).get(0);
+    var insensitiveMap = FolioExecutionContextUtils.caseInsensitiveCopyOf(messageHeaders);
+    String requestedTenantId = TenantContextUtils.getHeaderValue(insensitiveMap, XOkapiHeaders.TENANT, null).get(0);
     // getting central tenant from its own table by using appropriate context
     try (var ignored = new FolioExecutionContextSetter(
       TenantContextUtils.createFolioExecutionContext(messageHeaders, folioMetadata, requestedTenantId))) {

@@ -45,6 +45,14 @@ class ConsortiaSharingInstanceEventListenerTest {
   }
 
   @Test
+  void shouldCompleteInstanceSharingWhenConfigurationExistsAndHeadersInMixedCase() {
+    MessageHeaders messageHeaders = getMessageHeadersMixedCase();
+    when(eventListenerHelper.getCentralTenantByIdByHeader(messageHeaders)).thenReturn(BaseIT.TENANT);
+    eventListener.handleConsortiumInstanceSharingCompleting(CONSORTIUM_INSTANCE_SHARING_COMPLETE_EVENT_SAMPLE, messageHeaders);
+    verify(sharingInstanceService).completePromotingLocalInstance(anyString());
+  }
+
+  @Test
   void shouldThrowErrorWhenBusinessExceptionThrown() {
     MessageHeaders messageHeaders = getMessageHeaders();
     when(eventListenerHelper.getCentralTenantByIdByHeader(messageHeaders)).thenThrow(new RuntimeException("Operation failed"));
@@ -65,6 +73,13 @@ class ConsortiaSharingInstanceEventListenerTest {
   private MessageHeaders getMessageHeaders() {
     Map<String, Object> header = new HashMap<>();
     header.put(XOkapiHeaders.TENANT, BaseIT.TENANT.getBytes());
+
+    return new MessageHeaders(header);
+  }
+
+  private MessageHeaders getMessageHeadersMixedCase() {
+    Map<String, Object> header = new HashMap<>();
+    header.put("X-OkapI-TenanT", BaseIT.TENANT.getBytes());
 
     return new MessageHeaders(header);
   }
