@@ -103,6 +103,12 @@ Personal:
     preferredContactTypeId:
       description: Id of user's preferred contact type
       type: string
+    preferredContactTypeIds:
+      description: IDs of user's preferred contact types like Email, Mail, or Text Message
+      type: array
+      minItems: 0
+      items:
+        type: string
     profilePictureLink:
       description: Link to the profile picture
       type: string

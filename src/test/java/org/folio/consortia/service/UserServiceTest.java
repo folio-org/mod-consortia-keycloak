@@ -11,6 +11,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.folio.consortia.client.UsersKeycloakClient;
@@ -84,7 +85,7 @@ class UserServiceTest {
     assertEquals("testFirst", shadow.getPersonal().getFirstName());
     assertEquals("testLast", shadow.getPersonal().getLastName());
     assertEquals("Test@mail.com", shadow.getPersonal().getEmail());
-    assertEquals("email", shadow.getPersonal().getPreferredContactTypeId());
+    assertEquals(List.of("email"), shadow.getPersonal().getPreferredContactTypeIds());
     assertNull(shadow.getBarcode());
   }
 
