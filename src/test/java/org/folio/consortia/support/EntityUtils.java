@@ -441,7 +441,7 @@ public class EntityUtils {
   public static User createUserEntity(Boolean updateble) {
     User user = new User();
     Personal personal = new Personal();
-    personal.setPreferredContactTypeId("email");
+    personal.setPreferredContactTypeIds(List.of("email"));
     personal.setEmail("Test@mail.com");
     personal.setFirstName("testFirst");
     personal.setLastName("testLast");
@@ -457,7 +457,7 @@ public class EntityUtils {
   public static User createUserEntity(UUID userId) {
     User user = new User();
     Personal personal = new Personal();
-    personal.setPreferredContactTypeId("email");
+    personal.setPreferredContactTypeIds(List.of("email"));
     personal.setEmail("Test@mail.com");
     personal.setFirstName("firstName");
     personal.setLastName("lastName");
