@@ -14,6 +14,6 @@ public interface PublicationStatusRepository extends JpaRepository<PublicationSt
 
   @Modifying
   @Query("DELETE FROM PublicationStatusEntity ps WHERE ps.createdDate < ?1")
-  Integer deleteAllByCreatedDateBefore(LocalDateTime yesterday);
+  Integer deleteAllByCreatedDateBefore(LocalDateTime beforeDate);
 
 }

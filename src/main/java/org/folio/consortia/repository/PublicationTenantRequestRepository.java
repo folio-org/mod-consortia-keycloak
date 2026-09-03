@@ -19,5 +19,5 @@ public interface PublicationTenantRequestRepository extends JpaRepository<Public
 
   @Modifying
   @Query("DELETE FROM PublicationTenantRequestEntity ptr WHERE ptr.createdDate < ?1")
-  Integer deleteAllByCreatedDateBefore(LocalDateTime yesterday);
+  Integer deleteAllByCreatedDateBefore(LocalDateTime beforeDate);
 }
