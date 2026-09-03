@@ -34,7 +34,7 @@ public class CleanupServiceImpl implements CleanupService {
   private final SharingPolicyRepository sharingPolicyRepository;
   private final SharingSettingRepository sharingSettingRepository;
 
-  @Value("${folio.timer.publication-records-max-age-in-seconds:86400}")
+  @Value("${folio.timer.publication-records-max-age-in-seconds:43200}")
   private int recordMaxAge;
 
   @Override
