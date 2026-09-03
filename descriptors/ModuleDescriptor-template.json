@@ -640,8 +640,8 @@
         {
           "methods": [ "POST" ],
           "pathPattern": "/publications-cleanup",
-          "unit": "day",
-          "delay": "1"
+          "unit": "hour",
+          "delay": "12"
         }
       ]
     }
