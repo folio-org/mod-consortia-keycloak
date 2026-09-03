@@ -9,6 +9,7 @@ import static org.folio.consortia.support.TestConstants.USER_ID;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.folio.consortia.base.BaseRepositoryTest;
 import org.folio.consortia.domain.dto.PublicationStatus;
@@ -44,5 +45,39 @@ class PublicationTenantRequestRepositoryTest extends BaseRepositoryTest {
     assertThat(stored.getCreatedBy()).isEqualTo(USER_ID);
     assertThat(stored.getUpdatedDate()).isCloseTo(now, within(1, MINUTES));
     assertThat(stored.getUpdatedBy()).isEqualTo(USER_ID);
+  }
+
+  @Test
+  void deleteAllByCreatedDateBefore_positive_removesOnlyRecordsOlderThanCutoff() {
+    var statusEntity = createPublicationStatusEntity(PublicationStatus.COMPLETE);
+    entityManager.persistAndFlush(statusEntity);
+
+    var expiredEntity = createPublicationTenantRequestEntity(statusEntity, "expired-tenant",
+      PublicationStatus.COMPLETE, 0);
+    expiredEntity.setRequestUrl(RandomStringUtils.randomAlphanumeric(10));
+    var freshEntity = createPublicationTenantRequestEntity(statusEntity, "fresh-tenant",
+      PublicationStatus.COMPLETE, 0);
+    freshEntity.setRequestUrl(RandomStringUtils.randomAlphanumeric(10));
+    entityManager.persistAndFlush(expiredEntity);
+    entityManager.persistAndFlush(freshEntity);
+
+    var cutoff = LocalDateTime.now().minusDays(1);
+    backdateCreatedDate(expiredEntity.getId(), cutoff.minusDays(1));
+    entityManager.clear();
+
+    var deletedCount = repository.deleteAllByCreatedDateBefore(cutoff);
+    entityManager.clear();
+
+    assertThat(deletedCount).isEqualTo(1);
+    assertThat(repository.findById(expiredEntity.getId())).isEmpty();
+    assertThat(repository.findById(freshEntity.getId())).isPresent();
+  }
+
+  private void backdateCreatedDate(UUID id, LocalDateTime createdDate) {
+    entityManager.getEntityManager()
+      .createNativeQuery("UPDATE pc_tenant_request SET created_date = ?1 WHERE id = ?2")
+      .setParameter(1, createdDate)
+      .setParameter(2, id)
+      .executeUpdate();
   }
 }
