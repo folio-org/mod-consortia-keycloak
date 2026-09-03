@@ -7,6 +7,8 @@ import org.folio.consortia.domain.entity.PublicationTenantRequestEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -15,5 +17,7 @@ public interface PublicationTenantRequestRepository extends JpaRepository<Public
   Page<PublicationTenantRequestEntity> findByPcStateId(UUID publicationId, Pageable pageable);
   void deleteByPcStateId(UUID publicationId);
 
+  @Modifying
+  @Query("DELETE FROM PublicationTenantRequestEntity ptr WHERE ptr.createdDate < ?1")
   Integer deleteAllByCreatedDateBefore(LocalDateTime yesterday);
 }
