@@ -1,3 +1,10 @@
+## 1.8.1 - Released (Trillium R1 2025)
+The purpose of this release is to add possibility to enable http request logging.
+[Full Changelog](https://github.com/folio-org/mod-consortia-keycloak/compare/v1.8.0...v1.8.1)
+
+### Stories
+* [MODCONSKC-117](https://folio-org.atlassian.net/browse/MODCONSKC-117) - HTTP requests logging configuration
+
 ## 1.8.0 - Released (Trillium R1 2025)
 The purpose of this release is to upgrade to SpringBoot 4.0 / Spring 7.0, add general exception handling, and fix various issues.
 [Full Changelog](https://github.com/folio-org/mod-consortia-keycloak/compare/v1.7.0...v1.8.0)

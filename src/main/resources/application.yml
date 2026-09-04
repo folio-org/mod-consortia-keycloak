@@ -43,6 +43,13 @@ folio:
   okapi-url: ${OKAPI_URL:http://sidecar:8081}
   exchange:
     enabled: true
+  logging:
+    request:
+      enabled: ${FOLIO_LOGGING_REQUEST_ENABLED:false}
+      level: ${FOLIO_LOGGING_REQUEST_LEVEL:BASIC}
+    exchange:
+      enabled: ${FOLIO_LOGGING_EXCHANGE_ENABLED:false}
+      level: ${FOLIO_LOGGING_EXCHANGE_LEVEL:BASIC}
   kafka:
     numberOfPartitions: ${NUMBER_OF_PARTITIONS:1}
     replicationFactor: ${REPLICATION_FACTOR:1}
@@ -120,3 +127,5 @@ management:
 logging:
   level:
     liquibase: info
+    org.folio.spring.filter.IncomingRequestLoggingFilter: DEBUG
+    org.folio.spring.client.ExchangeLoggingInterceptor: DEBUG
