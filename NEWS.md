@@ -1,5 +1,12 @@
 ## 1.8.0 - Unreleased
 
+## 1.7.4 - Released (Sunflower R1 2025 Bug Fix)
+### Bug Fixes
+* [MODCONSKC-127](https://folio-org.atlassian.net/browse/MODCONSKC-127) - Sunflower - deleteAllByCreatedDateBefore can trigger OOM during publications-cleanup
+
+[Full Changelog](https://github.com/folio-org/mod-consortia/compare/v1.7.3...v1.7.4)
+
+
 ## 1.7.3 - Released (Sunflower R1 2025 Bug Fix)
 ### Bug Fixes
 * [MODCONSKC-98](https://folio-org.atlassian.net/browse/MODCONSKC-98) - Sunflower Backport - Tenant is not updated to 'Complete' status when no staff users exist on the tenant

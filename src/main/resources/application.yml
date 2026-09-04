@@ -74,8 +74,7 @@ folio:
     password: ${SYSTEM_USER_PASSWORD}
     lastname: SystemConsortia
   timer:
-    publication-records-max-age-in-seconds: 86400
-  max-active-threads: 5
+    publication-records-max-age-in-seconds: 43200
 application:
   secret-store:
     environment: ${SECURE_STORE_ENV:${ENV:folio}}
