@@ -1,3 +1,10 @@
+## 1.8.2 - Released (Trillium R1 2026)
+The purpose of this release is to fix OOM when deleting publish coordinator data.
+[Full Changelog](https://github.com/folio-org/mod-consortia-keycloak/compare/v1.8.1...v1.8.2)
+
+### Stories
+* [MODCONSKC-126](https://folio-org.atlassian.net/browse/MODCONSKC-126) - deleteAllByCreatedDateBefore can trigger OOM during publications-cleanup
+
 ## 1.8.1 - Released (Trillium R1 2025)
 The purpose of this release is to add possibility to enable http request logging.
 [Full Changelog](https://github.com/folio-org/mod-consortia-keycloak/compare/v1.8.0...v1.8.1)
