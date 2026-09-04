@@ -75,6 +75,7 @@ folio:
     lastname: SystemConsortia
   timer:
     publication-records-max-age-in-seconds: 43200
+  max-active-threads: 5
 application:
   secret-store:
     environment: ${SECURE_STORE_ENV:${ENV:folio}}
