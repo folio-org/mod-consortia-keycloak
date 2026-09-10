@@ -61,7 +61,7 @@
     <sharing_roles.yaml.file>${project.basedir}/src/main/resources/swagger.api/sharing_roles.yaml</sharing_roles.yaml.file>
 
     <!--Folio dependencies properties-->
-    <folio-module-descriptor-validator.version>1.0.1</folio-module-descriptor-validator.version>
+    <folio-module-descriptor-validator.version>1.0.2-SNAPSHOT</folio-module-descriptor-validator.version>
     <folio-spring-base.version>10.1.0-SNAPSHOT</folio-spring-base.version>
     <folio-service-tools.version>5.0.0</folio-service-tools.version>
     <applications-poc-tools.version>4.0.0</applications-poc-tools.version>
