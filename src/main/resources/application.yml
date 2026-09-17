@@ -133,7 +133,7 @@ management:
     web:
       base-path: /admin
       exposure:
-        include: health, info, metrics, loggers, prometheus
+        include: health, info, metrics, loggers, prometheus, threaddump, heapdump, liquibase
   influx:
     metrics:
       export:
