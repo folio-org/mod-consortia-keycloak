@@ -1,5 +1,8 @@
 server:
   port: 8081
+  tomcat:
+    mbeanregistry:
+      enabled: true
 spring:
   application:
     name: mod-consortia-keycloak
@@ -119,7 +122,7 @@ management:
     web:
       base-path: /admin
       exposure:
-        include: health, loggers
+        include: health, info, metrics, loggers, prometheus, threaddump, heapdump, liquibase
   influx:
     metrics:
       export:
