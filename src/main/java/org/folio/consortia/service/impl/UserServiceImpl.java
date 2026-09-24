@@ -127,6 +127,7 @@ public class UserServiceImpl implements UserService {
           .firstName(realUser.getPersonal().getFirstName())
           .lastName(realUser.getPersonal().getLastName())
           .email(realUser.getPersonal().getEmail())
+          .mobilePhone(realUser.getPersonal().getMobilePhone())
           .preferredContactTypeIds(realUser.getPersonal().getPreferredContactTypeIds())
         );
       }
