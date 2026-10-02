@@ -26,6 +26,8 @@ import lombok.val;
 @Log4j2
 public class KeycloakServiceImpl implements KeycloakService {
 
+  private static final String BROWSER_FLOW = "browser";
+  private static final String BROWSER_FLOW_PROPERTY = "browserFlow";
   private static final String CUSTOM_BROWSER_FLOW = "custom-browser";
   private static final String ECS_FOLIO_AUTH_USRNM_PWD_FORM = "ecs-folio-auth-usrnm-pwd-form";
   private static final String AUTH_USERNAME_PASSWORD_FORM = "auth-username-password-form";
@@ -77,7 +79,33 @@ public class KeycloakServiceImpl implements KeycloakService {
   }
 
   @Override
-  public void createIdentityProvider(String centralTenantId, String memberTenantId) {
+  public void removeCustomAuthFlowForCentralTenant(String centralTenantId) {
+    log.debug("Trying to remove custom authentication flow for tenant with id={}", centralTenantId);
+    var token = keycloakCredentialsService.getMasterAuthToken();
+
+    // 1. Bind the built-in browser flow back to the realm, bound flow cannot be deleted
+    ObjectNode realm = keycloakClient.getRealm(centralTenantId, token);
+    var browserFlow = realm.get(BROWSER_FLOW_PROPERTY);
+    if (browserFlow != null && Strings.CS.equals(browserFlow.asString(), CUSTOM_BROWSER_FLOW)) {
+      realm.put(BROWSER_FLOW_PROPERTY, BROWSER_FLOW);
+      keycloakClient.updateRealm(centralTenantId, realm, token);
+      log.info("removeCustomAuthFlowForCentralTenant:: Built-in browser flow is bound to realm {}", centralTenantId);
+    }
+
+    // 2. Delete the custom flow
+    keycloakClient.getAuthenticationFlows(centralTenantId, token).stream()
+      .filter(flow -> Strings.CS.equals(flow.getAlias(), CUSTOM_BROWSER_FLOW))
+      .findFirst()
+      .ifPresentOrElse(
+        flow -> {
+          keycloakClient.deleteAuthenticationFlow(centralTenantId, flow.getId(), token);
+          log.info("removeCustomAuthFlowForCentralTenant:: Custom authentication flow successfully removed for tenant with id={}", centralTenantId);
+        },
+        () -> log.info("removeCustomAuthFlowForCentralTenant:: Custom authentication flow does not exist for tenant with id={}", centralTenantId));
+  }
+
+  @Override
+  public void createIdentityProvider(String centralTenantId, String memberTenantId, String baseUrl) {
     if (isUnifiedLoginDisabled()) {
       log.info("createIdentityProvider:: Identity provider creation is disabled. Skipping creation for tenant {}", memberTenantId);
       return;
@@ -92,7 +120,8 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
 
     var clientCredentials = keycloakCredentialsService.getClientCredentials(memberTenantId, authToken);
-    var clientConfig = buildIdpClientConfig(keycloakIdpProperties.getBaseUrl(), memberTenantId, clientCredentials.getClientId(), clientCredentials.getSecret());
+    var idpBaseUrl = StringUtils.stripEnd(StringUtils.defaultIfBlank(baseUrl, keycloakIdpProperties.getBaseUrl()), "/");
+    var clientConfig = buildIdpClientConfig(idpBaseUrl, memberTenantId, clientCredentials.getClientId(), clientCredentials.getSecret());
 
     var providerDisplayName = StringUtils.capitalize(memberTenantId) + " " + keycloakIdpProperties.getDisplayName();
     val idp = KeycloakIdentityProvider.builder()

@@ -187,6 +187,21 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+    delete:
+      summary: Remove custom keycloak login flow of central tenant and restore built-in browser flow
+      operationId: deleteCustomLogin
+      parameters:
+        - $ref: "#/components/parameters/consortiumId"
+        - $ref: "#/components/parameters/tenantId"
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 components:
   requestBodies:
     TenantBody:

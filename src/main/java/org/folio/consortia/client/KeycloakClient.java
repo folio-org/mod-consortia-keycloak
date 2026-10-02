@@ -10,6 +10,7 @@ import tools.jackson.databind.node.ObjectNode;
 import java.util.List;
 import java.util.Map;
 
+import org.folio.consortia.domain.dto.KeycloakAuthenticationFlow;
 import org.folio.consortia.domain.dto.KeycloakClientCredentials;
 import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
 import org.folio.consortia.domain.dto.KeycloakTokenResponse;
@@ -121,6 +122,29 @@ public interface KeycloakClient {
   void copyBrowserFlow(@PathVariable("tenant") String tenant,
                        @RequestBody Map<String, String> copyRequest,
                        @RequestHeader(AUTHORIZATION) String token);
+
+  /**
+   * Retrieves the top-level authentication flows for the specified tenant.
+   *
+   * @param tenant the tenant identifier
+   * @param token  the authorization token
+   * @return the list of authentication flows
+   */
+  @GetExchange(value = "/admin/realms/{tenant}/authentication/flows")
+  List<KeycloakAuthenticationFlow> getAuthenticationFlows(@PathVariable("tenant") String tenant,
+                                                          @RequestHeader(AUTHORIZATION) String token);
+
+  /**
+   * Deletes the authentication flow by id in the specified tenant.
+   *
+   * @param tenant the tenant identifier
+   * @param flowId the identifier of the authentication flow to delete
+   * @param token  the authorization token
+   */
+  @DeleteExchange(value = "/admin/realms/{tenant}/authentication/flows/{flowId}")
+  void deleteAuthenticationFlow(@PathVariable("tenant") String tenant,
+                                @PathVariable("flowId") String flowId,
+                                @RequestHeader(AUTHORIZATION) String token);
 
   /**
    * Retrieves the executions for the specified authentication flow in the specified tenant.
