@@ -85,8 +85,7 @@ public class KeycloakServiceImpl implements KeycloakService {
 
     // 1. Bind the built-in browser flow back to the realm, bound flow cannot be deleted
     ObjectNode realm = keycloakClient.getRealm(centralTenantId, token);
-    var browserFlow = realm.get(BROWSER_FLOW_PROPERTY);
-    if (browserFlow != null && Strings.CS.equals(browserFlow.asString(), CUSTOM_BROWSER_FLOW)) {
+    if (CUSTOM_BROWSER_FLOW.equals(realm.path(BROWSER_FLOW_PROPERTY).asString())) {
       realm.put(BROWSER_FLOW_PROPERTY, BROWSER_FLOW);
       keycloakClient.updateRealm(centralTenantId, realm, token);
       log.info("removeCustomAuthFlowForCentralTenant:: Built-in browser flow is bound to realm {}", centralTenantId);
@@ -94,7 +93,7 @@ public class KeycloakServiceImpl implements KeycloakService {
 
     // 2. Delete the custom flow
     keycloakClient.getAuthenticationFlows(centralTenantId, token).stream()
-      .filter(flow -> Strings.CS.equals(flow.getAlias(), CUSTOM_BROWSER_FLOW))
+      .filter(flow -> CUSTOM_BROWSER_FLOW.equals(flow.getAlias()))
       .findFirst()
       .ifPresentOrElse(
         flow -> {

@@ -223,6 +223,17 @@ class KeycloakServiceTest {
   }
 
   @Test
+  void removeCustomAuthFlowForCentralTenantBrowserFlowMissing() {
+    when(keycloakClient.getRealm(TENANT_ID, AUTH_TOKEN)).thenReturn(new ObjectNode(JsonNodeFactory.instance));
+    when(keycloakClient.getAuthenticationFlows(TENANT_ID, AUTH_TOKEN)).thenReturn(List.of());
+
+    keycloakService.removeCustomAuthFlowForCentralTenant(TENANT_ID);
+
+    verify(keycloakClient, never()).updateRealm(anyString(), any(), anyString());
+    verify(keycloakClient, never()).deleteAuthenticationFlow(anyString(), anyString(), anyString());
+  }
+
+  @Test
   void removeCustomAuthFlowForCentralTenantFlowNotBound() {
     var realm = new ObjectNode(JsonNodeFactory.instance).put("browserFlow", "browser");
     when(keycloakClient.getRealm(TENANT_ID, AUTH_TOKEN)).thenReturn(realm);
