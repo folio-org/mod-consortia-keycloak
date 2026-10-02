@@ -19,6 +19,19 @@ public interface KeycloakService {
   void addCustomAuthFlowForCentralTenant(String centralTenantId);
 
   /**
+   * Removes the custom authentication flow of a central tenant.
+   * <p>
+   * This method performs the following steps:
+   * 1. Binds the built-in browser flow to the realm if the custom flow is currently bound.
+   * 2. Deletes the custom flow if it exists.
+   * <p>
+   * The operation is idempotent and is performed regardless of the identity provider enabled flag.
+   *
+   * @param centralTenantId the tenant id for which the custom authentication flow is to be removed
+   */
+  void removeCustomAuthFlowForCentralTenant(String centralTenantId);
+
+  /**
    * Creates an identity provider in the central tenant realm for the member tenant with conditions:<br/>
    * 1) In case the identity provider already exists, it will not be created again to
    * support tenant removal and re-creation.<br/>
@@ -26,8 +39,10 @@ public interface KeycloakService {
    *
    * @param centralTenantId central tenant
    * @param memberTenantId  member tenant
+   * @param baseUrl         keycloak base URL to build identity provider URLs with,
+   *                        if null - the configured default base URL is used
    */
-  void createIdentityProvider(String centralTenantId, String memberTenantId);
+  void createIdentityProvider(String centralTenantId, String memberTenantId, String baseUrl);
 
   /**
    * Deletes an identity provider in the central tenant realm corresponding to the member tenant.<br/>

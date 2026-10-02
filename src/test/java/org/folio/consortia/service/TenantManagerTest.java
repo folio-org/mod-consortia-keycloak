@@ -587,7 +587,7 @@ class TenantManagerTest {
     when(conversionService.convert(tenantDetailsEntity, Tenant.class)).thenReturn(tenant);
     when(userService.prepareShadowUser(any(UUID.class), anyString())).thenReturn(adminUser);
     when(userTenantRepository.save(any(UserTenantEntity.class))).thenReturn(new UserTenantEntity());
-    doNothing().when(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+    doNothing().when(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID, null);
     doNothing().when(consortiaConfigurationClient).saveConfiguration(any());
     when(userTenantsClient.getUserTenants()).thenReturn(new UserTenantCollection(List.of(), 1));
     mockFolioExecutionContext(folioExecutionContext);
@@ -598,7 +598,7 @@ class TenantManagerTest {
     verify(userTenantService, times(1)).save(any(), any(), any());
     verify(consortiaConfigurationClient).saveConfiguration(any());
     verify(lockService).lockTenantSetupWithinTransaction();
-    verify(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+    verify(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID, null);
     verify(userTenantsClient, never()).postUserTenant(any());
     verify(userService, never()).getById(any());
     verify(userService, never()).createUser(any());
@@ -629,7 +629,7 @@ class TenantManagerTest {
 
     verify(userTenantsClient, never()).postUserTenant(any());
     verify(customFieldService, never()).createCustomField(any());
-    verify(keycloakService, never()).createIdentityProvider(any(), any());
+    verify(keycloakService, never()).createIdentityProvider(any(), any(), any());
 
     assertEquals(tenant, tenant1);
   }
@@ -642,8 +642,20 @@ class TenantManagerTest {
 
     tenantManager.createIdentityProvider(TENANT_ID, idpCreateRequest);
 
-    verify(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+    verify(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID, null);
     verify(keycloakUsersService).createUsersIdpLinks(CENTRAL_TENANT_ID, TENANT_ID);
+  }
+
+  @Test
+  void testCreateIdentityProviderWithBaseUrl() {
+    var baseUrl = "https://keycloak.example.org";
+    var idpCreateRequest = new IdentityProviderCreateRequest().createProvider(true).migrateUsers(false).baseUrl(baseUrl);
+    when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(createTenantEntity(CENTRAL_TENANT_ID)));
+
+    tenantManager.createIdentityProvider(TENANT_ID, idpCreateRequest);
+
+    verify(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID, baseUrl);
+    verify(keycloakUsersService, never()).createUsersIdpLinks(any(), any());
   }
 
   @Test
@@ -694,6 +706,40 @@ class TenantManagerTest {
     verify(consortiumService).checkConsortiumExistsOrThrow(CONSORTIUM_ID);
     verify(tenantRepository, never()).findById(anyString());
     verify(keycloakService, never()).addCustomAuthFlowForCentralTenant(anyString());
+  }
+
+  @Test
+  void testDeleteCustomLogin() {
+    TenantEntity centralTenant = new TenantEntity();
+    centralTenant.setIsCentral(true);
+    centralTenant.setId(CENTRAL_TENANT_ID);
+    when(tenantRepository.findById(CENTRAL_TENANT_ID)).thenReturn(Optional.of(centralTenant));
+
+    tenantManager.deleteCustomLogin(CONSORTIUM_ID, CENTRAL_TENANT_ID);
+
+    verify(consortiumService).checkConsortiumExistsOrThrow(CONSORTIUM_ID);
+    verify(keycloakService).removeCustomAuthFlowForCentralTenant(CENTRAL_TENANT_ID);
+  }
+
+  @Test
+  void testDeleteCustomLoginTenantIsNotCentral() {
+    TenantEntity memberTenant = new TenantEntity();
+    memberTenant.setIsCentral(false);
+    memberTenant.setId(TENANT_ID);
+    when(tenantRepository.findById(TENANT_ID)).thenReturn(Optional.of(memberTenant));
+
+    tenantManager.deleteCustomLogin(CONSORTIUM_ID, TENANT_ID);
+
+    verify(keycloakService, never()).removeCustomAuthFlowForCentralTenant(anyString());
+  }
+
+  @Test
+  void testDeleteCustomLoginTenantNotExists() {
+    when(tenantRepository.findById(CENTRAL_TENANT_ID)).thenReturn(Optional.empty());
+
+    assertThrows(ResourceNotFoundException.class, () -> tenantManager.deleteCustomLogin(CONSORTIUM_ID, CENTRAL_TENANT_ID));
+
+    verify(keycloakService, never()).removeCustomAuthFlowForCentralTenant(anyString());
   }
 
   @Test

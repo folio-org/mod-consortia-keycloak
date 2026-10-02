@@ -16,6 +16,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Map;
 
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.JsonNodeFactory;
 import tools.jackson.databind.node.ObjectNode;
 
@@ -25,6 +26,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.folio.consortia.client.KeycloakClient;
 import org.folio.consortia.config.keycloak.KeycloakIdentityProviderProperties;
 import org.folio.consortia.config.keycloak.KeycloakLoginClientProperties;
+import org.folio.consortia.domain.dto.KeycloakAuthenticationFlow;
 import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
 import org.folio.consortia.domain.dto.RealmExecutions;
 import org.folio.consortia.service.impl.KeycloakServiceImpl;
@@ -80,7 +82,7 @@ class KeycloakServiceTest {
     when(keycloakCredentialsService.getClientCredentials(TENANT_ID, AUTH_TOKEN))
       .thenReturn(createClientCredentials(clientId, CLIENT_SECRET, true));
 
-    keycloakService.createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+    keycloakService.createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID, null);
 
     verify(keycloakClient).getIdentityProvider(CENTRAL_TENANT_ID, alias, AUTH_TOKEN);
     verify(keycloakClient).createIdentityProvider(eq(CENTRAL_TENANT_ID), idpCaptor.capture(), eq(AUTH_TOKEN));
@@ -92,11 +94,30 @@ class KeycloakServiceTest {
   }
 
   @Test
+  void createIdentityProvider_usesProvidedBaseUrl() {
+    var alias = getTenantClientAlias(TENANT_ID);
+    var clientId = TENANT_ID + keycloakLoginClientProperties.getClientNameSuffix();
+    when(keycloakClient.getIdentityProvider(CENTRAL_TENANT_ID, alias, AUTH_TOKEN))
+      .thenThrow(HttpClientErrorException.create(HttpStatus.NOT_FOUND, "not found", new HttpHeaders(), new byte[0], null));
+    when(keycloakCredentialsService.getClientCredentials(TENANT_ID, AUTH_TOKEN))
+      .thenReturn(createClientCredentials(clientId, CLIENT_SECRET, true));
+
+    keycloakService.createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID, "https://keycloak.example.org/");
+
+    verify(keycloakClient).createIdentityProvider(eq(CENTRAL_TENANT_ID), idpCaptor.capture(), eq(AUTH_TOKEN));
+    var realmUrl = "https://keycloak.example.org/realms/" + TENANT_ID;
+    var config = idpCaptor.getValue().getConfig();
+    assertEquals(realmUrl, config.getIssuer());
+    assertEquals(realmUrl + "/protocol/openid-connect/auth", config.getAuthorizationUrl());
+    assertEquals(realmUrl + "/protocol/openid-connect/token", config.getTokenUrl());
+  }
+
+  @Test
   void createIdentityProvider_skipsIfDisabled() {
     var alias = getTenantClientAlias(TENANT_ID);
     when(keycloakIdpProperties.getEnabled()).thenReturn(false);
 
-    keycloakService.createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+    keycloakService.createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID, null);
 
     verify(keycloakClient, never()).getIdentityProvider(CENTRAL_TENANT_ID, alias, AUTH_TOKEN);
     verify(keycloakClient, never()).createIdentityProvider(anyString(), any(KeycloakIdentityProvider.class), eq(AUTH_TOKEN));
@@ -107,7 +128,7 @@ class KeycloakServiceTest {
     var alias = getTenantClientAlias(TENANT_ID);
     when(keycloakClient.getIdentityProvider(CENTRAL_TENANT_ID, alias, AUTH_TOKEN)).thenReturn(new KeycloakIdentityProvider());
 
-    keycloakService.createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+    keycloakService.createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID, null);
 
     verify(keycloakClient).getIdentityProvider(CENTRAL_TENANT_ID, alias, AUTH_TOKEN);
     verify(keycloakClient, never()).createIdentityProvider(anyString(), any(KeycloakIdentityProvider.class), eq(AUTH_TOKEN));
@@ -169,6 +190,60 @@ class KeycloakServiceTest {
     when(keycloakClient.getExecutions(anyString(), anyString(), anyString())).thenReturn(List.of());
 
     assertThrows(IllegalStateException.class, () -> keycloakService.addCustomAuthFlowForCentralTenant(TENANT_ID));
+  }
+
+  @Test
+  void removeCustomAuthFlowForCentralTenantSuccess() {
+    var realm = new ObjectNode(JsonNodeFactory.instance).put("browserFlow", "custom-browser");
+    var flows = List.of(
+      new KeycloakAuthenticationFlow("browser-id", "browser"),
+      new KeycloakAuthenticationFlow("custom-id", "custom-browser"));
+    when(keycloakClient.getRealm(TENANT_ID, AUTH_TOKEN)).thenReturn(realm);
+    when(keycloakClient.getAuthenticationFlows(TENANT_ID, AUTH_TOKEN)).thenReturn(flows);
+
+    keycloakService.removeCustomAuthFlowForCentralTenant(TENANT_ID);
+
+    var realmCaptor = ArgumentCaptor.forClass(JsonNode.class);
+    verify(keycloakClient).updateRealm(eq(TENANT_ID), realmCaptor.capture(), eq(AUTH_TOKEN));
+    assertEquals("browser", realmCaptor.getValue().get("browserFlow").asString());
+    verify(keycloakClient).deleteAuthenticationFlow(TENANT_ID, "custom-id", AUTH_TOKEN);
+  }
+
+  @Test
+  void removeCustomAuthFlowForCentralTenantNothingToRemove() {
+    var realm = new ObjectNode(JsonNodeFactory.instance).put("browserFlow", "browser");
+    when(keycloakClient.getRealm(TENANT_ID, AUTH_TOKEN)).thenReturn(realm);
+    when(keycloakClient.getAuthenticationFlows(TENANT_ID, AUTH_TOKEN))
+      .thenReturn(List.of(new KeycloakAuthenticationFlow("browser-id", "browser")));
+
+    keycloakService.removeCustomAuthFlowForCentralTenant(TENANT_ID);
+
+    verify(keycloakClient, never()).updateRealm(anyString(), any(), anyString());
+    verify(keycloakClient, never()).deleteAuthenticationFlow(anyString(), anyString(), anyString());
+  }
+
+  @Test
+  void removeCustomAuthFlowForCentralTenantBrowserFlowMissing() {
+    when(keycloakClient.getRealm(TENANT_ID, AUTH_TOKEN)).thenReturn(new ObjectNode(JsonNodeFactory.instance));
+    when(keycloakClient.getAuthenticationFlows(TENANT_ID, AUTH_TOKEN)).thenReturn(List.of());
+
+    keycloakService.removeCustomAuthFlowForCentralTenant(TENANT_ID);
+
+    verify(keycloakClient, never()).updateRealm(anyString(), any(), anyString());
+    verify(keycloakClient, never()).deleteAuthenticationFlow(anyString(), anyString(), anyString());
+  }
+
+  @Test
+  void removeCustomAuthFlowForCentralTenantFlowNotBound() {
+    var realm = new ObjectNode(JsonNodeFactory.instance).put("browserFlow", "browser");
+    when(keycloakClient.getRealm(TENANT_ID, AUTH_TOKEN)).thenReturn(realm);
+    when(keycloakClient.getAuthenticationFlows(TENANT_ID, AUTH_TOKEN))
+      .thenReturn(List.of(new KeycloakAuthenticationFlow("custom-id", "custom-browser")));
+
+    keycloakService.removeCustomAuthFlowForCentralTenant(TENANT_ID);
+
+    verify(keycloakClient, never()).updateRealm(anyString(), any(), anyString());
+    verify(keycloakClient).deleteAuthenticationFlow(TENANT_ID, "custom-id", AUTH_TOKEN);
   }
 
   private static String getTenantClientAlias(String tenant) {
