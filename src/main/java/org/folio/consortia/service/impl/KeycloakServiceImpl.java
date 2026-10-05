@@ -2,16 +2,17 @@ package org.folio.consortia.service.impl;
 
 import static org.folio.consortia.utils.KeycloakUtils.buildIdpClientConfig;
 
+import java.util.List;
 import java.util.Map;
 
 import tools.jackson.databind.node.ObjectNode;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
 import org.folio.consortia.client.KeycloakClient;
 import org.folio.consortia.config.keycloak.KeycloakIdentityProviderProperties;
 import org.folio.consortia.domain.dto.KeycloakIdentityProvider;
+import org.folio.consortia.domain.dto.RealmExecutions;
 import org.folio.consortia.service.KeycloakCredentialsService;
 import org.folio.consortia.service.KeycloakService;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import lombok.val;
 @Log4j2
 public class KeycloakServiceImpl implements KeycloakService {
 
+  private static final String BROWSER_FLOW = "browser";
   private static final String CUSTOM_BROWSER_FLOW = "custom-browser";
   private static final String ECS_FOLIO_AUTH_USRNM_PWD_FORM = "ecs-folio-auth-usrnm-pwd-form";
   private static final String AUTH_USERNAME_PASSWORD_FORM = "auth-username-password-form";
@@ -54,14 +56,8 @@ public class KeycloakServiceImpl implements KeycloakService {
 
     // 3. Fetch executions from current flow
     var executions = keycloakClient.getExecutions(centralTenantId, CUSTOM_BROWSER_FLOW, token);
-    var authUsernamePasswordFormExecution = executions.stream()
-      .filter(execution -> Strings.CS.equals(execution.getProviderId(), AUTH_USERNAME_PASSWORD_FORM))
-      .findFirst()
-      .orElseThrow(() -> new IllegalStateException("auth-username-password-form execution not found"));
-    var ecsFolioAuthUsernamePasswordFormExecution = executions.stream()
-      .filter(execution -> Strings.CS.equals(execution.getProviderId(), ECS_FOLIO_AUTH_USRNM_PWD_FORM))
-      .findFirst()
-      .orElseThrow(() -> new IllegalStateException("ecs-folio-auth-usrnm-pwd-form execution not found"));
+    var authUsernamePasswordFormExecution = findExecution(executions, AUTH_USERNAME_PASSWORD_FORM);
+    var ecsFolioAuthUsernamePasswordFormExecution = findExecution(executions, ECS_FOLIO_AUTH_USRNM_PWD_FORM);
 
     // 4. Delete default auth-username-password-form execution from the flow
     keycloakClient.deleteExecution(centralTenantId, authUsernamePasswordFormExecution.getId(), token);
@@ -70,14 +66,36 @@ public class KeycloakServiceImpl implements KeycloakService {
     keycloakClient.raisePriority(centralTenantId, ecsFolioAuthUsernamePasswordFormExecution.getId(), token);
 
     // 6. Bind the custom flow to the realm
-    ObjectNode realm = keycloakClient.getRealm(centralTenantId, token);
-    realm.put("browserFlow", CUSTOM_BROWSER_FLOW);
-    keycloakClient.updateRealm(centralTenantId, realm, token);
+    bindBrowserFlow(centralTenantId, keycloakClient.getRealm(centralTenantId, token), CUSTOM_BROWSER_FLOW, token);
     log.info("addCustomAuthFlowForCentralTenant:: Custom authentication flow successfully added for tenant with id={}", centralTenantId);
   }
 
   @Override
-  public void createIdentityProvider(String centralTenantId, String memberTenantId) {
+  public void removeCustomAuthFlowForCentralTenant(String centralTenantId) {
+    log.debug("Trying to remove custom authentication flow for tenant with id={}", centralTenantId);
+    var token = keycloakCredentialsService.getMasterAuthToken();
+
+    // 1. Bind the built-in browser flow back to the realm, bound flow cannot be deleted
+    ObjectNode realm = keycloakClient.getRealm(centralTenantId, token);
+    if (CUSTOM_BROWSER_FLOW.equals(realm.path("browserFlow").asString())) {
+      bindBrowserFlow(centralTenantId, realm, BROWSER_FLOW, token);
+      log.info("removeCustomAuthFlowForCentralTenant:: Built-in browser flow is bound to realm {}", centralTenantId);
+    }
+
+    // 2. Delete the custom flow
+    keycloakClient.getAuthenticationFlows(centralTenantId, token).stream()
+      .filter(flow -> CUSTOM_BROWSER_FLOW.equals(flow.getAlias()))
+      .findFirst()
+      .ifPresentOrElse(
+        flow -> {
+          keycloakClient.deleteAuthenticationFlow(centralTenantId, flow.getId(), token);
+          log.info("removeCustomAuthFlowForCentralTenant:: Custom authentication flow successfully removed for tenant with id={}", centralTenantId);
+        },
+        () -> log.info("removeCustomAuthFlowForCentralTenant:: Custom authentication flow does not exist for tenant with id={}", centralTenantId));
+  }
+
+  @Override
+  public void createIdentityProvider(String centralTenantId, String memberTenantId, String baseUrl) {
     if (isUnifiedLoginDisabled()) {
       log.info("createIdentityProvider:: Identity provider creation is disabled. Skipping creation for tenant {}", memberTenantId);
       return;
@@ -92,7 +110,8 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
 
     var clientCredentials = keycloakCredentialsService.getClientCredentials(memberTenantId, authToken);
-    var clientConfig = buildIdpClientConfig(keycloakIdpProperties.getBaseUrl(), memberTenantId, clientCredentials.getClientId(), clientCredentials.getSecret());
+    var idpBaseUrl = StringUtils.stripEnd(StringUtils.defaultIfBlank(baseUrl, keycloakIdpProperties.getBaseUrl()), "/");
+    var clientConfig = buildIdpClientConfig(idpBaseUrl, memberTenantId, clientCredentials.getClientId(), clientCredentials.getSecret());
 
     var providerDisplayName = StringUtils.capitalize(memberTenantId) + " " + keycloakIdpProperties.getDisplayName();
     val idp = KeycloakIdentityProvider.builder()
@@ -123,6 +142,18 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
 
     keycloakClient.deleteIdentityProvider(centralTenantId, providerAlias, authToken);
+  }
+
+  private RealmExecutions findExecution(List<RealmExecutions> executions, String providerId) {
+    return executions.stream()
+      .filter(execution -> providerId.equals(execution.getProviderId()))
+      .findFirst()
+      .orElseThrow(() -> new IllegalStateException(providerId + " execution not found"));
+  }
+
+  private void bindBrowserFlow(String realmName, ObjectNode realm, String flowAlias, String token) {
+    realm.put("browserFlow", flowAlias);
+    keycloakClient.updateRealm(realmName, realm, token);
   }
 
   private boolean identityProviderExists(String realm, String providerAlias, String authToken) {

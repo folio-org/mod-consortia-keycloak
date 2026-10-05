@@ -102,4 +102,10 @@ public class TenantController implements TenantsApi {
     tenantManager.setupCustomLogin(consortiumId, tenantId);
     return ResponseEntity.status(CREATED).build();
   }
+
+  @Override
+  public ResponseEntity<Void> deleteCustomLogin(UUID consortiumId, String tenantId) {
+    tenantManager.deleteCustomLogin(consortiumId, tenantId);
+    return ResponseEntity.status(NO_CONTENT).build();
+  }
 }

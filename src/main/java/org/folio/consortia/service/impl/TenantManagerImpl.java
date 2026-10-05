@@ -164,7 +164,7 @@ public class TenantManagerImpl implements TenantManager {
   public void createIdentityProvider(String memberTenantId, IdentityProviderCreateRequest idpCreateRequest) {
     var centralTenantId = tenantService.getCentralTenantId();
     if (idpCreateRequest.getCreateProvider()) {
-      keycloakService.createIdentityProvider(centralTenantId, memberTenantId);
+      keycloakService.createIdentityProvider(centralTenantId, memberTenantId, idpCreateRequest.getBaseUrl());
     }
     if (idpCreateRequest.getMigrateUsers()) {
       keycloakUsersService.createUsersIdpLinks(centralTenantId, memberTenantId);
@@ -181,6 +181,17 @@ public class TenantManagerImpl implements TenantManager {
     consortiumService.checkConsortiumExistsOrThrow(consortiumId);
     var centralTenant = getTenantById(centralTenantId);
     setUpCentralCustomAuthFlow(centralTenantId, centralTenant.getIsCentral());
+  }
+
+  @Override
+  public void deleteCustomLogin(UUID consortiumId, String centralTenantId) {
+    consortiumService.checkConsortiumExistsOrThrow(consortiumId);
+    var centralTenant = getTenantById(centralTenantId);
+    if (isNotTrue(centralTenant.getIsCentral())) {
+      log.info("deleteCustomLogin:: Tenant with id: '{}' is not central, skipping custom login removal", centralTenantId);
+      return;
+    }
+    keycloakService.removeCustomAuthFlowForCentralTenant(centralTenantId);
   }
 
   private void createCustomFieldIfNeeded(String tenant) {

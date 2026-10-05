@@ -14,6 +14,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -491,13 +493,42 @@ class TenantControllerTest extends BaseIT {
     var headers = defaultHeaders();
     var consortiumId = UUID.randomUUID();
     var idpCreateRequest = new IdentityProviderCreateRequest().createProvider(true).migrateUsers(true);
-    doNothing().when(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID);
+    doNothing().when(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID, null);
     when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(createTenantEntity(CENTRAL_TENANT_ID)));
 
     this.mockMvc.perform(post(String.format(IDENTITY_PROVIDER_URL, consortiumId, TENANT_ID))
         .headers(headers)
         .content(new ObjectMapper().writeValueAsString(idpCreateRequest)))
       .andExpectAll(status().isCreated());
+  }
+
+  @Test
+  void testCreateIdentityProviderWithBlankBaseUrl() throws Exception {
+    var headers = defaultHeaders();
+    var consortiumId = UUID.randomUUID();
+    var idpCreateRequest = new IdentityProviderCreateRequest().createProvider(true).migrateUsers(true).baseUrl("");
+    when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(createTenantEntity(CENTRAL_TENANT_ID)));
+
+    this.mockMvc.perform(post(String.format(IDENTITY_PROVIDER_URL, consortiumId, TENANT_ID))
+        .headers(headers)
+        .content(new ObjectMapper().writeValueAsString(idpCreateRequest)))
+      .andExpectAll(status().isCreated());
+
+    verify(keycloakService).createIdentityProvider(CENTRAL_TENANT_ID, TENANT_ID, "");
+  }
+
+  @Test
+  void testCreateIdentityProviderWithInvalidBaseUrl() throws Exception {
+    var headers = defaultHeaders();
+    var consortiumId = UUID.randomUUID();
+    var idpCreateRequest = new IdentityProviderCreateRequest().createProvider(true).migrateUsers(true).baseUrl("member1.example.org");
+
+    this.mockMvc.perform(post(String.format(IDENTITY_PROVIDER_URL, consortiumId, TENANT_ID))
+        .headers(headers)
+        .content(new ObjectMapper().writeValueAsString(idpCreateRequest)))
+      .andExpectAll(status().isUnprocessableContent());
+
+    verify(keycloakService, never()).createIdentityProvider(any(), any(), any());
   }
 
   @Test
@@ -522,6 +553,19 @@ class TenantControllerTest extends BaseIT {
     this.mockMvc.perform(post(String.format(CUSTOM_LOGIN_URL, consortiumId, TENANT_ID))
         .headers(headers))
       .andExpectAll(status().isCreated());
+  }
+
+  @Test
+  void testDeleteCustomLogin() throws Exception {
+    var headers = defaultHeaders();
+    var consortiumId = UUID.randomUUID();
+    when(consortiumRepository.existsById(consortiumId)).thenReturn(true);
+    when(tenantRepository.findById(TENANT_ID)).thenReturn(Optional.of(createTenantEntity()));
+    doNothing().when(keycloakService).removeCustomAuthFlowForCentralTenant(TENANT_ID);
+
+    this.mockMvc.perform(delete(String.format(CUSTOM_LOGIN_URL, consortiumId, TENANT_ID))
+        .headers(headers))
+      .andExpectAll(status().isNoContent());
   }
 
   private static CapabilitySets getCapabilitySets() {

@@ -78,4 +78,12 @@ public interface TenantManager {
    */
 	void setupCustomLogin(UUID consortiumId, String centralTenantId);
 
+  /**
+   * Removes custom keycloak login flow of the central tenant and restores the built-in browser flow.
+   *
+   * @param consortiumId the consortium id
+   * @param centralTenantId the central tenant id
+   */
+  void deleteCustomLogin(UUID consortiumId, String centralTenantId);
+
 }

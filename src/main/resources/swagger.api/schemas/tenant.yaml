@@ -77,6 +77,10 @@ IdentityProviderCreateRequest:
       migrateUsers:
         type: boolean
         default: true
+      baseUrl:
+        type: string
+        description: "Keycloak base URL to build identity provider URLs with (e.g. https://keycloak.example.org). Overrides KC_IDENTITY_PROVIDER_BASE_URL if provided"
+        pattern: '^(\s*|https?://.+)$'
     additionalProperties: false
     required:
       - createProvider

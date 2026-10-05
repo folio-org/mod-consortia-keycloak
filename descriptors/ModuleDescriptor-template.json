@@ -347,6 +347,16 @@
         },
         {
           "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/consortia/{consortiumId}/tenants/{tenantId}/custom-login",
+          "permissionsRequired": [
+            "consortia.custom-login.item.delete"
+          ],
+          "modulePermissions": []
+        },
+        {
+          "methods": [
             "POST"
           ],
           "pathPattern": "/consortia/{consortiumId}/publications",
@@ -676,6 +686,7 @@
         "consortia.identity-provider.item.post",
         "consortia.identity-provider.item.delete",
         "consortia.custom-login.item.post",
+        "consortia.custom-login.item.delete",
         "consortia.sharing-instances.item.post",
         "consortia.sharing-instances.item.get",
         "consortia.sharing-instances.collection.get",
@@ -744,6 +755,11 @@
       "permissionName": "consortia.custom-login.item.post",
       "displayName": "create keycloak custom login flow",
       "description": "Create keycloak custom login flow"
+    },
+    {
+      "permissionName": "consortia.custom-login.item.delete",
+      "displayName": "delete keycloak custom login flow",
+      "description": "Delete keycloak custom login flow"
     },
     {
       "permissionName": "consortia.publications.item.post",
