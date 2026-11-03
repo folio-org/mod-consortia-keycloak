@@ -11,6 +11,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.consortia.domain.dto.Personal;
+import org.folio.consortia.domain.dto.PrimaryAffiliationsSyncEvent;
 import org.folio.consortia.domain.dto.SyncPrimaryAffiliationBody;
 import org.folio.consortia.domain.dto.SyncUser;
 import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
@@ -23,6 +24,7 @@ import org.folio.consortia.utils.TenantContextUtils;
 import org.folio.spring.FolioExecutionContext;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Service
 @Log4j2
@@ -40,6 +42,15 @@ public class SyncPrimaryAffiliationServiceImpl implements SyncPrimaryAffiliation
     var context = TenantContextUtils.prepareContextForTenant(tenantId, folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext);
     asyncTaskExecutor.execute(getRunnableWithFolioContext(context,
       () -> syncPrimaryAffiliationsInternal(consortiumId, tenantId, centralTenantId)));
+  }
+
+  /**
+   * Tenant details are saved with IN_PROGRESS status in the publisher's transaction, so the sync (which updates
+   * that status in a separate transaction) is started only after the publisher's transaction is committed.
+   */
+  @TransactionalEventListener(fallbackExecution = true)
+  public void onPrimaryAffiliationsSyncEvent(PrimaryAffiliationsSyncEvent event) {
+    syncPrimaryAffiliations(event.consortiumId(), event.tenantId(), event.centralTenantId());
   }
 
   @Override

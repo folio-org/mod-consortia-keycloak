@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.folio.consortia.domain.dto.PrimaryAffiliationsSyncEvent;
 import org.folio.consortia.domain.dto.SyncUser;
 import org.folio.consortia.domain.dto.TenantDetails.SetupStatusEnum;
 import org.folio.consortia.domain.dto.User;
@@ -34,6 +36,9 @@ import org.folio.consortia.domain.dto.UserCollection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
+import org.folio.spring.scope.FolioExecutionContextSetter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.batch.autoconfigure.BatchAutoConfiguration;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
@@ -47,6 +52,8 @@ import tools.jackson.databind.ObjectMapper;
 
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.batch.infrastructure.support.transaction.ResourcelessTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 
 @SpringBootTest
@@ -70,6 +77,8 @@ class SyncPrimaryAffiliationServiceImplTest {
   private LockService lockService;
   @MockitoSpyBean(name = "asyncTaskExecutor")
   private TaskExecutor asyncTaskExecutor = new SimpleAsyncTaskExecutor();
+  @Autowired
+  private ApplicationEventPublisher eventPublisher;
 
   private SyncPrimaryAffiliationServiceImpl syncPrimaryAffiliationService;
   private CreatePrimaryAffiliationServiceImpl createPrimaryAffiliationService;
@@ -170,7 +179,7 @@ class SyncPrimaryAffiliationServiceImplTest {
     syncPrimaryAffiliationService.syncPrimaryAffiliationsInternal(consortiumId, tenantId, centralTenantId);
 
     verify(createPrimaryAffiliationService, timeout(2000)).createPrimaryUserAffiliations(consortiumId, centralTenantId, tenantId, syncUsers);
-    verify(tenantService).updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.COMPLETED);
+    verify(tenantService, timeout(2000)).updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.COMPLETED);
   }
 
   @Test
@@ -228,6 +237,37 @@ class SyncPrimaryAffiliationServiceImplTest {
     verify(primaryAffiliationService, times(1)).createPrimaryAffiliationInNewTransaction(any(), anyString(), any(), any());
     verify(tenantService).updateTenantSetupStatus(tenantId, centralTenantId, SetupStatusEnum.COMPLETED_WITH_ERRORS);
     verify(lockService).lockTenantSetupWithinTransaction();
+  }
+
+  @Test
+  void syncPrimaryAffiliationsEventIsHandledOnlyAfterTransactionCommit() {
+    var event = new PrimaryAffiliationsSyncEvent(UUID.randomUUID(), "ABC1", "diku");
+    when(userService.getPrimaryUsersToLink()).thenReturn(List.of());
+
+    try (var ignored = new FolioExecutionContextSetter(getFolioExecutionContext())) {
+      new TransactionTemplate(new ResourcelessTransactionManager()).executeWithoutResult(status -> {
+        eventPublisher.publishEvent(event);
+        verify(asyncTaskExecutor, never()).execute(any());
+      });
+    }
+
+    verify(asyncTaskExecutor).execute(any());
+    verify(tenantService, timeout(2000)).updateTenantSetupStatus("ABC1", "diku", SetupStatusEnum.COMPLETED);
+  }
+
+  @Test
+  void syncPrimaryAffiliationsEventIsNotHandledOnTransactionRollback() {
+    var event = new PrimaryAffiliationsSyncEvent(UUID.randomUUID(), "ABC1", "diku");
+
+    try (var ignored = new FolioExecutionContextSetter(getFolioExecutionContext())) {
+      new TransactionTemplate(new ResourcelessTransactionManager()).executeWithoutResult(status -> {
+        eventPublisher.publishEvent(event);
+        status.setRollbackOnly();
+      });
+    }
+
+    verify(asyncTaskExecutor, never()).execute(any());
+    verifyNoInteractions(tenantService);
   }
 
   @Test

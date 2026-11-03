@@ -21,6 +21,7 @@ import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.domain.dto.IdentityProviderCreateRequest;
+import org.folio.consortia.domain.dto.PrimaryAffiliationsSyncEvent;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantCollection;
 import org.folio.consortia.domain.dto.TenantDeleteRequest;
@@ -38,7 +39,6 @@ import org.folio.consortia.service.CustomFieldService;
 import org.folio.consortia.service.KeycloakService;
 import org.folio.consortia.service.KeycloakUsersService;
 import org.folio.consortia.service.LockService;
-import org.folio.consortia.service.SyncPrimaryAffiliationService;
 import org.folio.consortia.service.TenantManager;
 import org.folio.consortia.service.TenantService;
 import org.folio.consortia.service.UserService;
@@ -48,6 +48,7 @@ import org.folio.spring.FolioExecutionContext;
 import org.folio.spring.context.ExecutionContextBuilder;
 import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.folio.spring.service.SystemUserScopedExecutionService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,7 +67,7 @@ public class TenantManagerImpl implements TenantManager {
   private final KeycloakUsersService keycloakUsersService;
   private final ConsortiumService consortiumService;
   private final ConsortiaConfigurationClient configurationClient;
-  private final SyncPrimaryAffiliationService syncPrimaryAffiliationService;
+  private final ApplicationEventPublisher eventPublisher;
   private final UserService userService;
   private final UserTenantService userTenantService;
   private final CapabilitiesUserService capabilitiesUserService;
@@ -263,18 +264,18 @@ public class TenantManagerImpl implements TenantManager {
         log.info("save:: shadow admin user '{}' with permissions was created in tenant '{}'", finalShadowAdminUser.getId(), tenantDto.getId());
       }
 
-      syncPrimaryAffiliationService.syncPrimaryAffiliations(consortiumId, tenantDto.getId(), centralTenantId);
+      eventPublisher.publishEvent(new PrimaryAffiliationsSyncEvent(consortiumId, tenantDto.getId(), centralTenantId));
     }
     log.info("save:: saved consortia configuration with centralTenantId={} by tenantId={} context", centralTenantId, tenantDto.getId());
     return savedTenant;
   }
 
-  private void setUpCentralCustomAuthFlow(String centralTenantId, Boolean isCentral) {
+  private void setUpCentralCustomAuthFlow(String tenantId, Boolean isCentral) {
     if (isNotTrue(isCentral)) {
-      log.info("setupCustomLogin:: Tenant with id: '{}' is central, skipping custom login setup", centralTenantId);
+      log.info("setupCustomLogin:: Tenant with id: '{}' is not central, skipping custom login setup", tenantId);
       return;
     }
-    keycloakService.addCustomAuthFlowForCentralTenant(centralTenantId);
+    keycloakService.addCustomAuthFlowForCentralTenant(tenantId);
   }
 
   private TenantEntity getTenantById(String tenantId) {
