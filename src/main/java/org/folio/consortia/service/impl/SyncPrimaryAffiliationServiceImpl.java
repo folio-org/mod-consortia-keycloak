@@ -44,10 +44,6 @@ public class SyncPrimaryAffiliationServiceImpl implements SyncPrimaryAffiliation
       () -> syncPrimaryAffiliationsInternal(consortiumId, tenantId, centralTenantId)));
   }
 
-  /**
-   * Tenant details are saved with IN_PROGRESS status in the publisher's transaction, so the sync (which updates
-   * that status in a separate transaction) is started only after the publisher's transaction is committed.
-   */
   @TransactionalEventListener(fallbackExecution = true)
   public void onPrimaryAffiliationsSyncEvent(PrimaryAffiliationsSyncEvent event) {
     syncPrimaryAffiliations(event.consortiumId(), event.tenantId(), event.centralTenantId());

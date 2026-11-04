@@ -112,10 +112,7 @@ public class TenantServiceImpl implements TenantService {
     return converter.convert(savedTenant, Tenant.class);
   }
 
-  /**
-   * Not transactional on purpose: it can be called from the context of any tenant (e.g. member tenant during primary
-   * affiliation sync), so the repository starts its own transaction only after switching to the central tenant context.
-   */
+  // no transaction here: the repository opens it after switching to the central tenant context
   @Override
   public void updateTenantSetupStatus(String tenantId, String centralTenantId, SetupStatusEnum setupStatus) {
     try (var ignored = new FolioExecutionContextSetter(TenantContextUtils.prepareContextForTenant(centralTenantId,
