@@ -27,7 +27,6 @@ import org.folio.spring.scope.FolioExecutionContextSetter;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -113,12 +112,16 @@ public class TenantServiceImpl implements TenantService {
     return converter.convert(savedTenant, Tenant.class);
   }
 
+  // no transaction here: the repository opens it after switching to the central tenant context
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void updateTenantSetupStatus(String tenantId, String centralTenantId, SetupStatusEnum setupStatus) {
     try (var ignored = new FolioExecutionContextSetter(TenantContextUtils.prepareContextForTenant(centralTenantId,
       folioExecutionContext.getFolioModuleMetadata(), folioExecutionContext))) {
-      tenantDetailsRepository.setSetupStatusByTenantId(setupStatus, tenantId);
+      int updatedCount = tenantDetailsRepository.setSetupStatusByTenantId(setupStatus, tenantId);
+      if (updatedCount == 0) {
+        log.warn("updateTenantSetupStatus:: tenant id={} not found, status {} was not updated", tenantId, setupStatus);
+        return;
+      }
       log.info("updateTenantSetupStatus:: tenant id={} status updated to {}", tenantId, setupStatus);
     }
   }

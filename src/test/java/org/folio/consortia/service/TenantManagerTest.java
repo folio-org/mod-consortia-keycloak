@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -41,6 +42,7 @@ import org.folio.consortia.client.ConsortiaConfigurationClient;
 import org.folio.consortia.client.UserTenantsClient;
 import org.folio.consortia.domain.dto.ConsortiaConfiguration;
 import org.folio.consortia.domain.dto.IdentityProviderCreateRequest;
+import org.folio.consortia.domain.dto.PrimaryAffiliationsSyncEvent;
 import org.folio.consortia.domain.dto.Tenant;
 import org.folio.consortia.domain.dto.TenantDeleteRequest;
 import org.folio.consortia.domain.dto.TenantDeleteRequest.DeleteTypeEnum;
@@ -72,6 +74,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.batch.autoconfigure.BatchAutoConfiguration;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -109,8 +112,7 @@ class TenantManagerTest {
   private ExecutionContextBuilder executionContextBuilder;
   @MockitoBean
   private UserTenantsClient userTenantsClient;
-  @MockitoBean
-  private SyncPrimaryAffiliationService syncPrimaryAffiliationService;
+  private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
   @MockitoBean
   private CleanupService cleanupService;
   @MockitoBean
@@ -131,7 +133,7 @@ class TenantManagerTest {
   void setUp() {
     tenantService = new TenantServiceImpl(tenantRepository, userTenantRepository, inactiveUserTenantRepository, tenantDetailsRepository, conversionService, consortiumService, folioExecutionContext);
     tenantManager = new TenantManagerImpl(tenantService, keycloakService, keycloakUsersService, consortiumService, consortiaConfigurationClient,
-      syncPrimaryAffiliationService, userService, userTenantService, capabilitiesUserService, customFieldService, cleanupService, lockService, userTenantsClient,
+      eventPublisher, userService, userTenantService, capabilitiesUserService, customFieldService, cleanupService, lockService, userTenantsClient,
       systemUserScopedExecutionService, executionContextBuilder, folioExecutionContext);
   }
 
@@ -206,6 +208,7 @@ class TenantManagerTest {
     verify(lockService).lockTenantSetupWithinTransaction();
     verify(systemUserScopedExecutionService).executeSystemUserScoped(eq("TestID"), any());
     verify(customFieldService, never()).createCustomField(any());
+    verify(eventPublisher).publishEvent(new PrimaryAffiliationsSyncEvent(CONSORTIUM_ID, "TestID", "diku"));
 
     assertEquals(tenant, tenant1);
   }
@@ -265,7 +268,7 @@ class TenantManagerTest {
     when(tenantRepository.findById(newTenant.getId())).thenReturn(Optional.of(existedTenant));
     when(tenantRepository.findCentralTenant()).thenReturn(Optional.of(centralTenant));
     when(tenantDetailsRepository.save(any(TenantDetailsEntity.class))).thenReturn(savedTenantDetailsEntity);
-    doNothing().when(tenantDetailsRepository).setSetupStatusByTenantId(TenantDetails.SetupStatusEnum.COMPLETED, newTenant.getId());
+    when(tenantDetailsRepository.setSetupStatusByTenantId(TenantDetails.SetupStatusEnum.COMPLETED, newTenant.getId())).thenReturn(1);
     doNothing().when(userTenantsClient).postUserTenant(any());
     when(userTenantsClient.getUserTenants()).thenReturn(new UserTenantCollection(List.of(), 0));
     when(conversionService.convert(savedTenantDetailsEntity, Tenant.class)).thenReturn(newTenant);
