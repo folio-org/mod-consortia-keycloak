@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.0.3</version>
+    <version>4.1.1</version>
     <relativePath />
   </parent>
 
@@ -62,18 +62,19 @@
 
     <!--Folio dependencies properties-->
     <folio-module-descriptor-validator.version>1.0.1</folio-module-descriptor-validator.version>
-    <folio-spring-base.version>10.0.0-RC1</folio-spring-base.version>
-    <folio-service-tools.version>5.0.0</folio-service-tools.version>
-    <applications-poc-tools.version>4.0.0</applications-poc-tools.version>
+    <folio-spring-base.version>10.0.1</folio-spring-base.version>
+    <liquibase.version>4.33.0</liquibase.version>
+    <folio-service-tools.version>6.0.1</folio-service-tools.version>
+    <applications-poc-tools.version>4.0.7</applications-poc-tools.version>
 
     <!-- runtime dependencies -->
     <openapi-generator.version>7.20.0</openapi-generator.version>
     <mapstruct.version>1.6.3</mapstruct.version>
     <streamex.version>0.8.4</streamex.version>
+    <commons-text.version>1.15.0</commons-text.version>
 
     <!-- test dependencies -->
     <wiremock-standalone.version>3.0.1</wiremock-standalone.version>
-    <testcontainers.version>2.0.3</testcontainers.version>
     <awaitility.version>4.3.0</awaitility.version>
 
     <!--Maven plugin dependencies-->
@@ -86,17 +87,6 @@
     <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
   </properties>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.testcontainers</groupId>
-        <artifactId>testcontainers-bom</artifactId>
-        <version>${testcontainers.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
   <dependencies>
     <dependency>
       <groupId>org.folio</groupId>
@@ -190,6 +180,11 @@
       <groupId>one.util</groupId>
       <artifactId>streamex</artifactId>
       <version>${streamex.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-text</artifactId>
+      <version>${commons-text.version}</version>
     </dependency>
     <dependency>
       <groupId>org.mapstruct</groupId>

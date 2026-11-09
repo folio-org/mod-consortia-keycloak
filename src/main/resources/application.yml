@@ -36,8 +36,9 @@ spring:
     default-property-inclusion: non_null
     deserialization:
       fail-on-unknown-properties: false
-    date-time-feature:
-      write-dates-as-timestamps: false
+    datatype:
+      datetime:
+        write-dates-as-timestamps: false
 folio:
   environment: ${ENV:folio}
   okapi-url: ${OKAPI_URL:http://sidecar:8081}
