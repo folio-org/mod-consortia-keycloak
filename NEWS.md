@@ -1,3 +1,10 @@
+## 1.8.3 - Released (Trillium R1 2026)
+The purpose of this release is to add DeployConfig.json describing the module's deployment configuration.
+[Full Changelog](https://github.com/folio-org/mod-consortia-keycloak/compare/v1.8.2...v1.8.3)
+
+### Stories
+* [MODCONSKC-119](https://folio-org.atlassian.net/browse/MODCONSKC-119) - Add DeployConfig.json to mod-consortia-keycloak (ADR-0013 Configuration Management)
+
 ## 1.8.2 - Released (Trillium R1 2026)
 The purpose of this release is to fix OOM when deleting publish coordinator data.
 [Full Changelog](https://github.com/folio-org/mod-consortia-keycloak/compare/v1.8.1...v1.8.2)
