@@ -93,15 +93,15 @@
       },
       {
         "name": "DB_MINSHAREDPOOLSIZE",
-        "value": null,
-        "description": "Minimum number of idle connections kept in the pool. When unset, HikariCP keeps it equal to the maximum pool size",
+        "value": "0",
+        "description": "Minimum number of idle connections HikariCP keeps in the pool (minimumIdle). When unset, folio-spring-base applies its own default of 0, so idle connections are closed after DB_CONNECTIONRELEASEDELAY",
         "type": "DB",
         "essential": false
       },
       {
         "name": "DB_CONNECTIONRELEASEDELAY",
-        "value": null,
-        "description": "HikariCP idle timeout in milliseconds. When unset, the HikariCP default of 600000 applies",
+        "value": "60000",
+        "description": "HikariCP idle timeout in milliseconds: how long a connection above DB_MINSHAREDPOOLSIZE may sit idle before it is closed. When unset, folio-spring-base applies its own default of 60000",
         "type": "DB",
         "essential": false
       },
@@ -114,8 +114,8 @@
       },
       {
         "name": "DB_QUERYTIMEOUT",
-        "value": "60000",
-        "description": "PostgreSQL statement_timeout in milliseconds, applied as connection initialization SQL",
+        "value": null,
+        "description": "PostgreSQL statement_timeout in milliseconds, applied as connection initialization SQL (SET statement_timeout). folio-spring-base has no default: when unset, no statement timeout is applied",
         "type": "DB",
         "essential": false
       },
@@ -178,7 +178,7 @@
       {
         "name": "KAFKA_EVENTS_CONSUMER_PATTERN",
         "value": null,
-        "description": "Overrides the topic pattern used by the USER_CREATED, USER_UPDATED, USER_DELETED and CONSORTIUM_INSTANCE_SHARING_COMPLETE listeners. When unset, each pattern is derived from ENV",
+        "description": "Overrides the topic pattern of the USER_CREATED, USER_UPDATED, USER_DELETED and CONSORTIUM_INSTANCE_SHARING_COMPLETE listeners. A single value replaces all four patterns at once, so every listener would subscribe to the same topics; leave unset. When unset, each listener's pattern is derived from ENV and its event type",
         "type": "KAFKA",
         "essential": false
       },
@@ -200,6 +200,13 @@
         "name": "REPLICATION_FACTOR",
         "value": "2",
         "description": "Replication factor used for topics created by this module",
+        "type": "KAFKA",
+        "essential": false
+      },
+      {
+        "name": "KAFKA_PRODUCER_TENANT_COLLECTION",
+        "value": "ALL",
+        "description": "Enables tenant collection topics (read by folio-service-tools KafkaUtils). When set, the tenant segment of the topics this module creates and produces to is replaced by this qualifier ({ENV}.Default.{qualifier}.{EVENT} instead of {ENV}.Default.{tenant}.{EVENT}), so all tenants share one topic per event type. Must match [A-Z][A-Z0-9]{0,30} or the module fails to start, and must be set consistently across all modules of the deployment. Value taken from bugfest; when unset, per-tenant topics are used",
         "type": "KAFKA",
         "essential": false
       },
