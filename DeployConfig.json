@@ -22,12 +22,12 @@
       {
         "name": "xmx",
         "value": "1024m",
-        "description": "Maximum Java heap size. Set above the 512m used by comparable keycloak modules to leave headroom for consortium-wide fan-out: sharing settings, roles and policies are published to every member tenant, so request and response collections for all tenants are held in memory at once"
+        "description": "Maximum Java heap size. Above the 512m of comparable keycloak modules because sharing and publication fan-out hold request and response data for all member tenants in memory at once"
       },
       {
         "name": "MaxMetaspaceSize",
         "value": "384m",
-        "description": "Maximum Java metaspace size. Higher than the 256m used by comparable keycloak modules because Hibernate generates entity proxy and enhancement classes at runtime through Byte Buddy, so metaspace demand is not bounded by the static class count. Metaspace is committed lazily, so a higher cap costs nothing unless it is used"
+        "description": "Maximum Java metaspace size. Above the 256m of comparable keycloak modules because Hibernate generates proxy classes at runtime via Byte Buddy. Metaspace is committed lazily, so the cap costs nothing unless used"
       },
       {
         "name": "MetaspaceSize",
@@ -38,7 +38,7 @@
     "deployment": {
       "isHaSupported": true,
       "replicasRecommendedCount": 2,
-      "description": "mod-consortia-keycloak keeps all consortium state (consortia, tenants, tenant setup status, user tenant associations, publication records and sharing records) in PostgreSQL, so replicas can run side by side behind a load balancer. All Kafka listeners (USER_CREATED, USER_UPDATED, USER_DELETED, CONSORTIUM_INSTANCE_SHARING_COMPLETE) share a single consumer group per environment, so each event is processed by exactly one replica. The only in-memory state is the modUsersModuleIds Caffeine cache, which is local to each replica and expires 30 seconds after write. The /publications-cleanup timer is invoked externally by mod-scheduler and therefore runs on a single replica per invocation. Two replicas are recommended for availability."
+      "description": "All consortium state is kept in PostgreSQL and all Kafka listeners share one consumer group per environment, so replicas can run side by side and each event is processed once. The only in-memory state is a per-replica Caffeine cache of mod-users module ids (30 s TTL). /publications-cleanup is triggered by mod-scheduler and runs on one replica per call. Two replicas are recommended for availability."
     },
     "kong": {
       "timeouts": {
@@ -178,7 +178,7 @@
       {
         "name": "KAFKA_EVENTS_CONSUMER_PATTERN",
         "value": null,
-        "description": "Overrides the topic pattern of the USER_CREATED, USER_UPDATED, USER_DELETED and CONSORTIUM_INSTANCE_SHARING_COMPLETE listeners. A single value replaces all four patterns at once, so every listener would subscribe to the same topics; leave unset. When unset, each listener's pattern is derived from ENV and its event type",
+        "description": "Overrides the topic pattern of all four Kafka listeners at once, making them subscribe to the same topics; leave unset. When unset, each listener's pattern is derived from ENV and its event type",
         "type": "KAFKA",
         "essential": false
       },
@@ -206,28 +206,28 @@
       {
         "name": "KAFKA_PRODUCER_TENANT_COLLECTION",
         "value": "ALL",
-        "description": "Enables tenant collection topics (read by folio-service-tools KafkaUtils). When set, the tenant segment of the topics this module creates and produces to is replaced by this qualifier ({ENV}.Default.{qualifier}.{EVENT} instead of {ENV}.Default.{tenant}.{EVENT}), so all tenants share one topic per event type. Must match [A-Z][A-Z0-9]{0,30} or the module fails to start, and must be set consistently across all modules of the deployment. Value taken from bugfest; when unset, per-tenant topics are used",
+        "description": "Enables tenant collection topics (folio-service-tools KafkaUtils): topics become {ENV}.Default.{value}.{EVENT} instead of per-tenant {ENV}.Default.{tenant}.{EVENT}. Must match [A-Z][A-Z0-9]{0,30} (otherwise the module fails to start) and be the same across all modules. Value taken from bugfest; when unset, per-tenant topics are used",
         "type": "KAFKA",
         "essential": false
       },
       {
         "name": "SYSTEM_USER_ENABLED",
         "value": "false",
-        "description": "Legacy switch of the deprecated folio-spring-system-user library. Must stay false: system users and cross-tenant egress tokens are handled by folio-module-sidecar, and the module only builds a tenant-scoped execution context. Planned for removal together with the library",
+        "description": "Switch of the deprecated folio-spring-system-user library. Must stay false: system users and cross-tenant tokens are handled by folio-module-sidecar",
         "type": "FUNCTIONAL",
         "essential": true
       },
       {
         "name": "SYSTEM_USER_NAME",
         "value": "mod-consortia-keycloak",
-        "description": "Not used while SYSTEM_USER_ENABLED is false (the module's system user is managed by folio-module-sidecar). Kept only because the deprecated folio-spring-system-user library binds it; planned for removal together with the library. Value taken from bugfest; module default is consortia-system-user",
+        "description": "Unused while SYSTEM_USER_ENABLED is false; bound only by the deprecated folio-spring-system-user library. Value taken from bugfest; module default is consortia-system-user",
         "type": "FUNCTIONAL",
         "essential": false
       },
       {
         "name": "SYSTEM_USER_PASSWORD",
         "value": null,
-        "description": "Not used for authentication while SYSTEM_USER_ENABLED is false, but still required: the deprecated folio-spring-system-user library validates it as non-empty at startup, so the module fails to start without it. Any non-empty value from the secret store works; planned for removal together with the library",
+        "description": "Unused for authentication while SYSTEM_USER_ENABLED is false, but must be non-empty: the deprecated folio-spring-system-user library validates it at startup. Any value from the secret store works",
         "type": "FUNCTIONAL",
         "essential": true
       },
