@@ -1,0 +1,622 @@
+{
+  "description": "mod-consortia-keycloak configuration template. Default values are calibrated against a reference bugfest environment (tebfcon-mod-consortia-keycloak revision 17); see ADR-0013 (Module configuration management) for the governance model behind this file. Resource values and JVM limits must be adjusted to the target host capacity.",
+  "moduleDefaults": {
+    "resources": [
+      {
+        "name": "cpu",
+        "value": "512",
+        "description": "CPU request/limit for the mod-consortia-keycloak container"
+      },
+      {
+        "name": "memory",
+        "value": "2048",
+        "description": "Memory hard limit for the mod-consortia-keycloak container in MiB"
+      },
+      {
+        "name": "memoryReservation",
+        "value": "1740",
+        "description": "Memory reservation (soft limit) for the mod-consortia-keycloak container in MiB"
+      }
+    ],
+    "java": [
+      {
+        "name": "xmx",
+        "value": "1024m",
+        "description": "Maximum Java heap size. Above the 512m of comparable keycloak modules because sharing and publication fan-out hold request and response data for all member tenants in memory at once"
+      },
+      {
+        "name": "MaxMetaspaceSize",
+        "value": "384m",
+        "description": "Maximum Java metaspace size. Above the 256m of comparable keycloak modules because Hibernate generates proxy classes at runtime via Byte Buddy. Metaspace is committed lazily, so the cap costs nothing unless used"
+      },
+      {
+        "name": "MetaspaceSize",
+        "value": "192m",
+        "description": "Initial Java metaspace size, i.e. the threshold at which the first metaspace garbage collection is triggered rather than a limit. Set close to the expected steady-state usage to avoid premature full collections during startup"
+      }
+    ],
+    "deployment": {
+      "isHaSupported": true,
+      "replicasRecommendedCount": 2,
+      "description": "All consortium state is kept in PostgreSQL and all Kafka listeners share one consumer group per environment, so replicas can run side by side and each event is processed once. The only in-memory state is a per-replica Caffeine cache of mod-users module ids (30 s TTL). /publications-cleanup is triggered by mod-scheduler and runs on one replica per call. Two replicas are recommended for availability."
+    },
+    "kong": {
+      "timeouts": {
+        "connect": "60s",
+        "send": "60s",
+        "read": "60s"
+      },
+      "description": "Default Kong proxy timeouts are sufficient. Long-running consortium operations are asynchronous: tenant setup and sharing requests return as soon as the publication or setup job is recorded, and callers poll for status rather than holding the connection open."
+    },
+    "EnvVars": [
+      {
+        "name": "DB_HOST",
+        "value": null,
+        "description": "PostgreSQL database host",
+        "type": "DB",
+        "essential": true
+      },
+      {
+        "name": "DB_PORT",
+        "value": "5432",
+        "description": "PostgreSQL database port",
+        "type": "DB",
+        "essential": true
+      },
+      {
+        "name": "DB_USERNAME",
+        "value": null,
+        "description": "PostgreSQL database username (sourced from the secret store)",
+        "type": "DB",
+        "essential": true
+      },
+      {
+        "name": "DB_PASSWORD",
+        "value": null,
+        "description": "PostgreSQL database password (sourced from the secret store)",
+        "type": "DB",
+        "essential": true
+      },
+      {
+        "name": "DB_DATABASE",
+        "value": null,
+        "description": "PostgreSQL database name holding the mod-consortia-keycloak schema",
+        "type": "DB",
+        "essential": true
+      },
+      {
+        "name": "DB_MAXSHAREDPOOLSIZE",
+        "value": "20",
+        "description": "Maximum HikariCP connection pool size. Raised above the HikariCP default of 10 so the publication and GET publication executors (10 threads each at their maximum) do not stall waiting for connections",
+        "type": "DB",
+        "essential": false
+      },
+      {
+        "name": "DB_MINSHAREDPOOLSIZE",
+        "value": "0",
+        "description": "Minimum number of idle connections HikariCP keeps in the pool (minimumIdle). When unset, folio-spring-base applies its own default of 0, so idle connections are closed after DB_CONNECTIONRELEASEDELAY",
+        "type": "DB",
+        "essential": false
+      },
+      {
+        "name": "DB_CONNECTIONRELEASEDELAY",
+        "value": "60000",
+        "description": "HikariCP idle timeout in milliseconds: how long a connection above DB_MINSHAREDPOOLSIZE may sit idle before it is closed. When unset, folio-spring-base applies its own default of 60000",
+        "type": "DB",
+        "essential": false
+      },
+      {
+        "name": "DB_MAX_LIFETIME",
+        "value": "1800000",
+        "description": "Maximum lifetime of a pooled connection in milliseconds",
+        "type": "DB",
+        "essential": false
+      },
+      {
+        "name": "DB_QUERYTIMEOUT",
+        "value": null,
+        "description": "PostgreSQL statement_timeout in milliseconds, applied as connection initialization SQL (SET statement_timeout). folio-spring-base has no default: when unset, no statement timeout is applied",
+        "type": "DB",
+        "essential": false
+      },
+      {
+        "name": "DB_CHARSET",
+        "value": "UTF-8",
+        "description": "Character encoding used for database connections",
+        "type": "DB",
+        "essential": false
+      },
+      {
+        "name": "KAFKA_HOST",
+        "value": null,
+        "description": "Kafka broker host. Used to consume user lifecycle events and instance sharing completion events",
+        "type": "KAFKA",
+        "essential": true
+      },
+      {
+        "name": "KAFKA_PORT",
+        "value": "9092",
+        "description": "Kafka broker port",
+        "type": "KAFKA",
+        "essential": true
+      },
+      {
+        "name": "KAFKA_SECURITY_PROTOCOL",
+        "value": "PLAINTEXT",
+        "description": "Security protocol used to communicate with Kafka brokers (PLAINTEXT or SSL)",
+        "type": "KAFKA",
+        "essential": false
+      },
+      {
+        "name": "KAFKA_SSL_KEYSTORE_LOCATION",
+        "value": null,
+        "description": "Filesystem path to the Kafka client key store. Applies when KAFKA_SECURITY_PROTOCOL requires SSL client authentication",
+        "type": "KAFKA",
+        "essential": false
+      },
+      {
+        "name": "KAFKA_SSL_KEYSTORE_PASSWORD",
+        "value": null,
+        "description": "Password for the Kafka client key store",
+        "type": "KAFKA",
+        "essential": false
+      },
+      {
+        "name": "KAFKA_SSL_TRUSTSTORE_LOCATION",
+        "value": null,
+        "description": "Filesystem path to the Kafka client trust store. Applies when KAFKA_SECURITY_PROTOCOL is SSL",
+        "type": "KAFKA",
+        "essential": false
+      },
+      {
+        "name": "KAFKA_SSL_TRUSTSTORE_PASSWORD",
+        "value": null,
+        "description": "Password for the Kafka client trust store",
+        "type": "KAFKA",
+        "essential": false
+      },
+      {
+        "name": "KAFKA_EVENTS_CONSUMER_PATTERN",
+        "value": null,
+        "description": "Overrides the topic pattern of all four Kafka listeners at once, making them subscribe to the same topics; leave unset. When unset, each listener's pattern is derived from ENV and its event type",
+        "type": "KAFKA",
+        "essential": false
+      },
+      {
+        "name": "KAFKA_EVENTS_CONCURRENCY",
+        "value": "5",
+        "description": "Number of concurrent consumer threads for each user and instance sharing event listener",
+        "type": "KAFKA",
+        "essential": false
+      },
+      {
+        "name": "NUMBER_OF_PARTITIONS",
+        "value": "2",
+        "description": "Number of partitions used for topics created by this module",
+        "type": "KAFKA",
+        "essential": false
+      },
+      {
+        "name": "REPLICATION_FACTOR",
+        "value": "2",
+        "description": "Replication factor used for topics created by this module",
+        "type": "KAFKA",
+        "essential": false
+      },
+      {
+        "name": "KAFKA_PRODUCER_TENANT_COLLECTION",
+        "value": "ALL",
+        "description": "Enables tenant collection topics (folio-service-tools KafkaUtils): topics become {ENV}.Default.{value}.{EVENT} instead of per-tenant {ENV}.Default.{tenant}.{EVENT}. Must match [A-Z][A-Z0-9]{0,30} (otherwise the module fails to start) and be the same across all modules. Value taken from bugfest; when unset, per-tenant topics are used",
+        "type": "KAFKA",
+        "essential": false
+      },
+      {
+        "name": "SYSTEM_USER_ENABLED",
+        "value": "false",
+        "description": "Switch of the deprecated folio-spring-system-user library. Must stay false: system users and cross-tenant tokens are handled by folio-module-sidecar",
+        "type": "FUNCTIONAL",
+        "essential": true
+      },
+      {
+        "name": "SYSTEM_USER_NAME",
+        "value": "mod-consortia-keycloak",
+        "description": "Unused while SYSTEM_USER_ENABLED is false; bound only by the deprecated folio-spring-system-user library. Value taken from bugfest; module default is consortia-system-user",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "SYSTEM_USER_PASSWORD",
+        "value": null,
+        "description": "Unused for authentication while SYSTEM_USER_ENABLED is false, but must be non-empty: the deprecated folio-spring-system-user library validates it at startup. Any value from the secret store works",
+        "type": "FUNCTIONAL",
+        "essential": true
+      },
+      {
+        "name": "SINGLE_TENANT_UX",
+        "value": "true",
+        "description": "Enables single tenant UX, in which member tenant realms authenticate through a Keycloak identity provider pointing at the central tenant realm. Value taken from bugfest; module default is false",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "ASYNC_EXECUTOR_CORE_POOL_SIZE",
+        "value": "5",
+        "description": "Core threads of the async executor (asyncTaskExecutor) that completes sharing operations (settings, roles, capabilities, policies) and primary affiliation sync. @Async methods such as the Kafka user event listeners do not use it",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "ASYNC_EXECUTOR_MAX_POOL_SIZE",
+        "value": "10",
+        "description": "Maximum threads the general async executor may spawn once its queue is full",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "ASYNC_EXECUTOR_QUEUE_CAPACITY",
+        "value": "500",
+        "description": "Bounded queue depth for the general async executor before additional threads are created up to ASYNC_EXECUTOR_MAX_POOL_SIZE",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "PUBLICATION_EXECUTOR_CORE_POOL_SIZE",
+        "value": "5",
+        "description": "Core threads kept alive in the publication executor that processes per-tenant write fan-out (POST/PUT/DELETE). Isolated from the general async pool so long-running HTTP fan-out cannot starve async handlers",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "PUBLICATION_EXECUTOR_MAX_POOL_SIZE",
+        "value": "10",
+        "description": "Maximum threads the publication executor may spawn. Keep DB_MAXSHAREDPOOLSIZE at or above the combined maximum of both publication executors so threads do not stall waiting on database connections",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "PUBLICATION_EXECUTOR_QUEUE_CAPACITY",
+        "value": "500",
+        "description": "Bounded queue depth for the publication executor before additional threads are created up to PUBLICATION_EXECUTOR_MAX_POOL_SIZE",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "GET_PUBLICATION_EXECUTOR_CORE_POOL_SIZE",
+        "value": "5",
+        "description": "Core threads kept alive in the GET publication executor (read fan-out across member tenants). Isolated from the write publication pool so UI reads are not queued behind long-running write shares",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "GET_PUBLICATION_EXECUTOR_MAX_POOL_SIZE",
+        "value": "10",
+        "description": "Maximum threads the GET publication executor may spawn",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "GET_PUBLICATION_EXECUTOR_QUEUE_CAPACITY",
+        "value": "500",
+        "description": "Bounded queue depth for the GET publication executor before additional threads are created up to GET_PUBLICATION_EXECUTOR_MAX_POOL_SIZE",
+        "type": "FUNCTIONAL",
+        "essential": false
+      },
+      {
+        "name": "KC_URL",
+        "value": "http://keycloak:8080",
+        "description": "Keycloak base URL used to perform Keycloak Admin API requests",
+        "type": "KC",
+        "essential": true
+      },
+      {
+        "name": "KC_ADMIN_CLIENT_ID",
+        "value": "folio-backend-admin-client",
+        "description": "Keycloak admin client ID used for issuing admin tokens. Its secret is read from the secure store, not from an environment variable",
+        "type": "KC",
+        "essential": true
+      },
+      {
+        "name": "KC_ADMIN_GRANT_TYPE",
+        "value": "client_credentials",
+        "description": "OAuth2 grant type used to obtain the Keycloak admin token",
+        "type": "KC",
+        "essential": false
+      },
+      {
+        "name": "KC_LOGIN_CLIENT_SUFFIX",
+        "value": "-application",
+        "description": "Client name suffix appended to the tenant name when resolving the Keycloak login client that owns the authorization resources. Must match the login client naming used elsewhere in the deployment. Value taken from bugfest; module default is -login-application",
+        "type": "KC",
+        "essential": false
+      },
+      {
+        "name": "KC_CLIENT_TLS_ENABLED",
+        "value": "false",
+        "description": "Enables TLS for the Keycloak Admin API client",
+        "type": "KC",
+        "essential": false
+      },
+      {
+        "name": "KC_CLIENT_TLS_TRUSTSTORE_PATH",
+        "value": null,
+        "description": "Truststore file path for the Keycloak Admin API client. Required when KC_CLIENT_TLS_ENABLED is true",
+        "type": "KC",
+        "essential": false
+      },
+      {
+        "name": "KC_CLIENT_TLS_TRUSTSTORE_PASSWORD",
+        "value": null,
+        "description": "Truststore password for the Keycloak Admin API client",
+        "type": "KC",
+        "essential": false
+      },
+      {
+        "name": "KC_CLIENT_TLS_TRUSTSTORE_TYPE",
+        "value": null,
+        "description": "Truststore file type for the Keycloak Admin API client (e.g. JKS, PKCS12)",
+        "type": "KC",
+        "essential": false
+      },
+      {
+        "name": "KC_IDENTITY_PROVIDER_BASE_URL",
+        "value": null,
+        "description": "Base URL used to build member tenant identity provider URLs. Defaults to KC_URL. Applies when SINGLE_TENANT_UX is true",
+        "type": "KC",
+        "essential": false
+      },
+      {
+        "name": "KC_IDENTITY_PROVIDER_SUFFIX",
+        "value": "-keycloak-oidc",
+        "description": "Identity provider alias suffix. Applies when SINGLE_TENANT_UX is true",
+        "type": "KC",
+        "essential": false
+      },
+      {
+        "name": "KC_IDENTITY_PROVIDER_DISPLAY_SUFFIX",
+        "value": "Keycloak OIDC",
+        "description": "Identity provider display name suffix. Applies when SINGLE_TENANT_UX is true",
+        "type": "KC",
+        "essential": false
+      },
+      {
+        "name": "ENV",
+        "value": "folio",
+        "description": "Logical deployment name, used as the Kafka topic prefix and as the default first segment of the secure store key; must match the value used by the other modules",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "OKAPI_URL",
+        "value": "http://sidecar:8081",
+        "description": "Base URL (the module's sidecar) used to perform HTTP requests to other FOLIO modules",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "SERVER_PORT",
+        "value": "8081",
+        "description": "HTTP port the module listens on. Must match the port in the sidecar's MODULE_URL",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "JAVA_OPTIONS",
+        "value": null,
+        "description": "Additional JVM options for the mod-consortia-keycloak process (heap sizing, GC, agent flags, etc.). This is the variable honoured by the run-java.sh entrypoint of the folioci/alpine-jre-openjdk21 base image",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "LOG4J_CONFIGURATION_FILE",
+        "value": null,
+        "description": "Location of an external Log4j2 configuration file, overriding the log4j2.properties bundled with the module",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "FOLIO_LOGGING_REQUEST_ENABLED",
+        "value": "false",
+        "description": "Enables logging of incoming requests. Intended for troubleshooting only; adds a log record per request",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "FOLIO_LOGGING_REQUEST_LEVEL",
+        "value": "BASIC",
+        "description": "Detail level for incoming request logging (NONE, BASIC, HEADERS, FULL). Applies when FOLIO_LOGGING_REQUEST_ENABLED is true",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "FOLIO_LOGGING_EXCHANGE_ENABLED",
+        "value": "false",
+        "description": "Enables logging of outgoing HTTP exchanges to other modules. Intended for troubleshooting only; consortium fan-out produces one exchange per member tenant",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "FOLIO_LOGGING_EXCHANGE_LEVEL",
+        "value": "BASIC",
+        "description": "Detail level for outgoing exchange logging (NONE, BASIC, HEADERS, FULL). Applies when FOLIO_LOGGING_EXCHANGE_ENABLED is true",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "SECRET_STORE_TYPE",
+        "value": null,
+        "description": "Secure store backend holding the Keycloak admin client secret and the system user password. Supported values: EPHEMERAL, AWS_SSM, VAULT",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "SECURE_STORE_ENV",
+        "value": null,
+        "description": "First segment of the secure store key, for example prod or test. Defaults to the value of ENV, with fallback to 'folio'",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "SECRET_STORE_AWS_SSM_REGION",
+        "value": null,
+        "description": "AWS region of the SSM client. Applies when SECRET_STORE_TYPE=AWS_SSM; when unset the AWS default region provider chain is used",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "SECRET_STORE_AWS_SSM_USE_IAM",
+        "value": "true",
+        "description": "Use the IAM role of the running task for SSM authorization instead of explicit credentials. Applies when SECRET_STORE_TYPE=AWS_SSM",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "SECRET_STORE_AWS_SSM_ECS_CREDENTIALS_ENDPOINT",
+        "value": null,
+        "description": "The HTTP endpoint used to retrieve AWS credentials. Ignored when SECRET_STORE_AWS_SSM_USE_IAM is true",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "SECRET_STORE_AWS_SSM_ECS_CREDENTIALS_PATH",
+        "value": null,
+        "description": "Path component of the credentials endpoint URI, appended to SECRET_STORE_AWS_SSM_ECS_CREDENTIALS_ENDPOINT",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "SECRET_STORE_VAULT_TOKEN",
+        "value": null,
+        "description": "Token for accessing Vault, may be a root token. Required when SECRET_STORE_TYPE=VAULT",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "SECRET_STORE_VAULT_ADDRESS",
+        "value": null,
+        "description": "Address of the Vault instance. Required when SECRET_STORE_TYPE=VAULT",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "SECRET_STORE_VAULT_ENABLE_SSL",
+        "value": "false",
+        "description": "Whether to use SSL when connecting to Vault",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "SECRET_STORE_VAULT_PEM_FILE_PATH",
+        "value": null,
+        "description": "Path to an X.509 certificate in unencrypted PEM format (UTF-8), used for Vault SSL verification",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "SECRET_STORE_VAULT_KEYSTORE_PASSWORD",
+        "value": null,
+        "description": "Password used to access the Vault client JKS keystore",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "SECRET_STORE_VAULT_KEYSTORE_FILE_PATH",
+        "value": null,
+        "description": "Path to a JKS keystore file containing a Vault client cert and private key",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "SECRET_STORE_VAULT_TRUSTSTORE_FILE_PATH",
+        "value": null,
+        "description": "Path to a JKS truststore file containing trusted Vault server certs",
+        "type": "CONFIG",
+        "essential": false
+      }
+    ]
+  },
+  "sidecarDefaults": {
+    "resources": [
+      {
+        "name": "cpu",
+        "value": "64",
+        "description": "CPU request/limit for the sidecar container"
+      },
+      {
+        "name": "memory",
+        "value": "1024",
+        "description": "Memory hard limit for the sidecar container in MiB"
+      },
+      {
+        "name": "memoryReservation",
+        "value": "512",
+        "description": "Memory reservation (soft limit) for the sidecar container in MiB"
+      }
+    ],
+    "java": [
+      {
+        "name": "xms",
+        "value": "128m",
+        "description": "Initial Java heap size"
+      },
+      {
+        "name": "xmx",
+        "value": "256m",
+        "description": "Maximum Java heap size"
+      },
+      {
+        "name": "MaxMetaspaceSize",
+        "value": "96m",
+        "description": "Maximum Java metaspace size"
+      },
+      {
+        "name": "UseZGC",
+        "value": "true",
+        "description": "Use the ZGC low-pause collector"
+      }
+    ],
+    "EnvVars": [
+      {
+        "name": "ENV",
+        "value": null,
+        "description": "Deployment environment identifier. Must match the module's ENV",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "JAVA_OPTS",
+        "value": null,
+        "description": "Additional JVM options for the sidecar process",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "MODULE_NAME",
+        "value": "mod-consortia-keycloak",
+        "description": "Name of the backend module the sidecar fronts",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "MODULE_URL",
+        "value": null,
+        "description": "Internal URL (host:port) at which the mod-consortia-keycloak container is reachable from its sidecar. The port must match the module's SERVER_PORT",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "MODULE_VERSION",
+        "value": null,
+        "description": "Version of the mod-consortia-keycloak module deployed alongside this sidecar",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "ALLOW_CROSS_TENANT_REQUESTS",
+        "value": "true",
+        "description": "Allows requests whose tenant differs from the tenant in the token. Must be enabled for consortium deployments, because mod-consortia-keycloak performs sharing and publication fan-out to member tenants on behalf of a central tenant user",
+        "type": "CONFIG",
+        "essential": true
+      }
+    ]
+  }
+}
