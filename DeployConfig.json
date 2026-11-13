@@ -10,12 +10,12 @@
       {
         "name": "memory",
         "value": "2048",
-        "description": "Memory hard limit for the mod-consortia-keycloak container in MiB Lower than bugfest (5136), which runs v1.8.2 sized as a workaround for the publications-cleanup OOM fixed in MODCONSKC-126 (v1.8.3)"
+        "description": "Memory hard limit for the mod-consortia-keycloak container in MiB. Lower than bugfest (5136), which runs v1.8.2 sized as a workaround for the publications-cleanup OOM fixed in MODCONSKC-126 (v1.8.3)"
       },
       {
         "name": "memoryReservation",
         "value": "1740",
-        "description": "Memory reservation (soft limit) for the mod-consortia-keycloak container in MiB Lower than bugfest (4776), which runs v1.8.2 sized as a workaround for the publications-cleanup OOM fixed in MODCONSKC-126 (v1.8.3)"
+        "description": "Memory reservation (soft limit) for the mod-consortia-keycloak container in MiB. Lower than bugfest (4776), which runs v1.8.2 sized as a workaround for the publications-cleanup OOM fixed in MODCONSKC-126 (v1.8.3)"
       }
     ],
     "java": [
