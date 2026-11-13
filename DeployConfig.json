@@ -10,19 +10,19 @@
       {
         "name": "memory",
         "value": "2048",
-        "description": "Memory hard limit for the mod-consortia-keycloak container in MiB. Lower than bugfest (5136), which runs v1.8.2 sized as a workaround for the publications-cleanup OOM fixed in MODCONSKC-126 (v1.8.3)"
+        "description": "Memory hard limit for the mod-consortia-keycloak container in MiB"
       },
       {
         "name": "memoryReservation",
         "value": "1740",
-        "description": "Memory reservation (soft limit) for the mod-consortia-keycloak container in MiB. Lower than bugfest (4776), which runs v1.8.2 sized as a workaround for the publications-cleanup OOM fixed in MODCONSKC-126 (v1.8.3)"
+        "description": "Memory reservation (soft limit) for the mod-consortia-keycloak container in MiB"
       }
     ],
     "java": [
       {
         "name": "xmx",
         "value": "1024m",
-        "description": "Maximum Java heap size. Above the 512m of comparable keycloak modules because sharing and publication fan-out hold request and response data for all member tenants in memory at once. Lower than bugfest (4416m), which runs v1.8.2 sized as a workaround for the publications-cleanup OOM fixed in MODCONSKC-126 (v1.8.3)"
+        "description": "Maximum Java heap size. Above the 512m of comparable keycloak modules because sharing and publication fan-out hold request and response data for all member tenants in memory at once"
       },
       {
         "name": "MaxMetaspaceSize",
