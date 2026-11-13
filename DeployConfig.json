@@ -583,13 +583,6 @@
         "essential": true
       },
       {
-        "name": "JAVA_OPTS",
-        "value": null,
-        "description": "Additional JVM options for the sidecar process",
-        "type": "CONFIG",
-        "essential": false
-      },
-      {
         "name": "MODULE_NAME",
         "value": "mod-consortia-keycloak",
         "description": "Name of the backend module the sidecar fronts",
