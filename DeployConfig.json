@@ -387,7 +387,7 @@
       },
       {
         "name": "OKAPI_URL",
-        "value": "http://sidecar:8081",
+        "value": null,
         "description": "Base URL (the module's sidecar) used to perform HTTP requests to other FOLIO modules",
         "type": "CONFIG",
         "essential": true
