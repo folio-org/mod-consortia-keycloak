@@ -215,7 +215,7 @@
         "value": "false",
         "description": "Switch of the deprecated folio-spring-system-user library. Must stay false: system users and cross-tenant tokens are handled by folio-module-sidecar",
         "type": "FUNCTIONAL",
-        "essential": true
+        "essential": false
       },
       {
         "name": "SYSTEM_USER_NAME",
@@ -303,7 +303,7 @@
       },
       {
         "name": "KC_URL",
-        "value": "http://keycloak:8080",
+        "value": null,
         "description": "Keycloak base URL used to perform Keycloak Admin API requests",
         "type": "KC",
         "essential": true
@@ -313,7 +313,7 @@
         "value": "folio-backend-admin-client",
         "description": "Keycloak admin client ID used for issuing admin tokens. Its secret is read from the secure store, not from an environment variable",
         "type": "KC",
-        "essential": true
+        "essential": false
       },
       {
         "name": "KC_ADMIN_GRANT_TYPE",
@@ -380,14 +380,14 @@
       },
       {
         "name": "ENV",
-        "value": "folio",
+        "value": null,
         "description": "Logical deployment name, used as the Kafka topic prefix and as the default first segment of the secure store key; must match the value used by the other modules",
         "type": "CONFIG",
         "essential": true
       },
       {
         "name": "OKAPI_URL",
-        "value": "http://sidecar:8081",
+        "value": null,
         "description": "Base URL (the module's sidecar) used to perform HTTP requests to other FOLIO modules",
         "type": "CONFIG",
         "essential": true
@@ -404,7 +404,7 @@
         "value": null,
         "description": "Additional JVM options for the mod-consortia-keycloak process (heap sizing, GC, agent flags, etc.). This is the variable honoured by the run-java.sh entrypoint of the folioci/alpine-jre-openjdk21 base image",
         "type": "CONFIG",
-        "essential": true
+        "essential": false
       },
       {
         "name": "LOG4J_CONFIGURATION_FILE",
@@ -579,13 +579,6 @@
         "name": "ENV",
         "value": null,
         "description": "Deployment environment identifier. Must match the module's ENV",
-        "type": "CONFIG",
-        "essential": false
-      },
-      {
-        "name": "JAVA_OPTS",
-        "value": null,
-        "description": "Additional JVM options for the sidecar process",
         "type": "CONFIG",
         "essential": true
       },
