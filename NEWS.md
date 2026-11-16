@@ -1,3 +1,10 @@
+## 1.8.4 - Released (Trillium R1 2026)
+The purpose of this release is to align DeployConfig.json with the fse-check-deploy-config job.
+[Full Changelog](https://github.com/folio-org/mod-consortia-keycloak/compare/v1.8.3...v1.8.4)
+
+### Stories
+* [MODCONSKC-119](https://folio-org.atlassian.net/browse/MODCONSKC-119) - Add DeployConfig.json to mod-consortia-keycloak (ADR-0013 Configuration Management)
+
 ## 1.8.3 - Released (Trillium R1 2026)
 The purpose of this release is to add DeployConfig.json describing the module's deployment configuration and upgrade to SpringBoot 4.1.
 [Full Changelog](https://github.com/folio-org/mod-consortia-keycloak/compare/v1.8.2...v1.8.3)
